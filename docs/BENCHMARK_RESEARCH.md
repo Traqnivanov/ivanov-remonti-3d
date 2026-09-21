@@ -138,9 +138,9 @@ AI-generated geometry не става Quote Ready, докато няма кал�
 
 Но уникалното ядро е различно:
 
-### A. Renovation Layer Engine
+### A. Smart Offer Service Link Engine
 Виждаш и управляваш:
-`existing → demolition → installations → construction → insulation → drywall/plaster → skim → sanding → primer → paint → finish`.
+`service position ↔ exact target in model ↔ quantity ↔ price ↔ Info ↔ relevant visual presentation`.
 
 ### B. Geometry-linked Operations
 Операцията е вързана към реална площ/линия/обект.
@@ -168,7 +168,7 @@ AI-generated geometry не става Quote Ready, докато няма кал�
 - drag-and-drop;
 - quick recipes;
 - advanced breakdown;
-- timeline/stage stack;
+- contextual service/offer panel;
 - client mode.
 
 ## 8. Визуален стандарт, получен от benchmark-а
