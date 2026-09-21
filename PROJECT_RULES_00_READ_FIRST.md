@@ -34,13 +34,14 @@ North Star механизъм:
 1. `PROJECT_RULES_00_READ_FIRST.md`
 2. `docs/MASTER_SPEC.md`
 3. `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
-4. `docs/DECISION_LOG.md`
-5. `docs/PRODUCT_VISION_STANDARD.md`
-6. `docs/SERVICE_OPERATION_REGISTRY.md`
-7. `docs/BENCHMARK_RESEARCH.md`
-8. `docs/TOOLS_REUSE_AUDIT.md`
-9. `docs/DELIVERY_STRATEGY.md`
-10. конкретният handoff/task за текущата работа
+4. `docs/3D_VIEWER_STANDARD.md`
+5. `docs/DECISION_LOG.md`
+6. `docs/PRODUCT_VISION_STANDARD.md`
+7. `docs/SERVICE_OPERATION_REGISTRY.md`
+8. `docs/BENCHMARK_RESEARCH.md`
+9. `docs/TOOLS_REUSE_AUDIT.md`
+10. `docs/DELIVERY_STRATEGY.md`
+11. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
 
