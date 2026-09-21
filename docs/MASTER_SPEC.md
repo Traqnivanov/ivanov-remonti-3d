@@ -182,6 +182,7 @@ Ivanov Remonti се позиционира като услуга за цялос
 - `docs/PRODUCT_VISION_STANDARD.md` — крайна цел, photo→model workflow, renovation layers, quantity/cost и client mode.
 - `docs/SERVICE_OPERATION_REGISTRY.md` — услугите на Ivanov Remonti и тяхното превръщане в операции, единици и визуални етапи.
 - `docs/BENCHMARK_RESEARCH.md` — RoomSketcher, Planner 5D, Homestyler, SketchUp и Floorplanner; proven patterns, които приемаме без копиране на UI.
+- `docs/TOOLS_REUSE_AUDIT.md` — кои формули и workflows от Ivanov Tools могат безопасно да се пренесат след проверка.
 
 Тези документи са част от source of truth и се четат преди значима имплементация.
 
@@ -192,3 +193,8 @@ North Star workflow:
 `снимки/размери → потвърдена геометрия → операции по етапи → реалистична визуализация → количества → Price Book → крайна цена → клиентско представяне`.
 
 Снимка или AI suggestion без потвърден мащаб не може автоматично да стане основа за количествена оферта.
+
+
+### Existing tools integration rule
+
+Съществуващите калкулатори в `Traqnivanov/ivanov-tools` се използват като read-only reference и verification source за m², материали и формули. Новата програма не ги вика runtime и не зависи от тях. Одобрена формула се пренася като чист модул с тестове.
