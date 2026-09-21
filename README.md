@@ -10,6 +10,7 @@ Independent professional renovation visualization and quoting tool.
 4. [Service & Operation Registry](docs/SERVICE_OPERATION_REGISTRY.md)
 5. [Benchmark Research](docs/BENCHMARK_RESEARCH.md)
 6. [Ivanov Tools Reuse Audit](docs/TOOLS_REUSE_AUDIT.md)
+7. [Delivery Strategy](docs/DELIVERY_STRATEGY.md)
 
 ## Core idea
 
