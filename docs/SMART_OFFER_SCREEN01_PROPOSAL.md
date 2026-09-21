@@ -45,11 +45,17 @@ One clear action returns to the complete proposed room.
 The room/model is the visual center.
 
 Must support:
+- true interactive 3D, not a static/fake-perspective room;
 - orbit/zoom;
 - clear selection;
 - automatic cutaway;
+- manual Left / Right / Front / Back / Ceiling visibility;
+- **Show all**;
+- **Auto wall removal ON/OFF**;
 - realistic final materials;
 - service highlight states.
+
+Cutaway and wall visibility are core client controls, not advanced settings.
 
 ### Offer panel
 A clean list of included positions.
@@ -191,3 +197,16 @@ The desired reaction is not “this has many features”.
 The desired reaction is:
 
 **“Това е толкова логично — защо обикновената оферта не работи така?”**
+
+
+## 11. Mandatory 3D viewer reference
+
+Screen 01 must follow `docs/3D_VIEWER_STANDARD.md`.
+
+The offer panel may be redesigned, but the central experience remains a real 3D room with non-destructive wall/ceiling removal.
+
+The prototype is not accepted if the room is replaced by:
+- a static render;
+- a 2D room image;
+- a fake perspective card;
+- a fixed camera that prevents inspecting the interior.
