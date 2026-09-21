@@ -7,12 +7,13 @@ Interactive renovation offer and visualization system.
 1. [PROJECT_RULES_00_READ_FIRST.md](PROJECT_RULES_00_READ_FIRST.md)
 2. [MASTER SPEC](docs/MASTER_SPEC.md)
 3. [Smart Offer Product Contract](docs/SMART_OFFER_PRODUCT_CONTRACT.md)
-4. [Decision Log](docs/DECISION_LOG.md)
-5. [Product Vision & Quality Standard](docs/PRODUCT_VISION_STANDARD.md)
-6. [Service & Operation Registry](docs/SERVICE_OPERATION_REGISTRY.md)
-7. [Benchmark Research](docs/BENCHMARK_RESEARCH.md)
-8. [Ivanov Tools Reuse Audit](docs/TOOLS_REUSE_AUDIT.md)
-9. [Delivery Strategy](docs/DELIVERY_STRATEGY.md)
+4. [3D Viewer Standard](docs/3D_VIEWER_STANDARD.md)
+5. [Decision Log](docs/DECISION_LOG.md)
+6. [Product Vision & Quality Standard](docs/PRODUCT_VISION_STANDARD.md)
+7. [Service & Operation Registry](docs/SERVICE_OPERATION_REGISTRY.md)
+8. [Benchmark Research](docs/BENCHMARK_RESEARCH.md)
+9. [Ivanov Tools Reuse Audit](docs/TOOLS_REUSE_AUDIT.md)
+10. [Delivery Strategy](docs/DELIVERY_STRATEGY.md)
 
 ## Core idea
 
