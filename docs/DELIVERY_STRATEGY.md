@@ -21,57 +21,48 @@ The project becomes unnecessarily large if we try to solve at once:
 
 The correct approach is to make every completed phase already useful for a real Ivanov Remonti project.
 
-## 2. Critical simplification: we do NOT animate the worker doing the operation
+## 2. Critical simplification: Smart Offer, not construction animation
 
-The visualizer does not need to simulate a trowel spreading putty, a roller painting a wall or sandpaper physically removing material.
+The product does NOT simulate a worker physically applying putty, sanding, priming or painting.
 
-For the professional/client purpose we visualize the resulting state after each operation.
+The client interacts with the **offer position**, and the model answers:
+- where the service applies;
+- what it means;
+- what quantity is included;
+- what it costs;
+- what visual result is relevant, if there is one.
 
-Example wall state stack:
-1. existing surface;
-2. plaster/base correction;
-3. gypsum/repair layer;
-4. fine skim coat;
-5. sanded surface;
-6. primed surface;
-7. painted surface;
-8. installed switches/outlets;
-9. furniture/lighting/final room.
+This removes a huge amount of unnecessary simulation complexity while preserving the actual client value.
 
-This gives the client the visual progression without building a construction-game simulation.
+## 3. How services are presented
 
-## 3. How each type of renovation work is drawn
+### A. Surface services
+Plaster, gypsum/fine putty, primer, paint, decorative plaster, waterproofing, tiles.
 
-### A. Surface operations
-Used for plaster, gypsum putty, fine putty, primer, paint, decorative plaster, waterproofing and tile finish.
+Use:
+- exact surface highlight;
+- realistic material/result only where the difference is meaningful;
+- quantity and price from the same geometry.
 
-Implementation principle: surface geometry + operation stack + material state.
+### B. Geometric/construction services
+Drywall, partitions, suspended ceilings, niches, boxes.
 
-The same wall geometry remains the source of truth. Operations change its rendered material/state.
+Use real 3D geometry linked to quantities.
 
-Examples:
-- plaster: mineral texture + appropriate roughness and optional visible thickness;
-- gypsum/fine skim: progressively smoother light mineral surface;
-- sanding: same surface becomes smoother/cleaner, not a fake new object;
-- primer: separate technical state, visually subtle;
-- paint: real selected color + finish/roughness;
-- decorative plaster: PBR texture/normal/roughness at real scale;
-- tiles: generated tile grid/material with real tile dimensions and joints.
+### C. Hidden systems
+Insulation, profiles, plumbing and electrical routes.
 
-### B. Layer/assembly operations
-Used for drywall, insulation, partition walls, suspended ceilings, niches and service boxes.
+Use x-ray/cutaway/transparent technical views when the client asks to inspect that service.
 
-These DO use real geometry layers: frame → insulation → board → joint treatment → finish.
-The user can switch stages and see inside the construction when needed.
+### D. Movable objects
+Outlets, switches, lights, radiators, sanitary ware, doors, furniture.
 
-### C. Linear operations
-Used for LED niches, cornices, baseboards, reveals and pipes/cable routes.
-These are paths with a real length and profile. The same path provides 3D geometry, linear meters and pricing quantity.
+Use reusable 3D objects with exact position/height/size.
 
-### D. Point/object operations
-Used for outlets, switches, lights, plumbing points, radiators, sanitary ware and furniture.
-They are objects with position, mounting height, rotation, dimensions, attachment surface and optional price.
-The user moves them with drag-and-drop or exact numeric values.
+### E. Low-visibility services
+Sanding, primer and similar work.
+
+Use zone highlight + quantity + price + short Info. Do not invent fake visual drama.
 
 ## 4. Visual quality strategy
 
@@ -120,18 +111,39 @@ This keeps the application useful before advanced AI is finished.
 
 ## 7. The first production proof must be deliberately small
 
-Before building a whole apartment, prove the complete chain on one wall.
+Before building a whole apartment, prove the complete Smart Offer chain on **one wall**.
 
 ### Proof Wall v1
-Inputs: wall width and height, one optional door/window, optional photo/reference.
 
-Editable objects: one outlet, one switch, one light/reference object.
+Inputs:
+- wall width and height;
+- one optional door/window;
+- optional photo/reference.
 
-Operations: existing, plaster, gypsum putty, fine putty, sanding, primer, paint.
+Editable objects:
+- one outlet;
+- one switch;
+- one light/reference object.
 
-Outputs: visual stage switching, exact net m², quantity per selected operation, Price Book lookup, total EUR price and client before/after image.
+Offer positions:
+- plaster;
+- gypsum putty;
+- fine putty;
+- sanding;
+- primer;
+- paint.
 
-If this works correctly, the architecture is proven.
+Outputs:
+- clicking an offer position highlights the exact target zone;
+- clicking the wall shows linked offer positions;
+- short ⓘ Info;
+- exact net m²;
+- quantity per selected operation;
+- Price Book lookup;
+- total EUR price;
+- final client result.
+
+If this works correctly, the core Smart Offer mechanism is proven.
 
 ## 8. Next vertical slice: one complete room
 
@@ -171,28 +183,42 @@ The order can change by Owner decision, but we do not implement all families in 
 
 ## 10. Development rule: vertical slices, not giant subsystems
 
-A feature is preferred when it crosses the full chain: geometry → operation → visual state → quantity → price → client output.
+A feature is preferred when it crosses the full chain:
 
-Bad milestone: build 70 material shaders.
-Good milestone: one wall can receive fine putty, show the correct state, calculate its m², calculate material/labor and appear in the quote.
+**geometry → linked service → client presentation → quantity → price → Smart Offer**
+
+Bad milestone:
+- build 70 shaders;
+- build every construction stage renderer;
+- build a huge furniture library before the offer mechanism works.
+
+Good milestone:
+- one wall has a real offer position for fine putty;
+- clicking the position highlights the correct wall;
+- Info explains it;
+- m² and price are correct;
+- the position appears correctly in the client offer.
 
 This ensures the project becomes useful early.
 
 ## 11. Definition of useful MVP
 
-The MVP does NOT need AI reconstruction.
+The MVP does NOT need AI reconstruction and does NOT need visual simulation of every construction process.
 
 It is useful when the user can:
+
 1. create one real rectangular room from dimensions;
 2. add/move doors and windows;
 3. select surfaces;
-4. add renovation operations in correct order;
-5. see each stage;
-6. apply paint/material;
-7. add/move outlets, switches, lights and basic furniture;
-8. calculate m² / linear meters / pieces;
-9. price labor from Price Book;
-10. export a clear client view and price breakdown.
+4. add real services to exact surfaces/objects;
+5. click a service and see exactly where it applies;
+6. click a model element and see linked offer positions;
+7. open short service Info;
+8. apply paint/material where relevant;
+9. add/move outlets, switches, lights and basic furniture;
+10. calculate m² / linear meters / pieces;
+11. price labor from Price Book;
+12. present a clear interactive Smart Offer to the client.
 
 ## 12. Risk control
 
@@ -208,10 +234,13 @@ If a phase takes too long without creating a usable workflow, scope is reduced b
 
 ## 14. Locked architectural idea
 
-The application has four independent cores:
-1. Geometry Core — rooms, surfaces, openings, objects.
-2. Renovation Layer Engine — ordered construction/finish operations.
-3. Quantity & Price Core — m², lm, pieces, norms, Price Book.
-4. Renderer — editor visualization and client-quality output.
+The application has five independent cores:
 
-This separation is what keeps the full vision feasible.
+1. **Geometry Core** — rooms, surfaces, openings, objects.
+2. **Service Link Engine** — services linked to exact geometry/objects and client presentation mode.
+3. **Quantity & Price Core** — m², lm, pieces, norms, Price Book.
+4. **Renderer** — editor visualization and client-quality output.
+5. **Smart Offer UI** — interactive client-facing offer with service ↔ model navigation and Info.
+
+This separation is what keeps the full vision feasible and prevents the product from becoming a construction-animation project.
+
