@@ -212,6 +212,7 @@ Info съдържанието се структурира кратко:
 
 - `PROJECT_RULES_00_READ_FIRST.md` — йерархия, процес, No-Assumption, Ivanov Unique, quality gates.
 - `docs/SMART_OFFER_PRODUCT_CONTRACT.md` — точният клиентски механизъм на Smart Offer.
+- `docs/3D_VIEWER_STANDARD.md` — задължителният реален 3D viewer, camera, wall/ceiling visibility и cutaway contract.
 - `docs/DECISION_LOG.md` — последните Owner решения и корекции на погрешни тълкувания.
 - `docs/PRODUCT_VISION_STANDARD.md` — продуктова архитектура и качество.
 - `docs/SERVICE_OPERATION_REGISTRY.md` — услуги, операции, единици и dependencies.
