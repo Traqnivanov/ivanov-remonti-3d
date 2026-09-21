@@ -32,7 +32,8 @@
 3. `docs/PRODUCT_VISION_STANDARD.md`
 4. `docs/SERVICE_OPERATION_REGISTRY.md`
 5. `docs/BENCHMARK_RESEARCH.md`
-6. конкретният handoff/task за текущата работа
+6. `docs/TOOLS_REUSE_AUDIT.md`
+7. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След одобрение се записва в подходящия документ.
 
@@ -265,3 +266,16 @@ AI/photoreal render може да подобрява визията, но ням
 Програмата е успешна, когато един реален обект може да мине през нея така:
 
 **оглед/снимки → размери → модел → операции → визуални етапи → мебели/оборудване → количества → цени → крайна оферта/презентация → клиентът разбира и вижда какво плаща.**
+
+
+## 19. Reuse на съществуващите Ivanov Tools
+
+`Traqnivanov/ivanov-tools` може да се използва като **read-only reference** за вече разработени калкулатори, формули, material norms и workflow идеи.
+
+Забранено е новият 3D Visualizer да зависи runtime от старите HTML страници.
+
+Правило:
+
+`audit old formula → isolate → document assumptions → test → approve → port to new calculation-core`.
+
+Цените никога не се пренасят като част от формулата. Те идват от отделния Price Book.
