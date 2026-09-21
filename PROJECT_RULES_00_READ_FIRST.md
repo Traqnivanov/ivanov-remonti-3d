@@ -33,7 +33,8 @@
 4. `docs/SERVICE_OPERATION_REGISTRY.md`
 5. `docs/BENCHMARK_RESEARCH.md`
 6. `docs/TOOLS_REUSE_AUDIT.md`
-7. конкретният handoff/task за текущата работа
+7. `docs/DELIVERY_STRATEGY.md`
+8. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След одобрение се записва в подходящия документ.
 
