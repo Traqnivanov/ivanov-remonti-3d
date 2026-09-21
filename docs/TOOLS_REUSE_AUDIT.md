@@ -254,3 +254,54 @@ and calculate:
 Then compare the result manually and with the existing m² calculator.
 
 Only after this passes do we connect the same data to 3D.
+
+
+## 12. Important inconsistency found during audit
+
+The existing tools themselves prove why we must audit before reuse.
+
+In `calculator.html`:
+
+- service key `osnovna` is labelled **„Основна мазилка“**;
+- material `p_osnovna` is also **„Основна мазилка 30кг“**.
+
+In `room.html`:
+
+- the same service key `osnovna` is labelled **„Основна укрепваща шпакловка“**;
+- the material is still **„Основна мазилка“**.
+
+Therefore one key currently mixes two concepts in different tools.
+
+**New-app rule:** this ambiguity is not copied. The new registry separates ordinary plaster from putty/skim-coat operations and gives each its own operation ID, formula and Price Book entry.
+
+## 13. How the m² calculator will help the 3D program
+
+The calculator becomes a verification/reference layer for the new Geometry → Quantity engine.
+
+Example:
+
+A room in the 3D model has:
+- L = 5.00 m
+- W = 4.00 m
+- H = 2.70 m
+- one door;
+- one window.
+
+The visualizer geometry calculates the exact wall surfaces and openings. The calculation core then produces the same type of outputs already proven useful in Ivanov Tools:
+
+- gross wall m²;
+- net wall m²;
+- ceiling/floor m²;
+- m² per individual wall;
+- paint liters by coats;
+- putty kg/buckets by selected layer;
+- drywall boards/profiles/fasteners;
+- tile adhesive;
+- screed quantities.
+
+During migration we compare the new pure-function result against:
+1. manual calculation;
+2. current Ivanov Tools result;
+3. a known test fixture.
+
+Only when all three agree within the accepted rounding rule is the formula marked approved.
