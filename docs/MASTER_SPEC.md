@@ -172,3 +172,23 @@ Ivanov Remonti се позиционира като услуга за цялос
 - **Главен асистент / Work Controller** — архитектура, риск, планиране, одит, възлагане на ограничени задачи и финален review.
 - **OBK** — изпълнителен чат; работи само по конкретно възложен обхват и не разширява задачата или продуктовите решения самостоятелно.
 - При реален риск за друг проект, данни, deployment или работещ инструмент работата спира и рискът се докладва на Owner преди промяна.
+
+
+## 18. Foundation standard documents
+
+След анализа на целта, услугите и benchmark-а проектът има задължителна foundation документация:
+
+- `PROJECT_RULES_00_READ_FIRST.md` — йерархия, процес, Git, риск, quality gates и Definition of Done.
+- `docs/PRODUCT_VISION_STANDARD.md` — крайна цел, photo→model workflow, renovation layers, quantity/cost и client mode.
+- `docs/SERVICE_OPERATION_REGISTRY.md` — услугите на Ivanov Remonti и тяхното превръщане в операции, единици и визуални етапи.
+- `docs/BENCHMARK_RESEARCH.md` — RoomSketcher, Planner 5D, Homestyler, SketchUp и Floorplanner; proven patterns, които приемаме без копиране на UI.
+
+Тези документи са част от source of truth и се четат преди значима имплементация.
+
+### LOCKED product direction
+
+North Star workflow:
+
+`снимки/размери → потвърдена геометрия → операции по етапи → реалистична визуализация → количества → Price Book → крайна цена → клиентско представяне`.
+
+Снимка или AI suggestion без потвърден мащаб не може автоматично да стане основа за количествена оферта.
