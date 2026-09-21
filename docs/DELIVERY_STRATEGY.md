@@ -1,6 +1,6 @@
 # DELIVERY STRATEGY — HOW TO MAKE THE FULL VISION ACHIEVABLE
 
-**Status:** foundation decision candidate
+**Status:** OWNER-APPROVED FOUNDATION DIRECTION
 **Goal:** prevent the project from becoming a one-year experiment before it becomes useful.
 
 ## 1. Feasibility assessment
