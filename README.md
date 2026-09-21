@@ -9,6 +9,7 @@ Independent professional renovation visualization and quoting tool.
 3. [Product Vision & Quality Standard](docs/PRODUCT_VISION_STANDARD.md)
 4. [Service & Operation Registry](docs/SERVICE_OPERATION_REGISTRY.md)
 5. [Benchmark Research](docs/BENCHMARK_RESEARCH.md)
+6. [Ivanov Tools Reuse Audit](docs/TOOLS_REUSE_AUDIT.md)
 
 ## Core idea
 
