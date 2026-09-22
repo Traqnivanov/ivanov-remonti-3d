@@ -1,4 +1,5 @@
 import type { ProjectState, WallId } from "./domain";
+import { getWallAreaM2 } from "./geometry";
 
 export type QuantityResult = {
   ruleId: "wall-area-v1";
@@ -25,26 +26,13 @@ export const devPriceBookItem: PriceBookItem = {
   devOnly: true,
 };
 
-function wallArea(project: ProjectState, wallId: WallId): number {
-  const { widthM, lengthM, heightM } = project.room;
-
-  switch (wallId) {
-    case "room-1.wall-front":
-    case "room-1.wall-back":
-      return widthM * heightM;
-    case "room-1.wall-left":
-    case "room-1.wall-right":
-      return lengthM * heightM;
-  }
-}
-
 export function calculateFinePuttyQuantity(project: ProjectState): QuantityResult {
   const sourceEntityIds = project.serviceAssignment.included
     ? [...project.serviceAssignment.targetEntityIds]
     : [];
 
   const value = sourceEntityIds.reduce(
-    (sum, wallId) => sum + wallArea(project, wallId),
+    (sum, wallId) => sum + getWallAreaM2(project, wallId),
     0,
   );
 
