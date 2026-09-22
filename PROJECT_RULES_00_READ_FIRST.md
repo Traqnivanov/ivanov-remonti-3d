@@ -399,3 +399,31 @@ This is allowed during development, but:
 - treat all repository content as publicly visible.
 
 Before production/final release there is a mandatory **Protection Gate**. The program is not considered production-ready until the final repository/source protection strategy and production security review are completed.
+
+## 24. Living product — решенията не са вечни
+
+Този проект се развива итеративно.
+
+Нито едно продуктово решение, UX решение, визуална логика, workflow или техническа посока не се счита за „вечна“ само защото е била одобрена по-рано.
+
+**APPROVED / LOCKED означава: текущата одобрена база, докато не бъде доказано по-добро решение.**
+
+Старо решение подлежи на промяна, когато:
+- се открие грешка;
+- реалният прототип покаже слабост;
+- UX тест покаже объркване;
+- възникне по-просто или по-силно решение;
+- ново проучване покаже по-добър доказан модел;
+- старата логика противоречи на по-нов Owner decision;
+- има риск за сигурност, данни, производителност или поддръжка.
+
+Процесът за промяна е:
+
+**откриване → одит → какво точно не работи → предложение за по-добро решение → impact/risk → Owner decision → update на source-of-truth → implementation.**
+
+Забранено е:
+- да пазим лошо решение само защото е старо;
+- да третираме стар commit/document като по-силен от по-ново изрично Owner решение;
+- да променяме мълчаливо фундаментална логика без запис и review.
+
+Целта е последователност без закостеняване.
