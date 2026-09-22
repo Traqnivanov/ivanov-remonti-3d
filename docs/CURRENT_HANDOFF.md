@@ -3,7 +3,7 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Current branch:** `feat/vertical-slice-v1`  
-**Checkpoint before this handoff file:** `20ce544c49c170f4cf6474031177a506b790025a`
+**Current verified implementation checkpoint:** `015d882322c7ab672e417029ae5ad65774e3e52a`
 
 ## 1. Roles / process
 
@@ -84,7 +84,7 @@ Visual QA already corrected:
 
 ## 5. Current verification
 
-At checkpoint `20ce544c49c170f4cf6474031177a506b790025a`:
+At checkpoint `015d882322c7ab672e417029ae5ad65774e3e52a`:
 - **Vertical Slice CI = SUCCESS**
 - typecheck = success
 - tests = success
@@ -125,9 +125,16 @@ Current approved direction:
 
 Do NOT start a large new subsystem.
 
+Latest completed micro-task:
+- audited the current Work/Client screenshots;
+- highest-impact visible defect was the M² side labels overlapping the central dimensions;
+- fixed only that defect;
+- CI/typecheck/tests/build/screenshot QA all passed;
+- visual verification confirms S1/S2/S3/S4 and central dimensions are now separated and readable.
+
 Next task:
 
-**Perform one focused visual/interaction audit of the current Work and Client Preview screens against the first vertical-slice acceptance criteria. Fix only the highest-impact defect found. Then run CI and visual QA again.**
+**Client Preview audit: remove or isolate any Work-authoring navigation/control that violates the rule “Preview as Client has no authoring controls”. Fix only that boundary, then run CI and visual QA.**
 
 After that, stop and report the result before taking the next small task.
 
