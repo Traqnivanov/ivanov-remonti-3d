@@ -379,19 +379,37 @@ This stays marked as pending until Owner explicitly locks it.
 
 ---
 
-## 15. Repository/source protection — current risk
+## 15. Repository/source protection — Owner-approved development policy
 
-As of the current audit, repository:
+Repository:
 
 `Traqnivanov/ivanov-remonti-3d`
 
-is **PUBLIC**.
+remains **PUBLIC during development by explicit Owner decision**.
 
-That is compatible with early transparent prototyping, but it conflicts with the stated long-term goal of protecting proprietary implementation from easy copying once meaningful product code begins to exist.
+This is a deliberate temporary development policy, not the final production security model.
 
-Before proprietary implementation is added, Owner should explicitly decide whether to make the repository private or split public documentation from private implementation.
+### During development
+- public repo is allowed;
+- no secrets/API keys;
+- no real client personal data;
+- no production credentials;
+- no assumption that repository contents are private.
 
-No repository visibility change is made automatically because it can affect collaboration/deployment/workflows.
+### Protection Gate before production/final release
+
+Before the finished program is released for real client use, repository/source protection becomes mandatory.
+
+The gate must review and complete the approved final protection strategy, including:
+- making implementation source private or another Owner-approved private source strategy;
+- production access controls;
+- client-view security;
+- secret scanning/rotation;
+- public source-map exposure;
+- sensitive data exposure;
+- deployment artifacts.
+
+The final source-protection action is not performed early because Owner explicitly wants the repo to remain public while the program is being created.
 
 ---
 
