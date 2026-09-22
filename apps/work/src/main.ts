@@ -79,7 +79,7 @@ app.innerHTML = `
         </div>
 
         <div class="viewer-note">
-          Drag: завъртане · wheel: zoom · click: избери повърхност
+          Влачи: завъртане · колелце: мащаб · клик: избери повърхност
           <div id="selectionChip"></div>
         </div>
       </section>
