@@ -217,3 +217,39 @@ Owner приема риска от публичност по време на dev
 4. кодът се променя чак след impact/risk review.
 
 Критерият е: **най-доброто доказано решение за текущия продукт**, не „така сме го решили веднъж“.
+
+## 22.09.2026 — Supabase + Cloudflare е текущата одобрена инфраструктура
+
+**Owner decision:** текущата най-добра архитектура е:
+
+- GitHub — source/version control;
+- Cloudflare — domains, hosting/delivery edge и security layer;
+- Supabase Postgres — canonical persistent database;
+- Supabase Auth — Work App authentication;
+- Supabase Storage — initial project asset storage;
+- Supabase protected/server-side operations — publish, revisions, Link/PIN access, sanitized client payload;
+- без Firebase;
+- без Cloudflare D1 като primary DB;
+- Cloudflare R2 само по-късно при доказана нужда.
+
+Work App и Client Viewer са отделни web приложения/capability surfaces.
+
+Подробности: `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`.
+
+## 22.09.2026 — Published Revision е клиентският publishing модел
+
+**Owner decision:** клиентът не вижда live working project.
+
+Flow:
+
+**Working Project → Preview as Client → Publish Revision → protected Client Viewer**
+
+Нова промяна в Work App не се показва на клиента, докато не бъде публикувана нова revision.
+
+Причини:
+- пази изпратената цена/обхват;
+- предотвратява изтичане на недовършена редакция;
+- дава история/audit;
+- позволява Work проектът да продължи да се редактира независимо.
+
+Остава за по-късно само UX решението дали един стабилен link отваря най-новата публикувана revision или всяка revision има отделен link.
