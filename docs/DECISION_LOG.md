@@ -253,3 +253,40 @@ Flow:
 - позволява Work проектът да продължи да се редактира независимо.
 
 Остава за по-късно само UX решението дали един стабилен link отваря най-новата публикувана revision или всяка revision има отделен link.
+
+## 22.09.2026 — Data Model v1 е текущата техническа база
+
+Текущият модел разделя:
+- Working Project State;
+- Published Offer Revision;
+- Viewer Session State.
+
+Project/3D state използва stable entity IDs и schema version.
+
+Service assignments свързват услугите към точни entity IDs.
+
+Quantity идва от domain geometry + versioned rule, а не от visible meshes.
+
+Price Book е отделен от renderer/geometry.
+
+Published Revision запазва това, което клиентът реално е видял, включително quantity/unit price/line total.
+
+Подробности: `docs/DATA_MODEL_V1.md`.
+
+## 22.09.2026 — Първата реална имплементация е ограничен vertical slice
+
+Следващата implementation цел е:
+- една истинска Three.js стая;
+- stable walls/floor/ceiling IDs;
+- cutaway;
+- една услуга „Фина шпакловка“;
+- Offer → Model;
+- Model → Offer;
+- quantity;
+- DEV Price Book abstraction;
+- Info;
+- Preview as Client.
+
+Първият slice НЕ включва Supabase/Auth/Cloudflare/Link/PIN. Те идват след доказване на core механизма.
+
+Подробности: `docs/FIRST_VERTICAL_SLICE_V1.md`.
