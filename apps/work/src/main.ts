@@ -89,7 +89,7 @@ app.innerHTML = `
         </div>
 
         <div class="viewer-note">
-          Влачи: завъртане · колелце: мащаб · клик: избери повърхност
+          <span class="viewer-help">Влачи: завъртане · колелце: мащаб · клик: избери повърхност</span>
           <div id="selectionChip"></div>
         </div>
       </section>

@@ -152,6 +152,8 @@ async function assertMobileLayout(session, label) {
       const viewerRect = viewer.getBoundingClientRect();
       const canvasRect = canvas.getBoundingClientRect();
       const toolbarRect = toolbar.getBoundingClientRect();
+      const note = document.querySelector(".viewer-note");
+      const noteRect = note?.getBoundingClientRect();
       return {
         innerWidth: window.innerWidth,
         innerHeight: window.innerHeight,
@@ -159,9 +161,12 @@ async function assertMobileLayout(session, label) {
         viewerLeft: viewerRect.left,
         viewerRight: viewerRect.right,
         viewerWidth: viewerRect.width,
+        viewerHeight: viewerRect.height,
         viewerTop: viewerRect.top,
         canvasWidth: canvasRect.width,
         toolbarRight: toolbarRect.right,
+        toolbarHeight: toolbarRect.height,
+        noteHeight: noteRect?.height ?? 0,
       };
     })()`,
   );
@@ -178,6 +183,15 @@ async function assertMobileLayout(session, label) {
   }
   if (metrics.toolbarRight > metrics.innerWidth + 1) {
     throw new Error(label + ": viewer toolbar overflows the mobile viewport");
+  }
+  if (metrics.viewerTop > metrics.innerHeight * 0.4) {
+    throw new Error(label + ": 3D viewer is pushed below the first mobile screen");
+  }
+  if (metrics.toolbarHeight > metrics.viewerHeight * 0.2) {
+    throw new Error(label + ": mobile viewer toolbar consumes too much of the 3D scene");
+  }
+  if (metrics.noteHeight > metrics.viewerHeight * 0.14) {
+    throw new Error(label + ": mobile viewer note consumes too much of the 3D scene");
   }
 
   console.log(label + " mobile metrics: " + JSON.stringify(metrics));
