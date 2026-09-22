@@ -242,15 +242,15 @@ input[type="number"] {
   }
 
   .workspace {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
   }
 
   .viewer-wrap {
     order: 1;
     min-height: 510px;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     background: #080d15;
   }
 
