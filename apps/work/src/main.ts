@@ -23,7 +23,7 @@ app.innerHTML = `
     <header class="topbar">
       <div class="brand">
         <strong>IVANOV REMONTI · SMART OFFER</strong>
-        <span>Vertical Slice v1 · Work / Client Preview</span>
+        <span id="brandSubtitle">Vertical Slice v1 · Work / Client Preview</span>
       </div>
       <div class="mode-switch work-only">
         <button id="workModeBtn" class="active">Work Mode</button>
@@ -68,8 +68,8 @@ app.innerHTML = `
         <div id="viewer" class="viewer"></div>
 
         <div class="viewer-toolbar">
-          <button id="resetCameraBtn">Reset camera</button>
-          <button id="autoCutawayBtn" class="active">Auto cutaway</button>
+          <button id="resetCameraBtn">Начален изглед</button>
+          <button id="autoCutawayBtn" class="active">Авто скриване</button>
           <button id="showAllBtn">Покажи всички</button>
           <button data-wall="room-1.wall-left">Лява</button>
           <button data-wall="room-1.wall-right">Дясна</button>
@@ -98,8 +98,8 @@ app.innerHTML = `
         <section class="section">
           <div class="section-title">Оферта</div>
           <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
-          <div class="kpi"><span>Ед. цена · DEV</span><strong id="unitPriceKpi">—</strong></div>
-          <div class="kpi"><span>Сума · DEV</span><strong id="totalKpi">—</strong></div>
+          <div class="kpi"><span id="unitPriceLabel">Ед. цена · DEV</span><strong id="unitPriceKpi">—</strong></div>
+          <div class="kpi"><span id="totalLabel">Сума · DEV</span><strong id="totalKpi">—</strong></div>
         </section>
 
         <div class="info-card">
@@ -198,6 +198,10 @@ function setPreviewMode(enabled: boolean): void {
   mustGet("shell").classList.toggle("preview-mode", previewMode);
   mustGet("workModeBtn").classList.toggle("active", !previewMode);
   mustGet("previewModeBtn").classList.toggle("active", previewMode);
+  mustGet("brandSubtitle").textContent = previewMode
+    ? "Интерактивна оферта"
+    : "Vertical Slice v1 · Work / Client Preview";
+  renderOffer();
   requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
 }
 
@@ -281,8 +285,12 @@ function renderOffer(): void {
   const total = calculateLineTotalEur(quantity, devPriceBookItem);
 
   mustGet("quantityText").textContent = `${formatNumber(quantity.value)} m²`;
-  mustGet("lineTotalText").textContent = `${formatMoney(total)} € DEV`;
+  mustGet("lineTotalText").textContent = previewMode
+    ? `${formatMoney(total)} € · ТЕСТОВА ЦЕНА`
+    : `${formatMoney(total)} € DEV`;
   mustGet("quantityKpi").textContent = `${formatNumber(quantity.value)} m²`;
+  mustGet("unitPriceLabel").textContent = previewMode ? "Ед. цена · тестова" : "Ед. цена · DEV";
+  mustGet("totalLabel").textContent = previewMode ? "Сума · тестова" : "Сума · DEV";
   mustGet("unitPriceKpi").textContent = `${formatMoney(devPriceBookItem.unitPriceEur)} €/m²`;
   mustGet("totalKpi").textContent = `${formatMoney(total)} €`;
 
