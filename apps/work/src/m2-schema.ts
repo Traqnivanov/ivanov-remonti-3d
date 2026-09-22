@@ -53,16 +53,16 @@ export function renderM2Schema(container: HTMLElement, project: ProjectState): v
       value: `С2 · ${geometry.wallAreasM2["room-1.wall-back"].toFixed(2)} m²`,
     },
     {
-      x: 43,
-      y: 94,
-      anchor: "end",
-      value: `С3 · ${geometry.wallAreasM2["room-1.wall-left"].toFixed(2)}`,
-    },
-    {
-      x: 197,
+      x: 58,
       y: 94,
       anchor: "start",
-      value: `С4 · ${geometry.wallAreasM2["room-1.wall-right"].toFixed(2)}`,
+      value: `С3 · ${geometry.wallAreasM2["room-1.wall-left"].toFixed(2)} m²`,
+    },
+    {
+      x: 182,
+      y: 94,
+      anchor: "end",
+      value: `С4 · ${geometry.wallAreasM2["room-1.wall-right"].toFixed(2)} m²`,
     },
   ];
 
