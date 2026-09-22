@@ -200,7 +200,7 @@ In final-result mode:
 
 ## 12. Work view vs Client Smart Offer view
 
-Both use the same 3D project state.
+Both use the same canonical 3D project state, but different capabilities. Detailed mode permissions are defined in `docs/WORK_CLIENT_MODE_CONTRACT.md`.
 
 ### Work view
 Can expose:
@@ -298,3 +298,22 @@ The long-term goal is:
 - return to final result → the room becomes whole again.
 
 The desired feeling is that model, offer and camera cooperate as one product.
+
+## 18. Viewer state must not become project editing
+
+Client interaction with the 3D scene is intentionally rich but read-only.
+
+Allowed client viewer/session changes:
+- camera;
+- zoom;
+- selected room;
+- selected service;
+- selected entity;
+- hidden walls/ceiling;
+- cutaway/X-ray state;
+- open Info;
+- focus/final-result mode.
+
+These actions must not write geometry, service scope, quantity or price.
+
+If an action changes the actual project, it belongs to Work Mode.
