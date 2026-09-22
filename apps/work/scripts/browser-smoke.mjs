@@ -1,3 +1,5 @@
+import { writeFile } from "node:fs/promises";
+
 const baseUrl = process.argv[2] ?? "http://127.0.0.1:4173";
 const debugBase = process.argv[3] ?? "http://127.0.0.1:9222";
 
@@ -5,7 +7,7 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function createSession() {
+async function createSession({ mobile = false } = {}) {
   const response = await fetch(debugBase + "/json/new?" + encodeURIComponent("about:blank"), { method: "PUT" });
   if (!response.ok) {
     throw new Error("Cannot create Chrome target: " + response.status);
@@ -63,6 +65,21 @@ async function createSession() {
   await call("Log.enable");
   await call("Page.enable");
 
+  if (mobile) {
+    await call("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 3,
+      mobile: true,
+      screenWidth: 390,
+      screenHeight: 844,
+    });
+    await call("Emulation.setTouchEmulationEnabled", {
+      enabled: true,
+      maxTouchPoints: 5,
+    });
+  }
+
   return {
     call,
     errors: browserErrors,
@@ -119,6 +136,53 @@ async function capturePage(session) {
   return result.data;
 }
 
+async function saveScreenshot(session, path) {
+  const data = await capturePage(session);
+  await writeFile(path, Buffer.from(data, "base64"));
+}
+
+async function assertMobileLayout(session, label) {
+  const metrics = await evaluate(
+    session,
+    `(() => {
+      const canvas = document.querySelector("#viewer canvas");
+      const viewer = document.querySelector(".viewer-wrap");
+      const toolbar = document.querySelector(".viewer-toolbar");
+      if (!canvas || !viewer || !toolbar) return null;
+      const viewerRect = viewer.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const toolbarRect = toolbar.getBoundingClientRect();
+      return {
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        scrollWidth: document.documentElement.scrollWidth,
+        viewerLeft: viewerRect.left,
+        viewerRight: viewerRect.right,
+        viewerWidth: viewerRect.width,
+        viewerTop: viewerRect.top,
+        canvasWidth: canvasRect.width,
+        toolbarRight: toolbarRect.right,
+      };
+    })()`,
+  );
+
+  if (!metrics) throw new Error(label + ": mobile layout metrics are unavailable");
+  if (metrics.scrollWidth > metrics.innerWidth + 1) {
+    throw new Error(label + ": horizontal overflow detected (" + metrics.scrollWidth + " > " + metrics.innerWidth + ")");
+  }
+  if (metrics.viewerWidth < 320 || metrics.viewerLeft < -1 || metrics.viewerRight > metrics.innerWidth + 1) {
+    throw new Error(label + ": viewer does not fit the mobile viewport");
+  }
+  if (Math.abs(metrics.canvasWidth - metrics.viewerWidth) > 1) {
+    throw new Error(label + ": canvas width does not match the mobile viewer");
+  }
+  if (metrics.toolbarRight > metrics.innerWidth + 1) {
+    throw new Error(label + ": viewer toolbar overflows the mobile viewport");
+  }
+
+  console.log(label + " mobile metrics: " + JSON.stringify(metrics));
+}
+
 function assertScreenshotChanged(before, after, message) {
   if (!before || !after || before === after) {
     throw new Error(message);
@@ -149,6 +213,38 @@ async function smokeViewerInput(session) {
   await delay(250);
 }
 
+
+async function smokeViewerTouch(session) {
+  await evaluate(
+    session,
+    'document.querySelector(".viewer-wrap").scrollIntoView({ block: "center", behavior: "instant" })',
+  );
+  await delay(120);
+
+  const rect = await evaluate(
+    session,
+    '(() => { const canvas = document.querySelector("#viewer canvas"); if (!canvas) return null; const r = canvas.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()',
+  );
+  if (!rect) throw new Error("Mobile: 3D canvas is missing");
+
+  const before = await capturePage(session);
+  await session.call("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x: rect.x, y: rect.y, radiusX: 8, radiusY: 8, force: 1, id: 1 }],
+  });
+  await session.call("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ x: rect.x + 70, y: rect.y + 28, radiusX: 8, radiusY: 8, force: 1, id: 1 }],
+  });
+  await session.call("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  await delay(280);
+
+  const after = await capturePage(session);
+  assertScreenshotChanged(before, after, "Mobile: touch orbit did not change the rendered view");
+}
 
 async function clickLinkedWallThroughCanvas(session) {
   await evaluate(session, 'document.querySelector("#showAllBtn").click()');
@@ -298,6 +394,34 @@ async function runWorkSmoke() {
   }
 }
 
+async function runMobileWorkSmoke() {
+  const session = await createSession({ mobile: true });
+  try {
+    await waitForApp(session, baseUrl);
+    await assertMobileLayout(session, "Work");
+    await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
+    await smokeViewerTouch(session);
+    throwBrowserErrors(session);
+  } finally {
+    session.close();
+  }
+}
+
+async function runMobileClientSmoke() {
+  const session = await createSession({ mobile: true });
+  try {
+    await waitForApp(session, baseUrl + "/?preview=1");
+    await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Mobile Client: preview mode is not active");
+    await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Mobile Client: authoring panel is visible");
+    await assertMobileLayout(session, "Client");
+    await saveScreenshot(session, "/tmp/vertical-slice-mobile-client.png");
+    await smokeViewerTouch(session);
+    throwBrowserErrors(session);
+  } finally {
+    session.close();
+  }
+}
+
 async function runDirectClientSmoke() {
   const session = await createSession();
   try {
@@ -335,4 +459,6 @@ async function runDirectClientSmoke() {
 
 await runWorkSmoke();
 await runDirectClientSmoke();
-console.log("Browser smoke passed: Work + direct Client Preview");
+await runMobileWorkSmoke();
+await runMobileClientSmoke();
+console.log("Browser smoke passed: desktop Work + desktop Client + mobile Work + mobile Client");

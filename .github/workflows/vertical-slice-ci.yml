@@ -42,7 +42,7 @@ jobs:
         run: npm run build
 
 
-      - name: Browser smoke and desktop screenshots
+      - name: Browser smoke and desktop/mobile screenshots
         run: |
           set -euo pipefail
 
@@ -100,4 +100,6 @@ jobs:
           path: |
             /tmp/vertical-slice-work.png
             /tmp/vertical-slice-client.png
+            /tmp/vertical-slice-mobile-work.png
+            /tmp/vertical-slice-mobile-client.png
           if-no-files-found: error
