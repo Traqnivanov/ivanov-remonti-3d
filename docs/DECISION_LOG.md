@@ -139,3 +139,43 @@ Traqnivanov/ivanov-tools остава read-only reference.
 
 ### Оставащо Owner решение
 Дали изпратената клиентска оферта чете live working project или публикувана immutable/revision snapshot версия. Work Controller препоръчва публикувани revisions, но това още не е заключено.
+
+## 22.09.2026 — Client access може да бъде Link или Link + PIN
+
+**Owner decision:** Ivanov Remonti избира отделно за всяка оферта начина на достъп на клиента.
+
+Поддържат се:
+- защитен уникален Link;
+- защитен уникален Link + PIN.
+
+Work Mode трябва да има ясен контрол, чрез който Owner избира режима за конкретната оферта.
+
+Клиентът не получава Work App, editable project или редактор.
+
+Client Viewer е read-only.
+
+## 22.09.2026 — Client protection е част от Ivanov Unique Standard
+
+**Owner decision:** уникалността не се оценява само по това как изглежда клиентската оферта.
+
+Всяко клиентско решение трябва да се проверява едновременно по:
+- качеството на клиентското преживяване;
+- колко добре е защитен вътрешният Work App, логиката, цените, формулите, project data и proprietary механизма.
+
+Правило:
+
+**Expose the client experience. Protect the engine behind it.**
+
+Подробният договор е в `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
+
+## 22.09.2026 — Текущият public repo е риск преди proprietary implementation
+
+Към момента `Traqnivanov/ivanov-remonti-3d` е PUBLIC.
+
+Това не е променено автоматично.
+
+Преди да започне съществен proprietary implementation, Owner трябва изрично да реши:
+- repo да стане private; или
+- public docs и private implementation да се разделят.
+
+Причина: публичното repo противоречи на целта да не се улеснява копирането на реалната имплементация.
