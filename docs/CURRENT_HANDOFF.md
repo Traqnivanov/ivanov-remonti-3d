@@ -3,7 +3,7 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Current branch:** `feat/vertical-slice-v1`  
-**Current verified implementation checkpoint:** `015d882322c7ab672e417029ae5ad65774e3e52a`
+**Current verified implementation checkpoint:** `e06f6d152601d3be85635269a49562e6fce92336`
 
 ## 1. Roles / process
 
@@ -84,7 +84,7 @@ Visual QA already corrected:
 
 ## 5. Current verification
 
-At checkpoint `015d882322c7ab672e417029ae5ad65774e3e52a`:
+At checkpoint `e06f6d152601d3be85635269a49562e6fce92336`:
 - **Vertical Slice CI = SUCCESS**
 - typecheck = success
 - tests = success
@@ -126,15 +126,16 @@ Current approved direction:
 Do NOT start a large new subsystem.
 
 Latest completed micro-task:
-- audited the current Work/Client screenshots;
-- highest-impact visible defect was the M² side labels overlapping the central dimensions;
-- fixed only that defect;
+- audited Client Preview against the no-authoring-controls boundary;
+- identified the Work/Preview mode switch as an authoring/navigation control leaking into Client Preview;
+- fixed only that boundary by hiding the mode switch in preview;
+- client still retains allowed viewer controls: camera reset, auto cutaway, Show all, manual wall/ceiling visibility;
 - CI/typecheck/tests/build/screenshot QA all passed;
-- visual verification confirms S1/S2/S3/S4 and central dimensions are now separated and readable.
+- visual verification confirms the Client Preview no longer shows Work Mode / Preview as Client buttons.
 
 Next task:
 
-**Client Preview audit: remove or isolate any Work-authoring navigation/control that violates the rule “Preview as Client has no authoring controls”. Fix only that boundary, then run CI and visual QA.**
+**Client-facing terminology audit: remove or isolate internal authoring/development wording that is visible to the client (for example “Work Mode” inside client Info), without hiding the fact that the current price is a prototype/DEV fixture. Fix only the highest-impact wording leak, then run CI and visual QA.**
 
 After that, stop and report the result before taking the next small task.
 
