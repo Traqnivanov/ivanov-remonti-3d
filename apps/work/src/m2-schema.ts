@@ -53,15 +53,17 @@ export function renderM2Schema(container: HTMLElement, project: ProjectState): v
       value: `С2 · ${geometry.wallAreasM2["room-1.wall-back"].toFixed(2)} m²`,
     },
     {
-      x: 58,
-      y: 94,
-      anchor: "start",
+      x: 35,
+      y: 90,
+      anchor: "middle",
+      transform: "rotate(-90 35 90)",
       value: `С3 · ${geometry.wallAreasM2["room-1.wall-left"].toFixed(2)} m²`,
     },
     {
-      x: 182,
-      y: 94,
-      anchor: "end",
+      x: 205,
+      y: 90,
+      anchor: "middle",
+      transform: "rotate(90 205 90)",
       value: `С4 · ${geometry.wallAreasM2["room-1.wall-right"].toFixed(2)} m²`,
     },
   ];
@@ -72,6 +74,7 @@ export function renderM2Schema(container: HTMLElement, project: ProjectState): v
       y: String(label.y),
       "text-anchor": label.anchor,
       class: "m2-wall-label",
+      ...(label.transform ? { transform: label.transform } : {}),
     });
     text.textContent = label.value;
     svg.append(text);
