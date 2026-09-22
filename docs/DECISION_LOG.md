@@ -380,3 +380,25 @@ M² се свързва с новата програма чрез shared project
 - documentation sync.
 
 Преди merge Owner трябва да е видял релевантния интерактивен build и да даде изрично решение.
+
+
+## 22.09.2026 — Mobile е първият QA и UX приоритет
+
+**Owner decision:** за visible UI/3D и особено за Client experience **mobile е приоритетът**.
+
+Задължителен процес:
+1. mobile layout/viewport се проверява първо;
+2. touch interaction се проверява, когато има interaction;
+3. проверяват се readability, tap targets, scrolling, clipping и horizontal overflow;
+4. 3D viewer се проверява за framing, scale и usable controls на тесен mobile viewport;
+5. проверява се засегнатият Work и/или Client mode;
+6. след това се проверява desktop/tablet consistency.
+
+Правило:
+**UI/3D промяна не се счита за окончателно готова, визуално приета или merge-ready само защото desktop CI/screenshot е добър.**
+
+CI/headless mobile emulation е полезен gate, но за видими критични UX решения реален browser/device review или Owner screenshot има по-висока тежест, когато е наличен.
+
+Mobile priority не означава desktop neglect. И двете трябва да работят, но при конфликт на пространство и сложност първо се защитава mobile clarity и основният workflow.
+
+Това правило не се прилага към чисто backend/domain/documentation промени без видим UI ефект.

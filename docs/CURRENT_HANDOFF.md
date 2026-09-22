@@ -354,10 +354,11 @@ A new Chief Work Controller should:
 2. read the mandatory source-of-truth documents;
 3. verify CI after this documentation sync;
 4. confirm that no app code changed after `be36a7b3c198175ab592e19e222b097196bebe8b` unless the diff proves otherwise;
-5. let the Owner inspect the latest interactive DPI-corrected preview if the Owner has not explicitly done so;
-6. obtain an **explicit Owner decision about merging PR #3**;
-7. if merge is approved, perform the approved merge procedure and then start a fresh audit/planning block for Slice 2;
-8. if merge is not approved, address only the concrete Owner finding — do not broaden scope.
+5. perform the mandatory **mobile-first QA** on the current Work/Client UI and 3D viewer;
+6. let the Owner inspect any material mobile finding/correction and the latest interactive build;
+7. only after mobile + desktop visual gates are clear, obtain an **explicit Owner decision about merging PR #3**;
+8. if merge is approved, perform the approved merge procedure and then start a fresh audit/planning block for Slice 2;
+9. if merge is not approved, address only the concrete Owner finding — do not broaden scope.
 
 Do not start Slice 2 before PR #3 closure unless the Owner explicitly changes the sequencing.
 
@@ -367,12 +368,27 @@ Do not start Slice 2 before PR #3 closure unless the Owner explicitly changes th
 
 Technical PASS is never enough for visible UI/3D.
 
+### Mobile priority — mandatory
+Owner decision:
+**mobile is the first-priority viewport.**
+
+Before showing a UI/3D change as “fixed”, “accepted” or ready for merge:
+1. inspect mobile layout first;
+2. test touch behavior where interaction exists;
+3. check readability, tap targets, scrolling, clipping and horizontal overflow;
+4. inspect 3D framing/scale in a narrow mobile viewport;
+5. verify the affected Work and/or Client mode on mobile;
+6. then verify desktop/tablet consistency;
+7. use real browser/device evidence when available — CI/headless screenshots alone are not a final visual verdict.
+
 Before showing a visual change as “fixed”:
 - inspect the real rendered result;
 - check centering, scale, clipping, readable text and dead space;
 - consider real-device DPI/browser behavior;
 - verify Work and Client views;
 - do not call prototype visuals final quality.
+
+**Current consequence for PR #3:** desktop framing is no longer the only visual gate. A mobile QA checkpoint is required before the PR can be considered visually closed.
 
 The final product still needs much higher realism and polish.  
 The present slice only proves the product mechanism.

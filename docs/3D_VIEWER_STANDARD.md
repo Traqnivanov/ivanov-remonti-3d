@@ -25,9 +25,22 @@ The viewer must support at minimum:
 - stable camera behavior;
 - reset / return to a useful overall view;
 - suitable preset views where they improve speed;
-- mouse interaction first, with touch support planned for mobile.
+- mouse interaction on desktop;
+- **touch interaction is mandatory on mobile and mobile is the priority client viewport**.
 
 The controls must be easier than CAD. A client should not need instructions to inspect the room.
+
+### Mobile-first interaction rule
+
+For client-facing 3D:
+- mobile is the primary UX priority;
+- orbit/zoom/select/reset/cutaway controls must remain usable by touch;
+- controls must not depend on hover;
+- tap targets and text must remain readable without zooming the page;
+- the room must frame usefully in a narrow portrait viewport;
+- no final visual acceptance is valid from desktop screenshots alone.
+
+Desktop remains fully supported and must be checked for consistency after the mobile pass.
 
 ## 3. Walls must be removable visually
 
@@ -272,6 +285,9 @@ not:
 ## 16. First prototype acceptance criteria
 
 The first working 3D proof is accepted only if:
+
+**Mandatory viewport order: mobile first, desktop second.**
+A desktop-only pass cannot close the visual acceptance gate.
 
 1. a room can be rotated and zoomed comfortably;
 2. all four walls and ceiling can be manually shown/hidden;

@@ -280,12 +280,30 @@ AI/photoreal render може да подобрява визията, но ням
 - основната задача може да се изпълни без скрити знания;
 - няма дребен/нечетим текст;
 - няма объркващи или дублирани контроли;
-- mouse/touch поведението е предвидимо.
+- mouse/touch поведението е предвидимо;
+- **mobile е първият UX приоритет за visible UI/Client experience**;
+- важните действия трябва да са използваеми без hover и без desktop-only assumptions.
 
 ### Visual
 - няма cartoon/placeholder усещане във финален режим;
 - материалите, мащабът, светлината и сенките са проверени;
-- важните обекти се четат ясно.
+- важните обекти се четат ясно;
+- UI/3D промяна се проверява първо в mobile viewport и след това на desktop/tablet;
+- няма хоризонтално изтичане, clipped controls, нечетим текст или 3D композиция, която работи само на широк екран.
+
+### Mobile QA gate — задължителен за UI/3D
+За всяка видима UI/3D промяна преди окончателно приемане, merge или представяне като „готово“:
+1. mobile viewport test;
+2. touch interaction check, когато има interaction;
+3. Work Mode mobile check, ако промяната засяга Work;
+4. Client Mode mobile check, ако промяната засяга Client;
+5. desktop check за consistency;
+6. реален browser/device review, когато е наличен; CI/headless screenshot сам по себе си не е достатъчен за финален visual verdict.
+
+**Mobile е приоритет, но desktop не се пренебрегва.**
+При конфликт на пространство/сложност първо се пазят mobile clarity, readability и основният workflow, после се адаптира desktop.
+
+Този gate не се изисква за чисто backend/domain/documentation промяна без видим UI ефект.
 
 ### Technical
 - няма console errors;
@@ -306,6 +324,7 @@ AI/photoreal render може да подобрява визията, но ням
 - кодът е завършен за одобрения scope;
 - функционално е тестван;
 - визуално е проверен;
+- при UI/3D: mobile QA gate е минат и desktop consistency е проверена;
 - няма известен висок риск;
 - документацията е обновена, ако има ново правило/решение;
 - има точен commit/branch;
@@ -499,7 +518,8 @@ Complex service calculators are modular and loaded only when needed.
 Когато промяната засяга поведение, interaction или един модул, но е ясна и ограничена:
 - изпълнява се като един самостоятелен блок;
 - следва typecheck/tests/build;
-- UI/3D промяна задължително минава visual QA.
+- UI/3D промяна задължително минава visual QA;
+- visual QA за UI/3D задължително включва **mobile-first check + desktop consistency check**.
 
 Примери:
 - wall selection ↔ offer row linkage;
