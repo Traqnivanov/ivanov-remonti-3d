@@ -249,6 +249,8 @@ input[type="number"] {
   .viewer-wrap {
     order: 1;
     min-height: 510px;
+    display: flex;
+    flex-direction: column;
     background: #080d15;
   }
 
@@ -288,7 +290,12 @@ input[type="number"] {
   }
 
   .viewer {
-    top: 90px;
+    position: relative;
+    inset: auto;
+    top: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
   }
 
   .viewer-note {
