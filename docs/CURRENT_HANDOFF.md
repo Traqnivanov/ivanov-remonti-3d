@@ -3,7 +3,7 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Current branch:** `feat/vertical-slice-v1`  
-**Current verified implementation checkpoint:** `68de592e743fa26adbed2ab52d23819a6bfcd29d`
+**Current verified implementation checkpoint:** `6a61fa512355c967a646181b776dd05a09679a18`
 
 ## 1. Roles / process
 
@@ -85,7 +85,7 @@ Visual QA already corrected:
 
 ## 5. Current verification
 
-At checkpoint `68de592e743fa26adbed2ab52d23819a6bfcd29d`:
+At checkpoint `6a61fa512355c967a646181b776dd05a09679a18`:
 - **Vertical Slice CI = SUCCESS**
 - typecheck = success
 - tests = success
@@ -126,27 +126,48 @@ Current approved direction:
 
 Do not start a large new subsystem. Size the next block according to PROJECT_RULES §27.
 
-Latest completed adaptive block:
-- strengthened the Work / Client capability boundary instead of relying only on hidden controls;
-- added `apps/work/src/capabilities.ts` with explicit Work vs Client capabilities;
-- added focused tests proving project authoring is allowed only in Work entry + Work mode;
-- direct `?preview=1` client entry cannot gain Work authoring capability or return to Work;
-- hidden dimension and wall-target controls now reject project mutations while Client mode is active;
-- Work user can enter Client Preview and receives a dedicated owner-only “Назад към Work” exit control;
-- direct client preview does not receive that exit control;
-- viewer-session actions (camera, cutaway, visibility, selection) remain allowed in Client mode;
-- CI/typecheck/tests/build/screenshot QA all passed;
-- visual QA confirms normal Work mode remains intact and direct Client Preview stays clean/read-only in presentation.
+Latest completed adaptive blocks:
 
-Current capability commits in this block:
-- `87aa1fe5fd2f1b0fc5bd442a3530884029b155ed` — capability profile;
-- `338233bb9f3408813796f0385bcc78f495a41f50` — capability tests;
-- `27140155de5388b509c308492bfa65448ece1955` — mutation guards;
-- `68de592e743fa26adbed2ab52d23819a6bfcd29d` — Work-only preview exit UI.
+### Smart Offer core loop acceptance
+- isolated presentation/selection state in `apps/work/src/smart-offer-interaction.ts`;
+- added tests for Offer → Model: selecting Fine Putty resolves exactly the assigned target walls;
+- added tests for Model → Offer: selecting a linked wall keeps the Fine Putty offer row selected;
+- added unrelated-geometry test: selecting floor does not falsely claim Fine Putty is linked;
+- “Виж целия резултат” exits focus without changing project quantity or price;
+- presentation-only interactions are explicitly tested to keep quantity and line total invariant;
+- `main.ts` now consumes the same tested interaction logic instead of duplicating selection rules;
+- selected entity chip now shows the human surface label instead of leaking the stable technical ID.
+
+Core-loop commits:
+- `36ea7f99f01057c1301d2abb840f3bb10064d177` — interaction state;
+- `e86c908366fefcd4b24589c92dfcab6f98c8e7df` — Offer ↔ Model tests;
+- `74dcaf8eadbf156bbe03f89359f25611285d96d5` — application integration;
+- `1db888680f8cbe3c067e5f13a5590a544700d305` — quantity/price invariance test.
+
+### Viewer visibility / cutaway acceptance
+- isolated auto-cutaway and visibility resolution in `apps/work/src/viewer-visibility.ts`;
+- tests verify dominant camera side hides the correct wall;
+- high camera also hides the ceiling;
+- manual hiding and automatic hiding combine non-destructively;
+- `RoomViewer` now uses the tested pure visibility rules;
+- no quantity/price path depends on viewer visibility state.
+
+Visibility commits:
+- `b4305bbf5f53d65fa8767c46b25801c7c24b644c` — visibility rules;
+- `b5246391f84986b89414a5dd1e67e9f1257d708f` — visibility tests;
+- `6a61fa512355c967a646181b776dd05a09679a18` — viewer integration.
+
+Verification at this checkpoint:
+- strict TypeScript = PASS;
+- all automated tests = PASS;
+- production build = PASS;
+- Work screenshot QA = PASS;
+- direct Client Preview screenshot QA = PASS;
+- no visible regression in room geometry, service focus, offer values or Work/Client presentation.
 
 Next work block:
 
-**Run a focused functional acceptance audit of the core Smart Offer loop: Offer → Model and Model → Offer. Verify service selection, linked wall selection, highlight synchronization and quantity/price integrity against `FIRST_VERTICAL_SLICE_V1.md`. Refactor only the minimum state/link logic needed to make these interactions explicitly testable; fix concrete defects only. Then run tests, build and visual QA.**
+**Run the final First Vertical Slice acceptance audit against every item in `FIRST_VERTICAL_SLICE_V1.md §11`. Do not add new product features. Close only concrete verification gaps (especially console-error/smoke verification if not currently proven), then classify each acceptance item as verified, intentionally deferred by the approved slice scope, or blocked. If all required items are verified, prepare the branch for PR review; do not merge without Owner approval.**
 
 ## 9. Required reading for a new chat
 
