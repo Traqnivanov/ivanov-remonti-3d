@@ -3,7 +3,7 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Current branch:** `feat/vertical-slice-v1`  
-**Current verified implementation checkpoint:** `62318ecd39d3c691570bd6f53e455c8a1fc21a5f`
+**Current verified implementation checkpoint:** `e8ac2a262d03c5b80ce8cf5b16a8b4ef7f80eac3`
 
 ## 1. Roles / process
 
@@ -85,7 +85,7 @@ Visual QA already corrected:
 
 ## 5. Current verification
 
-At checkpoint `62318ecd39d3c691570bd6f53e455c8a1fc21a5f`:
+At checkpoint `e8ac2a262d03c5b80ce8cf5b16a8b4ef7f80eac3`:
 - **Vertical Slice CI = SUCCESS**
 - typecheck = success
 - tests = success
@@ -160,7 +160,19 @@ Acceptance / closure commits include:
 
 Next work block:
 
-**Open a Pull Request from `feat/vertical-slice-v1` to `main`, review the full diff and required checks, and report any real regression/risk found. Do NOT merge without explicit Owner approval.**
+**PR #3 is open as DRAFT and has passed final technical review. Do not merge without explicit Owner approval. If Owner approves the technical slice, mark PR ready and merge using the repository-approved merge method; otherwise keep it open and address only concrete review findings.**
+
+PR review closure:
+- PR: #3 — `First Vertical Slice v1: Smart Offer core loop`;
+- full diff reviewed;
+- one concrete gap found: missing dependency lockfile;
+- gap fixed with committed `apps/work/package-lock.json`;
+- CI now uses `npm ci`;
+- final push CI PASS;
+- final pull-request CI PASS (`35774935220`);
+- final Work + Client screenshots visually rechecked;
+- PR is mergeable and remains DRAFT;
+- no merge has been performed.
 
 ## 9. Required reading for a new chat
 
