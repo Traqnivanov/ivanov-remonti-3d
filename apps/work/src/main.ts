@@ -9,7 +9,7 @@ import {
 import { RoomViewer } from "./viewer";
 
 const project = createDefaultProject();
-let previewMode = false;
+let previewMode = new URLSearchParams(window.location.search).get("preview") === "1";
 let selectedService = true;
 let selectedEntity: SurfaceId | null = null;
 let autoCutaway = true;
@@ -139,6 +139,7 @@ viewer.setProject(project);
 syncViewerFocus();
 renderOffer();
 wireControls();
+setPreviewMode(previewMode);
 
 function wireControls(): void {
   mustGet("workModeBtn").addEventListener("click", () => setPreviewMode(false));
