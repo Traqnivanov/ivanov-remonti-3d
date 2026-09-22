@@ -44,9 +44,10 @@ North Star механизъм:
 11. `docs/SERVICE_OPERATION_REGISTRY.md`
 12. `docs/BENCHMARK_RESEARCH.md`
 13. `docs/TOOLS_REUSE_AUDIT.md`
-14. `docs/DELIVERY_STRATEGY.md`
-15. `docs/FIRST_VERTICAL_SLICE_V1.md` — когато текущата работа е първата имплементация
-16. конкретният handoff/task за текущата работа
+14. `docs/LEGACY_CALCULATOR_INTEGRATION_ARCHITECTURE.md`
+15. `docs/DELIVERY_STRATEGY.md`
+16. `docs/FIRST_VERTICAL_SLICE_V1.md` — когато текущата работа е първата имплементация
+17. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
 
@@ -444,3 +445,19 @@ Current approved infrastructure:
 Client delivery uses **Published Revisions**, not the live Work draft.
 
 Infrastructure decisions remain subject to the Living Product rule, but may not be changed silently. Any provider/data-model change requires architecture impact/risk review.
+
+## 26. Legacy calculator integration boundary
+
+Legacy Ivanov calculators are knowledge/reference sources, not runtime application dependencies.
+
+Do not:
+- iframe/embed the old HTML tools;
+- make 3D depend on legacy DOM;
+- keep separate duplicate room state for calculators;
+- import old Firebase/localStorage workflows.
+
+Correct direction:
+
+**shared domain project → independent 3D / 2D technical / calculation / offer consumers**.
+
+Complex service calculators are modular and loaded only when needed.
