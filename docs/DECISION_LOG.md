@@ -310,3 +310,20 @@ Published Revision запазва това, което клиентът реал
 - няма iframe, legacy DOM dependency, Firebase/localStorage dependency или duplicate room state.
 
 Подробности: `docs/LEGACY_CALCULATOR_INTEGRATION_ARCHITECTURE.md`.
+
+
+## 22.09.2026 — Owner correction — интегрираме само „Калкулатор М²“
+
+**Owner correction:** от двата legacy калкулатора в Ivanov Tools текущо ни трябва само инструментът с видимо име **„Калкулатор М²“**.
+
+Проверено съответствие:
+
+**Калкулатор М² → `kalkulator-combined.html`**
+
+Следователно:
+- `kalkulator-combined.html` е единственият текущ legacy calculator integration source;
+- `calculator.html` не се интегрира;
+- `room.html` не се интегрира;
+- старото решение, формулирано като интеграция на „двата калкулатора“, е заменено.
+
+M² се свързва с новата програма чрез shared project/domain state, а не чрез iframe или директно вграждане на стария HTML.
