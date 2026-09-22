@@ -177,6 +177,7 @@ async function assertMobileLayout(session, label) {
   );
 
   if (!metrics) throw new Error(label + ": mobile layout metrics are unavailable");
+  console.log(label + " mobile metrics: " + JSON.stringify(metrics));
   if (metrics.scrollWidth > metrics.innerWidth + 1) {
     throw new Error(label + ": horizontal overflow detected (" + metrics.scrollWidth + " > " + metrics.innerWidth + ")");
   }
@@ -202,7 +203,6 @@ async function assertMobileLayout(session, label) {
     throw new Error(label + ": mobile viewer note consumes too much of the 3D scene");
   }
 
-  console.log(label + " mobile metrics: " + JSON.stringify(metrics));
 }
 
 function assertScreenshotChanged(before, after, message) {

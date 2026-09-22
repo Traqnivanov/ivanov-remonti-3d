@@ -242,8 +242,8 @@ input[type="number"] {
   }
 
   .workspace {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .viewer-wrap {
@@ -266,6 +266,7 @@ input[type="number"] {
 
   .viewer-toolbar {
     position: relative;
+    grid-row: 1;
     top: auto;
     left: auto;
     right: auto;
@@ -293,7 +294,7 @@ input[type="number"] {
     position: relative;
     inset: auto;
     top: auto;
-    flex: 1 1 auto;
+    grid-row: 2;
     min-height: 0;
     width: 100%;
   }
