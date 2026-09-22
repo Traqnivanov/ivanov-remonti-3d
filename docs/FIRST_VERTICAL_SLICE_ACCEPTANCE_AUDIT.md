@@ -11,10 +11,11 @@
 
 Latest fully passing verification before this audit:
 
-- Vertical Slice CI run: `35772299341`
+- Pull Request CI run: `35774935220`
 - strict TypeScript: PASS
 - Vitest: **18 / 18 tests PASS**
 - production build: PASS
+- committed `apps/work/package-lock.json` + `npm ci`: PASS
 - browser smoke: **PASS — Work + direct Client Preview**
 - Work screenshot QA: PASS
 - Client screenshot QA: PASS
@@ -89,6 +90,18 @@ The following remain deliberately outside First Vertical Slice v1 and do **not**
 - Cloudflare production delivery;
 - PDF / signature / acceptance flow;
 - furniture, photo AI and full materials library.
+
+## PR review closure
+
+Full PR review found one concrete reproducibility gap: dependencies were originally installed without a committed lockfile.
+
+That gap is now closed:
+- `apps/work/package-lock.json` is committed;
+- CI installs with `npm ci`;
+- the final push and pull-request CI both pass on the locked dependency graph;
+- final Work and Client screenshots were visually rechecked after the lockfile/CI cleanup.
+
+No new functional regression or architecture deviation was found in the PR review.
 
 ## Known non-blocking technical notes
 
