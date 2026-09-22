@@ -100,4 +100,5 @@ jobs:
           path: |
             /tmp/vertical-slice-work.png
             /tmp/vertical-slice-client.png
+            apps/work/package-lock.json
           if-no-files-found: error
