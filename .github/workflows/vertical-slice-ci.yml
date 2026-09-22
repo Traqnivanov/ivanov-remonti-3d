@@ -59,5 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vertical-slice-visual-qa
-          path: /tmp/vertical-slice-desktop.png
+          path: |
+            /tmp/vertical-slice-work.png
+            /tmp/vertical-slice-client.png
           if-no-files-found: error
