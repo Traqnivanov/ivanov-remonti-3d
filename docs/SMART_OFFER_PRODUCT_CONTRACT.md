@@ -275,3 +275,36 @@ Smart Offer:
 Целим продуктът да бъде силно отличим и потенциално уникален.
 
 Не публикуваме твърдения от типа „първият в България/света“ без отделен конкурентен и фактически research.
+
+## 16. Work Mode срещу Client Mode
+
+Smart Offer има две capability гледни точки върху един и същ project state:
+
+### Work / Edit Mode
+Ivanov Remonti създава, коригира и ценообразува проекта.
+
+Може да променя:
+- geometry;
+- objects;
+- materials;
+- services;
+- quantities;
+- prices;
+- project-specific notes;
+- client-facing Info.
+
+### Client / View Mode
+Клиентът получава интерактивна read-only оферта.
+
+Може да:
+- разглежда 3D;
+- използва cutaway;
+- избира услуга;
+- избира стена/обект;
+- чете Info;
+- вижда quantity/price/total;
+- вижда крайния резултат.
+
+Не може да променя project scope, geometry, services, quantities или prices.
+
+Подробният capability и state contract е в `docs/WORK_CLIENT_MODE_CONTRACT.md`.
