@@ -79,4 +79,27 @@ describe("Smart Offer core interaction loop", () => {
     expect(getHighlightedEntityIds(project, interaction)).toEqual(beforeTargets);
     expect(project.serviceAssignment.targetEntityIds).toEqual(beforeTargets);
   });
+
+  it("keeps quantity and price invariant across presentation-only selections", () => {
+    const project = createDefaultProject();
+    const quantity = calculateFinePuttyQuantity(project);
+    const total = calculateLineTotalEur(quantity, devPriceBookItem);
+
+    const interactions = [
+      selectOfferService(),
+      selectModelEntity(project, "room-1.wall-front"),
+      selectModelEntity(project, "room-1.floor"),
+      showWholeResult(),
+    ];
+
+    for (const interaction of interactions) {
+      getHighlightedEntityIds(project, interaction);
+
+      const currentQuantity = calculateFinePuttyQuantity(project);
+      const currentTotal = calculateLineTotalEur(currentQuantity, devPriceBookItem);
+
+      expect(currentQuantity).toEqual(quantity);
+      expect(currentTotal).toBe(total);
+    }
+  });
 });
