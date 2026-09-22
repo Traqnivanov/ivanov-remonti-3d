@@ -275,3 +275,52 @@ Smart Offer:
 Целим продуктът да бъде силно отличим и потенциално уникален.
 
 Не публикуваме твърдения от типа „първият в България/света“ без отделен конкурентен и фактически research.
+
+## 16. Work Mode срещу Client Mode
+
+Smart Offer има две capability гледни точки върху един и същ project state:
+
+### Work / Edit Mode
+Ivanov Remonti създава, коригира и ценообразува проекта.
+
+Може да променя:
+- geometry;
+- objects;
+- materials;
+- services;
+- quantities;
+- prices;
+- project-specific notes;
+- client-facing Info.
+
+### Client / View Mode
+Клиентът получава интерактивна read-only оферта.
+
+Може да:
+- разглежда 3D;
+- използва cutaway;
+- избира услуга;
+- избира стена/обект;
+- чете Info;
+- вижда quantity/price/total;
+- вижда крайния резултат.
+
+Не може да променя project scope, geometry, services, quantities или prices.
+
+Подробният capability и state contract е в `docs/WORK_CLIENT_MODE_CONTRACT.md`.
+
+## 17. Client delivery and protected core
+
+The client does not receive the editor or working project.
+
+The Smart Offer is delivered through a controlled read-only client web viewer.
+
+Per offer, Ivanov Remonti chooses:
+- Link;
+- Link + PIN.
+
+The client experience and protection of the internal system are both part of Ivanov Unique.
+
+Detailed contract:
+
+`docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.

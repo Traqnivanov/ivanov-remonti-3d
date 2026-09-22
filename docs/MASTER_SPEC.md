@@ -128,6 +128,43 @@ Info съдържанието се структурира кратко:
 
 Основният източник са съществуващите Ivanov Remonti service pages и наръчници. Не измисляме нов факт, когато източникът не го подкрепя.
 
+## 8A. Work Mode и Client Mode
+
+Програмата има два ясно разграничени capability режима върху един и същ project state.
+
+### Work / Edit Mode — Ivanov Remonti
+Пълният редактор:
+- геометрия и размери;
+- помещения;
+- врати/прозорци;
+- обекти;
+- материали;
+- услуги;
+- количества;
+- Price Book;
+- цени;
+- проектни бележки;
+- client Info;
+- preview на клиентската оферта.
+
+### Client / View Mode — клиентът
+Read-only интерактивна Smart Offer среда:
+- 3D навигация;
+- стени/таван/cutaway;
+- услуги ↔ модел;
+- ⓘ Info;
+- количества;
+- единични цени;
+- суми;
+- обща цена;
+- краен резултат.
+
+Клиентът не може да променя project geometry, service scope, quantities, prices или Price Book.
+
+Viewer actions като camera, zoom, selected service и hidden wall са session state и не променят проекта.
+
+Подробен договор: `docs/WORK_CLIENT_MODE_CONTRACT.md`.
+
 ## 9. Практични функции, които ще спестяват време на обекта
 
 - Автоматично пресмятане на площ на стени, таван и под.
@@ -212,6 +249,7 @@ Info съдържанието се структурира кратко:
 
 - `PROJECT_RULES_00_READ_FIRST.md` — йерархия, процес, No-Assumption, Ivanov Unique, quality gates.
 - `docs/SMART_OFFER_PRODUCT_CONTRACT.md` — точният клиентски механизъм на Smart Offer.
+- `docs/3D_VIEWER_STANDARD.md` — задължителният реален 3D viewer, camera, wall/ceiling visibility и cutaway contract.
 - `docs/DECISION_LOG.md` — последните Owner решения и корекции на погрешни тълкувания.
 - `docs/PRODUCT_VISION_STANDARD.md` — продуктова архитектура и качество.
 - `docs/SERVICE_OPERATION_REGISTRY.md` — услуги, операции, единици и dependencies.
@@ -229,3 +267,55 @@ Smart Offer е основният продукт.
 
 Съществуващите калкулатори в `Traqnivanov/ivanov-tools` се използват само като read-only reference и verification source; новата програма не зависи runtime от тях.
 
+## 8B. Client delivery и защита
+
+Клиентът не получава самия Work App.
+
+Той получава контролирана read-only web версия на конкретната Smart Offer.
+
+Ivanov Remonti избира за всяка оферта:
+- защитен Link;
+- защитен Link + PIN.
+
+Client Viewer получава само необходимото за визуализацията и офертата.
+
+Price Book, internal formulas, unreleased prices, private notes, admin capabilities, secrets и други client projects не се изпращат към клиентския viewer.
+
+Клиентското преживяване и защитата на вътрешния engine се оценяват заедно като част от Ivanov Unique Standard.
+
+Подробности: `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
+
+## 19. Living MASTER rule
+
+MASTER е текущата най-добра продуктова истина, не архив на вечни решения.
+
+Одобрена/LOCKED посока може да бъде заменена след одит, когато има:
+- доказана грешка;
+- по-добър UX/продуктов механизъм;
+- по-безопасна архитектура;
+- по-просто решение;
+- по-нова изрична Owner посока.
+
+Историята остава в `docs/DECISION_LOG.md`, а MASTER винаги се актуализира към текущата активна логика.
+
+## 20. Infrastructure and data architecture
+
+Current approved architecture:
+
+- **GitHub** — source/version control;
+- **Cloudflare** — domains, delivery/hosting edge and security;
+- **Supabase Postgres** — canonical persistent project/business data;
+- **Supabase Auth** — Work App identity/access;
+- **Supabase Storage** — initial project images/textures/assets;
+- **Supabase protected server-side operations** — publishing, revisions, Link/PIN validation and minimized client payload;
+- **No Firebase** in the current architecture;
+- **No Cloudflare D1** as primary application database;
+- **Cloudflare R2** only later if scale/cost proves a need.
+
+Two separate application surfaces:
+- Work App — private authoring;
+- Client Viewer — read-only Smart Offer.
+
+The client does not read the live draft. Client delivery uses explicit **Published Revisions**.
+
+Detailed contract: `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`.

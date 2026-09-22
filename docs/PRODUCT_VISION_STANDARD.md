@@ -364,3 +364,33 @@ High-quality render, before/after, export/share.
 ### Advanced
 Много помещения, сложни инсталации, по-богат asset каталог, AI reconstruction и автоматизация.
 
+## 15. Work / Client capability architecture
+
+The product has two experiences over one canonical project state.
+
+### Work / Edit Mode
+Authoring environment for Ivanov Remonti:
+- create/correct geometry;
+- assign services;
+- position objects;
+- choose materials;
+- calculate quantities;
+- price the offer;
+- prepare client-facing Info;
+- preview the client experience.
+
+### Client / View Mode
+Read-only interactive Smart Offer:
+- inspect 3D;
+- use wall/ceiling cutaway;
+- select service;
+- select wall/object;
+- open Info;
+- see quantity, unit price, position total and overall total;
+- inspect final result.
+
+Client Mode may change only Viewer Session State such as camera, cutaway and current selection.
+
+It must not mutate Project State.
+
+Detailed contract: `docs/WORK_CLIENT_MODE_CONTRACT.md`.

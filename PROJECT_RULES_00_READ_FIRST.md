@@ -34,13 +34,19 @@ North Star механизъм:
 1. `PROJECT_RULES_00_READ_FIRST.md`
 2. `docs/MASTER_SPEC.md`
 3. `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
-4. `docs/DECISION_LOG.md`
-5. `docs/PRODUCT_VISION_STANDARD.md`
-6. `docs/SERVICE_OPERATION_REGISTRY.md`
-7. `docs/BENCHMARK_RESEARCH.md`
-8. `docs/TOOLS_REUSE_AUDIT.md`
-9. `docs/DELIVERY_STRATEGY.md`
-10. конкретният handoff/task за текущата работа
+4. `docs/3D_VIEWER_STANDARD.md`
+5. `docs/WORK_CLIENT_MODE_CONTRACT.md`
+6. `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`
+7. `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`
+8. `docs/DATA_MODEL_V1.md`
+9. `docs/DECISION_LOG.md`
+10. `docs/PRODUCT_VISION_STANDARD.md`
+11. `docs/SERVICE_OPERATION_REGISTRY.md`
+12. `docs/BENCHMARK_RESEARCH.md`
+13. `docs/TOOLS_REUSE_AUDIT.md`
+14. `docs/DELIVERY_STRATEGY.md`
+15. `docs/FIRST_VERTICAL_SLICE_V1.md` — когато текущата работа е първата имплементация
+16. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
 
@@ -101,8 +107,13 @@ North Star механизъм:
 4. Можем ли да премахнем стъпка, объркване или съмнение?
 5. Има ли естествен детайл с качество „как са се сетили точно така“?
 6. Полезно ли е, или е само различно?
+7. При клиентска функция: как даваме максимално преживяване без ненужно да излагаме protected core?
 
 **Различност без реална полза не се приема.**
+
+За client-facing решения Ivanov Unique има два едновременни критерия:
+
+**Client Experience + Protected Core**.
 
 Търсим уникалност в целия механизъм и последователността на взаимодействието, не само в единични ефекти.
 
@@ -349,3 +360,87 @@ AI/photoreal render може да подобрява визията, но ням
 **Какво е → Защо се прави → Какво получавате → Какво включва позицията → Важно (ако е нужно).**
 
 Не се измисля нов факт, когато източникът не го подкрепя.
+
+## 21. Work / Client capability safety
+
+Work Mode и Client Mode използват една project truth, но имат различни права.
+
+Client Mode е read-only по отношение на Project State.
+
+Забранено е да се разчита само на скрити бутони. Mutating commands трябва да бъдат ограничени и на application/domain capability ниво.
+
+Viewer/session действия като camera, zoom, selected service, cutaway и hidden wall могат да бъдат клиентски, но не променят geometry, quantities, scope или price.
+
+Подробният договор е `docs/WORK_CLIENT_MODE_CONTRACT.md`.
+
+## 22. Protected client delivery
+
+Client Mode не се доставя чрез изпращане на Work App, editable project или source.
+
+Owner избира за всяка оферта:
+- Link;
+- Link + PIN.
+
+Правило за всяка клиентска функция:
+
+**Client Experience + Protected Core**
+
+Функцията трябва да подобрява клиентското преживяване без ненужно да излага Work App, Price Book, formula/quantity engine, private project data, secrets или proprietary logic.
+
+Frontend hiding/obfuscation не се счита за достатъчна защита.
+
+Подробният договор е `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
+
+## 23. Repository development visibility policy
+
+By explicit Owner decision, `Traqnivanov/ivanov-remonti-3d` remains PUBLIC while the program is being developed.
+
+This is allowed during development, but:
+- never commit secrets/API keys;
+- never commit real client personal data;
+- never commit production credentials;
+- treat all repository content as publicly visible.
+
+Before production/final release there is a mandatory **Protection Gate**. The program is not considered production-ready until the final repository/source protection strategy and production security review are completed.
+
+## 24. Living product — решенията не са вечни
+
+Този проект се развива итеративно.
+
+Нито едно продуктово решение, UX решение, визуална логика, workflow или техническа посока не се счита за „вечна“ само защото е била одобрена по-рано.
+
+**APPROVED / LOCKED означава: текущата одобрена база, докато не бъде доказано по-добро решение.**
+
+Старо решение подлежи на промяна, когато:
+- се открие грешка;
+- реалният прототип покаже слабост;
+- UX тест покаже объркване;
+- възникне по-просто или по-силно решение;
+- ново проучване покаже по-добър доказан модел;
+- старата логика противоречи на по-нов Owner decision;
+- има риск за сигурност, данни, производителност или поддръжка.
+
+Процесът за промяна е:
+
+**откриване → одит → какво точно не работи → предложение за по-добро решение → impact/risk → Owner decision → update на source-of-truth → implementation.**
+
+Забранено е:
+- да пазим лошо решение само защото е старо;
+- да третираме стар commit/document като по-силен от по-ново изрично Owner решение;
+- да променяме мълчаливо фундаментална логика без запис и review.
+
+Целта е последователност без закостеняване.
+
+## 25. Infrastructure baseline
+
+Current approved infrastructure:
+
+- Supabase = primary application backend/database/auth/storage;
+- Cloudflare = delivery/domain/edge-security layer;
+- GitHub = source/version control;
+- no Firebase;
+- no second primary database without demonstrated need.
+
+Client delivery uses **Published Revisions**, not the live Work draft.
+
+Infrastructure decisions remain subject to the Living Product rule, but may not be changed silently. Any provider/data-model change requires architecture impact/risk review.
