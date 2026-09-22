@@ -218,6 +218,19 @@ input[type="number"] {
 }
 
 @media (max-width: 680px) {
+  html,
+  body,
+  #app,
+  .app-shell,
+  .topbar,
+  .workspace,
+  .viewer-wrap,
+  .panel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
   .topbar {
     align-items: flex-start;
     flex-wrap: wrap;
@@ -231,6 +244,8 @@ input[type="number"] {
   .mode-switch {
     margin-left: 0;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     gap: 6px;
   }
 
@@ -266,6 +281,9 @@ input[type="number"] {
 
   .viewer-toolbar {
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     grid-row: 1;
     top: auto;
     left: auto;
@@ -288,6 +306,7 @@ input[type="number"] {
     font-size: 11px;
     line-height: 1.1;
     white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .viewer {

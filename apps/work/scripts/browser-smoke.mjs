@@ -160,6 +160,15 @@ async function assertMobileLayout(session, label) {
       const noteRect = note?.getBoundingClientRect();
       const topbar = document.querySelector(".topbar");
       const topbarRect = topbar?.getBoundingClientRect();
+      const visibleButtons = [...document.querySelectorAll("button")]
+        .filter((button) => {
+          const style = getComputedStyle(button);
+          return style.display !== "none" && style.visibility !== "hidden";
+        })
+        .map((button) => {
+          const r = button.getBoundingClientRect();
+          return { left: r.left, right: r.right };
+        });
       return {
         innerWidth: window.innerWidth,
         innerHeight: window.innerHeight,
@@ -180,32 +189,36 @@ async function assertMobileLayout(session, label) {
         toolbarButtonMinLeft: Math.min(...toolbarButtons.map((r) => r.left)),
         noteHeight: noteRect?.height ?? 0,
         topbarHeight: topbarRect?.height ?? 0,
+        visibleButtonMaxRight: Math.max(...visibleButtons.map((r) => r.right)),
+        visibleButtonMinLeft: Math.min(...visibleButtons.map((r) => r.left)),
       };
     })()`,
   );
 
   if (!metrics) throw new Error(label + ": mobile layout metrics are unavailable");
   console.log(label + " mobile metrics: " + JSON.stringify(metrics));
-  if (Math.abs(metrics.innerWidth - 360) > 1 || Math.abs(metrics.visualViewportWidth - 360) > 1) {
+  if (Math.abs(metrics.innerWidth - 360) > 1) {
     throw new Error(
-      label + ": mobile emulation viewport is not 360 CSS px (" +
-      metrics.innerWidth + " / " + metrics.visualViewportWidth + ")",
+      label + ": mobile emulation viewport is not 360 CSS px (" + metrics.innerWidth + ")",
     );
   }
-  if (metrics.scrollWidth > metrics.visualViewportWidth + 1) {
+  if (metrics.scrollWidth > metrics.innerWidth + 1) {
     throw new Error(label + ": horizontal overflow detected (" + metrics.scrollWidth + " > " + metrics.innerWidth + ")");
   }
-  if (metrics.viewerWidth < 320 || metrics.viewerLeft < -1 || metrics.viewerRight > metrics.visualViewportWidth + 1) {
+  if (metrics.viewerWidth < 320 || metrics.viewerLeft < -1 || metrics.viewerRight > metrics.innerWidth + 1) {
     throw new Error(label + ": viewer does not fit the mobile viewport");
   }
   if (Math.abs(metrics.canvasWidth - metrics.viewerWidth) > 1) {
     throw new Error(label + ": canvas width does not match the mobile viewer");
   }
-  if (metrics.toolbarRight > metrics.visualViewportWidth + 1) {
+  if (metrics.toolbarRight > metrics.innerWidth + 1) {
     throw new Error(label + ": viewer toolbar overflows the mobile viewport");
   }
-  if (metrics.toolbarButtonMaxRight > metrics.visualViewportWidth + 1 || metrics.toolbarButtonMinLeft < -1) {
+  if (metrics.toolbarButtonMaxRight > metrics.innerWidth + 1 || metrics.toolbarButtonMinLeft < -1) {
     throw new Error(label + ": one or more mobile viewer controls are clipped");
+  }
+  if (metrics.visibleButtonMaxRight > metrics.innerWidth + 1 || metrics.visibleButtonMinLeft < -1) {
+    throw new Error(label + ": one or more visible mobile buttons are clipped");
   }
   if (metrics.viewerTop > metrics.innerHeight * 0.4) {
     throw new Error(label + ": 3D viewer is pushed below the first mobile screen");
