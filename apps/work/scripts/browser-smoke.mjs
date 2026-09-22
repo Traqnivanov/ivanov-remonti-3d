@@ -149,6 +149,50 @@ async function smokeViewerInput(session) {
   await delay(250);
 }
 
+
+async function clickLinkedWallThroughCanvas(session) {
+  await evaluate(session, 'document.querySelector("#showAllBtn").click()');
+  await delay(180);
+  await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
+  await delay(300);
+  await evaluate(session, 'document.querySelector("#showResultBtn").click()');
+
+  const canvas = await evaluate(
+    session,
+    '(() => { const el = document.querySelector("#viewer canvas"); const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })()',
+  );
+
+  const candidates = [
+    [0.58, 0.40],
+    [0.72, 0.46],
+    [0.35, 0.46],
+    [0.50, 0.32],
+  ];
+
+  for (const [fx, fy] of candidates) {
+    const x = canvas.left + canvas.width * fx;
+    const y = canvas.top + canvas.height * fy;
+
+    await session.call("Input.dispatchMouseEvent", {
+      type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1,
+    });
+    await session.call("Input.dispatchMouseEvent", {
+      type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1,
+    });
+    await delay(180);
+
+    const linked = await evaluate(
+      session,
+      'document.querySelector("#serviceRow").classList.contains("selected") && document.querySelector("#selectionChip").textContent.includes("Избрано:")',
+    );
+    if (linked) return;
+
+    await evaluate(session, 'document.querySelector("#showResultBtn").click()');
+  }
+
+  throw new Error("Work: clicking visible 3D geometry did not resolve a linked Fine Putty wall");
+}
+
 function throwBrowserErrors(session) {
   if (session.errors.length) {
     throw new Error(session.errors.join(String.fromCharCode(10)));
@@ -232,6 +276,13 @@ async function runWorkSmoke() {
     if (JSON.stringify(offerAfter) !== JSON.stringify(offerBefore)) {
       throw new Error("Work: quantity/price/Info changed during presentation-only interaction");
     }
+
+    await clickLinkedWallThroughCanvas(session);
+    await assertEval(
+      session,
+      'document.querySelector("#serviceRow").classList.contains("selected")',
+      "Work: Model → Offer did not emphasize Fine Putty after linked wall click",
+    );
 
     await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Work: Preview as Client did not activate");
