@@ -1,0 +1,11 @@
+{
+  "name": "ivanov-remonti-smart-offer",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "npm --prefix apps/work run dev",
+    "build": "npm --prefix apps/work run build",
+    "typecheck": "npm --prefix apps/work run typecheck",
+    "test": "npm --prefix apps/work run test"
+  }
+}
