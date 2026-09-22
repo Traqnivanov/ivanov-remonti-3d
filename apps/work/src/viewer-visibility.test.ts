@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultProject } from "./domain";
+import { calculateFinePuttyQuantity } from "./calculation";
 import {
   getAutoHiddenSurfaceIds,
   isSurfaceVisible,
@@ -47,5 +48,18 @@ describe("viewer visibility rules", () => {
     expect(
       isSurfaceVisible("room-1.wall-right", manualHidden, autoHidden),
     ).toBe(true);
+  });
+
+  it("keeps service quantity unchanged when walls hide or the camera moves", () => {
+    const project = createDefaultProject();
+    const before = calculateFinePuttyQuantity(project);
+
+    const manualHidden = new Set(["room-1.wall-left"] as const);
+    const autoHiddenA = getAutoHiddenSurfaceIds(project, { x: 0, y: 2, z: 7 });
+    const autoHiddenB = getAutoHiddenSurfaceIds(project, { x: -7, y: 2, z: 0 });
+
+    expect(isSurfaceVisible("room-1.wall-left", manualHidden, autoHiddenA)).toBe(false);
+    expect(autoHiddenA).not.toEqual(autoHiddenB);
+    expect(calculateFinePuttyQuantity(project)).toEqual(before);
   });
 });
