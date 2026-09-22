@@ -25,7 +25,7 @@ app.innerHTML = `
         <strong>IVANOV REMONTI · SMART OFFER</strong>
         <span>Vertical Slice v1 · Work / Client Preview</span>
       </div>
-      <div class="mode-switch">
+      <div class="mode-switch work-only">
         <button id="workModeBtn" class="active">Work Mode</button>
         <button id="previewModeBtn">Preview as Client</button>
       </div>
