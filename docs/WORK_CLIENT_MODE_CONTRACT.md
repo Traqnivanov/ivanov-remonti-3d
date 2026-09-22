@@ -197,7 +197,11 @@ Work Mode may expose the full authoring toolset.
 - preview Client Mode;
 - choose which information is client-visible;
 - verify final result;
-- prepare/send/export the offer when those functions are implemented.
+- choose **Access: Link / Link + PIN** per offer;
+- generate/reset PIN when PIN mode is used;
+- revoke/regenerate client access;
+- verify final result;
+- publish/send/export the offer when those functions are implemented.
 
 ---
 
