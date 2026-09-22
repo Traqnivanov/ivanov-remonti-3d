@@ -290,3 +290,23 @@ Published Revision запазва това, което клиентът реал
 Първият slice НЕ включва Supabase/Auth/Cloudflare/Link/PIN. Те идват след доказване на core механизма.
 
 Подробности: `docs/FIRST_VERTICAL_SLICE_V1.md`.
+
+## 22.09.2026 — Двата legacy калкулатора не се вграждат като готови HTML екрани
+
+**Work Controller architecture, по делегираната техническа преценка на Owner:**
+
+Съществуващите два калкулатора съдържат ценна сложна логика и тя се използва, но не чрез директно вграждане на старите HTML страници.
+
+Правило:
+
+**one project/domain truth → 3D + 2D m² technical schema + specialist calculators + quantities/materials + Smart Offer**
+
+- m²/SVG чертането остава специализиран 2D Work инструмент;
+- 3D остава отделен истински 3D изглед;
+- и двата четат едни и същи room/surface/opening данни;
+- формулите се extract-ват в pure TypeScript modules;
+- сложният ГК calculator става specialist module и се зарежда само когато е нужен;
+- Client Viewer не получава Work calculators;
+- няма iframe, legacy DOM dependency, Firebase/localStorage dependency или duplicate room state.
+
+Подробности: `docs/LEGACY_CALCULATOR_INTEGRATION_ARCHITECTURE.md`.
