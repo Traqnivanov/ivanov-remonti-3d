@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ProjectState, SurfaceId, WallId } from "./domain";
+import { getAutoHiddenSurfaceIds, isSurfaceVisible } from "./viewer-visibility";
 
 type ViewerOptions = {
   container: HTMLElement;
@@ -247,33 +248,19 @@ export class RoomViewer {
   private updateAutoCutaway(): void {
     if (!this.project || !this.autoCutaway) return;
 
-    const { widthM: width, lengthM: length, heightM: height } = this.project.room;
-    const x = this.camera.position.x;
-    const z = this.camera.position.z;
+    const nextAutoHidden = getAutoHiddenSurfaceIds(this.project, {
+      x: this.camera.position.x,
+      y: this.camera.position.y,
+      z: this.camera.position.z,
+    });
 
     this.autoHidden.clear();
-
-    const normalizedX = width > 0 ? x / (width / 2) : 0;
-    const normalizedZ = length > 0 ? z / (length / 2) : 0;
-
-    if (Math.abs(normalizedX) > Math.abs(normalizedZ)) {
-      this.autoHidden.add(
-        normalizedX > 0 ? "room-1.wall-right" : "room-1.wall-left",
-      );
-    } else {
-      this.autoHidden.add(
-        normalizedZ > 0 ? "room-1.wall-front" : "room-1.wall-back",
-      );
-    }
-
-    if (this.camera.position.y > height * 1.35) {
-      this.autoHidden.add("room-1.ceiling");
-    }
+    nextAutoHidden.forEach((id) => this.autoHidden.add(id));
   }
 
   private updateVisibility(): void {
     for (const [id, mesh] of this.entityMeshes) {
-      mesh.visible = !this.manualHidden.has(id) && !this.autoHidden.has(id);
+      mesh.visible = isSurfaceVisible(id, this.manualHidden, this.autoHidden);
     }
   }
 
