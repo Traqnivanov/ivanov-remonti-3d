@@ -37,13 +37,14 @@ North Star механизъм:
 4. `docs/3D_VIEWER_STANDARD.md`
 5. `docs/WORK_CLIENT_MODE_CONTRACT.md`
 6. `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`
-7. `docs/DECISION_LOG.md`
-8. `docs/PRODUCT_VISION_STANDARD.md`
-9. `docs/SERVICE_OPERATION_REGISTRY.md`
-10. `docs/BENCHMARK_RESEARCH.md`
-11. `docs/TOOLS_REUSE_AUDIT.md`
-12. `docs/DELIVERY_STRATEGY.md`
-13. конкретният handoff/task за текущата работа
+7. `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`
+8. `docs/DECISION_LOG.md`
+9. `docs/PRODUCT_VISION_STANDARD.md`
+10. `docs/SERVICE_OPERATION_REGISTRY.md`
+11. `docs/BENCHMARK_RESEARCH.md`
+12. `docs/TOOLS_REUSE_AUDIT.md`
+13. `docs/DELIVERY_STRATEGY.md`
+14. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
 
@@ -427,3 +428,17 @@ Before production/final release there is a mandatory **Protection Gate**. The pr
 - да променяме мълчаливо фундаментална логика без запис и review.
 
 Целта е последователност без закостеняване.
+
+## 25. Infrastructure baseline
+
+Current approved infrastructure:
+
+- Supabase = primary application backend/database/auth/storage;
+- Cloudflare = delivery/domain/edge-security layer;
+- GitHub = source/version control;
+- no Firebase;
+- no second primary database without demonstrated need.
+
+Client delivery uses **Published Revisions**, not the live Work draft.
+
+Infrastructure decisions remain subject to the Living Product rule, but may not be changed silently. Any provider/data-model change requires architecture impact/risk review.
