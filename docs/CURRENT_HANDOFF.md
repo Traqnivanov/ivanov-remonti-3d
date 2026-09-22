@@ -3,10 +3,10 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Source branch:** `feat/vertical-slice-v1`  
-**Latest implementation checkpoint before this documentation sync:** `be36a7b3c198175ab592e19e222b097196bebe8b`  
+**Latest implementation checkpoint before this documentation sync:** `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0`  
 **Open PR:** #3 — `First Vertical Slice v1: Smart Offer core loop` — **DRAFT / DO NOT MERGE WITHOUT EXPLICIT OWNER APPROVAL**  
 **Static preview branch:** `preview-vertical-slice-v1`  
-**Latest verified preview build before this documentation sync:** `fd5425ac5675e0aaedb480f1d9f3428eaf0a396d`
+**Latest verified preview build before this documentation sync:** `f6c34784f33d9c4d04e8baa039c534317cfbcaed`
 
 This file is the active handoff for the next Chief Work Controller.
 
@@ -204,31 +204,51 @@ DPI/CSS canvas correction:
 
 Do NOT invent an approval that has not happened.
 
-The Owner explicitly rejected the pre-DPI build as still right-shifted.  
-The latest DPI correction has technical/CI/visual-QA evidence, but the Owner has not yet given an explicit final visual verdict on that exact latest build in the current review sequence.
+Desktop:
+- Owner later confirmed the DPI-corrected first view as acceptable for the First Slice checkpoint, though not final polish;
+- Work Controller also re-opened the latest published build in Opera and found no desktop regression.
+
+Mobile:
+- a mandatory mobile QA gate was added in commit `af8262697d5396bd30b3eb16dd91784335a7e0cd`;
+- initial QA found Work viewer pushed below the first mobile screen and Client controls too dominant;
+- bounded mobile fix `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0` moved the viewer first on mobile and compacted overlays;
+- touch orbit, overflow, Work/Client layout and mobile screenshots now pass;
+- Work Controller visually inspected both mobile Work and mobile Client screenshots and considers the checkpoint technically/visually acceptable;
+- **real Owner phone/device review is still pending**.
 
 Therefore:
-- framing direction is improved and technically corrected;
-- it is not final visual polish;
+- First Slice visual blockers found so far are corrected;
+- this is still prototype quality, not final visual polish;
 - **PR #3 still has no merge approval**;
-- next Controller must not claim Owner acceptance of the latest build unless the Owner explicitly confirms it.
+- do not claim final Owner mobile acceptance until the Owner checks the real mobile build.
 
 ---
 
 ## 8. LATEST TECHNICAL VERIFICATION
 
-For implementation checkpoint `be36a7b3c198175ab592e19e222b097196bebe8b`:
+For implementation checkpoint `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0`:
 
-- Push CI: `35782023236` — SUCCESS
-- Pull Request CI: `35782027582` — SUCCESS
-- Static preview publish: `35782022859` — SUCCESS
+- Push CI: `35786031509` — SUCCESS
+- Pull Request CI: `35786037054` — SUCCESS
+- Static preview publish: `35786031503` — SUCCESS
 - strict TypeScript — PASS
 - Vitest — **21 / 21 tests PASS**
 - production build — PASS
-- browser smoke — PASS
-- Work screenshot QA — inspected
-- Client screenshot QA — inspected
-- static preview build: `fd5425ac5675e0aaedb480f1d9f3428eaf0a396d`
+- desktop browser smoke — PASS
+- mobile Work browser smoke — PASS
+- mobile Client browser smoke — PASS
+- touch orbit — PASS
+- horizontal overflow gate — PASS
+- Work/Client desktop screenshots — inspected
+- Work/Client mobile screenshots — inspected
+- static preview build: `f6c34784f33d9c4d04e8baa039c534317cfbcaed`
+
+Measured mobile layout after the fix:
+- Work viewer top: **95 px** at 390×844;
+- Client viewer top: **64 px**;
+- viewer width: **390 px** with no horizontal overflow;
+- mobile toolbar height: **64.375 px**;
+- mobile focus note height: **31 px**.
 
 After the viewer changes, these core files remained byte-identical to the previous proven checkpoint:
 - `apps/work/src/domain.ts`
@@ -353,10 +373,10 @@ A new Chief Work Controller should:
 1. verify current branch HEAD and PR #3 state;
 2. read the mandatory source-of-truth documents;
 3. verify CI after this documentation sync;
-4. confirm that no app code changed after `be36a7b3c198175ab592e19e222b097196bebe8b` unless the diff proves otherwise;
-5. perform the mandatory **mobile-first QA** on the current Work/Client UI and 3D viewer;
-6. let the Owner inspect any material mobile finding/correction and the latest interactive build;
-7. only after mobile + desktop visual gates are clear, obtain an **explicit Owner decision about merging PR #3**;
+4. confirm the latest implementation checkpoint is `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0` unless a later code diff proves otherwise;
+5. note that automated + Work Controller mobile QA is already PASS;
+6. let the Owner inspect the latest build on a real phone/device;
+7. only after the real-device mobile gate is accepted, obtain an **explicit Owner decision about merging PR #3**;
 8. if merge is approved, perform the approved merge procedure and then start a fresh audit/planning block for Slice 2;
 9. if merge is not approved, address only the concrete Owner finding — do not broaden scope.
 
@@ -388,7 +408,7 @@ Before showing a visual change as “fixed”:
 - verify Work and Client views;
 - do not call prototype visuals final quality.
 
-**Current consequence for PR #3:** desktop framing is no longer the only visual gate. A mobile QA checkpoint is required before the PR can be considered visually closed.
+**Current consequence for PR #3:** automated/emulated mobile QA and Work Controller visual QA are PASS. The remaining visual gate is Owner review on a real mobile device.
 
 The final product still needs much higher realism and polish.  
 The present slice only proves the product mechanism.

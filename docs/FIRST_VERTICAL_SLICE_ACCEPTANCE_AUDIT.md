@@ -4,8 +4,8 @@
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Branch:** `feat/vertical-slice-v1`  
 **Acceptance basis:** `docs/FIRST_VERTICAL_SLICE_V1.md §11`  
-**Latest implementation checkpoint before documentation sync:** `be36a7b3c198175ab592e19e222b097196bebe8b`  
-**Status:** **TECHNICAL PASS / LATEST DPI-CORRECTED VIEWER AWAITS EXPLICIT OWNER VISUAL VERDICT / NO MERGE APPROVAL**
+**Latest implementation checkpoint before documentation sync:** `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0`  
+**Status:** **TECHNICAL PASS / DESKTOP CHECKPOINT ACCEPTABLE / MOBILE QA PASS / OWNER REAL-DEVICE MOBILE REVIEW PENDING / NO MERGE APPROVAL**
 
 This audit is a technical acceptance record. It is not merge authorization.
 
@@ -33,26 +33,35 @@ Correction 2:
 - no domain/quantity/price/capability logic changed.
 
 Important:
-the Owner explicitly rejected the build before the DPI correction.  
-The latest DPI-corrected build has passed technical and screenshot QA, but no explicit Owner visual approval of that exact build is recorded yet in this review sequence.
+- the Owner explicitly rejected the pre-DPI build;
+- the later DPI-corrected desktop view was then judged acceptable for the First Slice checkpoint, not final polish;
+- mobile-first QA subsequently exposed two real issues: Work viewer below the first screen and oversized mobile viewer overlays;
+- commit `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0` corrected those issues;
+- automated mobile/touch QA and Work Controller mobile visual inspection now pass;
+- Owner real-phone/device review is still pending.
 
-Therefore PR #3 remains DRAFT and must not be merged without an explicit Owner decision.
+Therefore PR #3 remains DRAFT and must not be merged without explicit Owner approval after the remaining real-device visual gate.
 
 ## 2. Latest verification evidence
 
-For `be36a7b3c198175ab592e19e222b097196bebe8b`:
+For `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0`:
 
-- Push CI run: `35782023236` — SUCCESS
-- Pull Request CI run: `35782027582` — SUCCESS
-- Static preview publish run: `35782022859` — SUCCESS
+- Push CI run: `35786031509` — SUCCESS
+- Pull Request CI run: `35786037054` — SUCCESS
+- Static preview publish run: `35786031503` — SUCCESS
 - strict TypeScript: PASS
 - Vitest: **21 / 21 tests PASS**
 - production build: PASS
 - `npm ci`: PASS
-- browser smoke: **PASS — Work + direct Client Preview**
-- Work screenshot QA: inspected
-- Client screenshot QA: inspected
-- static preview build: `fd5425ac5675e0aaedb480f1d9f3428eaf0a396d`
+- desktop Work smoke: PASS
+- desktop direct Client smoke: PASS
+- mobile Work smoke at 390×844: PASS
+- mobile direct Client smoke at 390×844: PASS
+- touch orbit: PASS
+- horizontal overflow gate: PASS
+- desktop screenshots: inspected
+- mobile Work/Client screenshots: inspected
+- static preview build: `f6c34784f33d9c4d04e8baa039c534317cfbcaed`
 
 The browser smoke uses a real Chromium session and checks runtime/console errors, canvas interaction, Work/Client boundaries and core Smart Offer interactions.
 
@@ -113,7 +122,10 @@ The browser smoke uses a real Chromium session and checks runtime/console errors
 | tests | VERIFIED | 6 test files, **21 tests PASS**. |
 | production build | VERIFIED | CI PASS. |
 | manual screenshot inspection | VERIFIED | Latest Work and Client CI artifacts inspected. |
-| explicit Owner visual acceptance of latest DPI build | **PENDING** | Required before merge discussion is closed. |
+| desktop checkpoint acceptance | VERIFIED FOR FIRST SLICE | Owner judged the corrected desktop composition acceptable for this checkpoint, not final polish. |
+| mobile emulated QA | VERIFIED | 390×844 Work/Client layout, touch orbit, no horizontal overflow, compact overlays. |
+| Work Controller mobile visual inspection | VERIFIED | Latest mobile Work and Client screenshots inspected. |
+| Owner real-device mobile acceptance | **PENDING** | Required before merge discussion is closed. |
 
 ## 4. Viewer correction isolation
 
@@ -165,8 +177,9 @@ Technical acceptance remains **PASS**.
 Current closure gate:
 
 1. verify CI remains green after documentation sync;
-2. Owner inspects the latest DPI-corrected interactive preview if not already explicitly accepted;
-3. obtain explicit Owner merge approval or a concrete correction request;
-4. only then merge or continue correction.
+2. Owner opens the latest interactive build on a real phone/device;
+3. if mobile is accepted, obtain explicit Owner merge approval;
+4. if mobile reveals a concrete issue, fix only that bounded issue and repeat mobile-first QA;
+5. only then merge or continue correction.
 
 **No implicit “OK”, CI result, screenshot review by the Work Controller, or documentation update counts as merge approval.**
