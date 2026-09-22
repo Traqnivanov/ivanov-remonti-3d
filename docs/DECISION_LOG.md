@@ -179,3 +179,24 @@ Client Viewer е read-only.
 - public docs и private implementation да се разделят.
 
 Причина: публичното repo противоречи на целта да не се улеснява копирането на реалната имплементация.
+
+## 22.09.2026 — Repo остава public по време на разработката
+
+**Owner decision:** `Traqnivanov/ivanov-remonti-3d` остава PUBLIC, докато програмата се създава.
+
+Owner приема риска от публичност по време на development.
+
+Защитата на repository/source се прави, когато програмата е готова за production/final release.
+
+До тогава:
+- не се качват secrets/API keys;
+- не се качват реални клиентски лични данни;
+- не се качват production credentials;
+- не се приема, че публичният repo е защитена среда.
+
+Преди production/final release има задължителен **Protection Gate**, който включва решение и изпълнение за:
+- private repository или друга одобрена private source strategy;
+- production access/security;
+- client delivery protection;
+- removal/rotation на test credentials, ако има такива;
+- проверка за source maps, secrets и sensitive data.
