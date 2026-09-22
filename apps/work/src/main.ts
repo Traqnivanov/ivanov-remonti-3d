@@ -7,6 +7,7 @@ import {
   devPriceBookItem,
 } from "./calculation";
 import { RoomViewer } from "./viewer";
+import { renderM2Schema } from "./m2-schema";
 
 const project = createDefaultProject();
 let previewMode = new URLSearchParams(window.location.search).get("preview") === "1";
@@ -41,6 +42,11 @@ app.innerHTML = `
             <label>Дължина, m<input id="lengthInput" type="number" min="1" step="0.1"></label>
             <label>Височина, m<input id="heightInput" type="number" min="1" step="0.1"></label>
           </div>
+        </section>
+
+        <section class="section">
+          <div class="section-title">M² схема · същата геометрия</div>
+          <div id="m2Schema"></div>
         </section>
 
         <section class="section">
@@ -135,6 +141,7 @@ for (const input of [widthInput, lengthInput, heightInput]) {
 }
 
 renderWallTargets();
+renderM2Schema(mustGet("m2Schema"), project);
 viewer.setProject(project);
 syncViewerFocus();
 renderOffer();
@@ -207,6 +214,7 @@ function updateDimensions(): void {
   lengthInput.value = String(length);
   heightInput.value = String(height);
 
+  renderM2Schema(mustGet("m2Schema"), project);
   viewer.setProject(project);
   syncViewerFocus();
   renderOffer();
