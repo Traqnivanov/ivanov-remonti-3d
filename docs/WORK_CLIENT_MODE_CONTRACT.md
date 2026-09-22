@@ -507,3 +507,15 @@ Ivanov Remonti prepares:
 - the result.
 
 The client receives a clean environment where the room itself explains the offer.
+
+## 17. Client delivery/security reference
+
+Client Mode is delivered through a controlled web viewer, not by sending the Work App.
+
+Owner chooses per offer:
+- secure Link; or
+- secure Link + PIN.
+
+Detailed access, payload-minimization, source-protection and IP-protection rules are defined in:
+
+`docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
