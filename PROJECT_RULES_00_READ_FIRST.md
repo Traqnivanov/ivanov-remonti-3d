@@ -35,13 +35,14 @@ North Star механизъм:
 2. `docs/MASTER_SPEC.md`
 3. `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
 4. `docs/3D_VIEWER_STANDARD.md`
-5. `docs/DECISION_LOG.md`
-6. `docs/PRODUCT_VISION_STANDARD.md`
-7. `docs/SERVICE_OPERATION_REGISTRY.md`
-8. `docs/BENCHMARK_RESEARCH.md`
-9. `docs/TOOLS_REUSE_AUDIT.md`
-10. `docs/DELIVERY_STRATEGY.md`
-11. конкретният handoff/task за текущата работа
+5. `docs/WORK_CLIENT_MODE_CONTRACT.md`
+6. `docs/DECISION_LOG.md`
+7. `docs/PRODUCT_VISION_STANDARD.md`
+8. `docs/SERVICE_OPERATION_REGISTRY.md`
+9. `docs/BENCHMARK_RESEARCH.md`
+10. `docs/TOOLS_REUSE_AUDIT.md`
+11. `docs/DELIVERY_STRATEGY.md`
+12. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
 
@@ -350,3 +351,15 @@ AI/photoreal render може да подобрява визията, но ням
 **Какво е → Защо се прави → Какво получавате → Какво включва позицията → Важно (ако е нужно).**
 
 Не се измисля нов факт, когато източникът не го подкрепя.
+
+## 21. Work / Client capability safety
+
+Work Mode и Client Mode използват една project truth, но имат различни права.
+
+Client Mode е read-only по отношение на Project State.
+
+Забранено е да се разчита само на скрити бутони. Mutating commands трябва да бъдат ограничени и на application/domain capability ниво.
+
+Viewer/session действия като camera, zoom, selected service, cutaway и hidden wall могат да бъдат клиентски, но не променят geometry, quantities, scope или price.
+
+Подробният договор е `docs/WORK_CLIENT_MODE_CONTRACT.md`.
