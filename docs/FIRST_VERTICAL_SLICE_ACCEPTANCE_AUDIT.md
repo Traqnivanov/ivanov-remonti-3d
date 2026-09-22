@@ -4,8 +4,27 @@
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Branch:** `feat/vertical-slice-v1`  
 **Acceptance basis:** `docs/FIRST_VERTICAL_SLICE_V1.md §11`  
-**Status:** **TECHNICAL PASS — READY FOR PR / OWNER REVIEW**  
+**Status:** **TECHNICAL PASS / OWNER VISUAL REVIEW NOT ACCEPTED YET**  
 **Important:** this is not an Owner product approval and is not a merge authorization.
+
+## Owner visual review status
+
+The technical acceptance of the mechanism does **not** mean the Owner accepted the current visual/product experience.
+
+On 22.09.2026 the Owner opened the live interactive Work preview and explicitly rejected the current first impression as ready for approval.
+
+Observed/Owner-confirmed problems:
+- the 3D room/model is not visually centered in the main viewer;
+- the initial camera/framing places the room too low/right;
+- there is excessive empty dark space;
+- the model is too small/far away on first load;
+- the first view does not immediately explain the room or create the intended professional impression;
+- the direction is slightly closer to the intended idea, but still **far from the desired finished experience**.
+
+Therefore:
+- PR #3 stays DRAFT;
+- do **not** merge based only on the technical PASS;
+- the next work must improve the 3D first-view framing/centering and Owner-visible experience without changing the verified domain/quantity/capability contracts.
 
 ## Verification evidence
 
