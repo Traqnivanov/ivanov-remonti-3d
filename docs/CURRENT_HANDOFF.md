@@ -9,11 +9,12 @@
 
 - Owner = user, final product authority.
 - Work Controller = current assistant / next lead chat.
-- Work in **small tasks only**.
-- After each small implementation task:
-  1. typecheck/tests/build;
+- Follow **PROJECT_RULES_00_READ_FIRST.md §27 Adaptive Work Sizing**.
+- Use the smallest safe block for risky/ambiguous work, but bundle obvious related low-risk corrections into one coherent pass.
+- After each meaningful implementation block:
+  1. typecheck/tests/build as applicable;
   2. visual QA if UI/3D changed;
-  3. fix before expanding scope.
+  3. fix regressions before expanding scope.
 - Do not silently change product fundamentals.
 - Do not add more rules/documents unless they solve a real coordination problem.
 - Existing APPROVED/LOCKED decisions are current protected baseline, but can be replaced later by explicit Owner decision after audit.
@@ -121,9 +122,9 @@ Current approved direction:
 - no protected published Client Viewer yet;
 - no live public preview URL yet because GitHub Pages is not enabled.
 
-## 8. NEXT EXACT SMALL TASK
+## 8. NEXT ADAPTIVE WORK BLOCK
 
-Do NOT start a large new subsystem.
+Do not start a large new subsystem. Size the next block according to PROJECT_RULES §27.
 
 Latest completed micro-task:
 - replaced the client-visible prototype phrase “Прототипно Info за фина шпакловка.”;
@@ -133,11 +134,9 @@ Latest completed micro-task:
 - CI/typecheck/tests/build/screenshot QA all passed;
 - visual verification confirms the prototype phrase is gone from Client Preview.
 
-Next task:
+Next work block:
 
-**Client Info copy audit: replace only the next obvious internal/prototype explanation in “Защо се прави” (“Показва как краткото клиентско обяснение остава свързано с конкретната позиция.”) with a real client-facing reason for the service. Then run CI and visual QA.**
-
-After that, stop and report the result before taking the next small task.
+**Run one coherent low-risk client-copy cleanup pass over the existing Fine Putty Info card. Replace the remaining obvious prototype/internal explanation(s) with real client-facing wording only where the intended meaning is already unambiguous. Do not change scope, quantity, price, service logic or layout. Then run CI and visual QA and report at that meaningful checkpoint.**
 
 ## 9. Required reading for a new chat
 
