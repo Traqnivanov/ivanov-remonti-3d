@@ -34,8 +34,9 @@ export class RoomViewer {
     this.scene.background = new THREE.Color(0x0a0e17);
 
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Keep the first slice visually clean and deterministic.
+    // Shadow mapping caused visible moire/acne artifacts in headless and low-end renders.
+    this.renderer.shadowMap.enabled = false;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.container.appendChild(this.renderer.domElement);
 
@@ -54,7 +55,6 @@ export class RoomViewer {
 
     const key = new THREE.DirectionalLight(0xffffff, 2.6);
     key.position.set(3.5, 7, 5);
-    key.castShadow = true;
     this.scene.add(key);
 
     this.renderer.domElement.addEventListener("pointerdown", this.handlePointerDown);
@@ -132,14 +132,12 @@ export class RoomViewer {
       new THREE.BoxGeometry(width, WALL_THICKNESS, length),
       new THREE.Vector3(0, -WALL_THICKNESS / 2, 0),
     );
-    floor.receiveShadow = true;
 
     const ceiling = this.makeMesh(
       "room-1.ceiling",
       new THREE.BoxGeometry(width, WALL_THICKNESS, length),
       new THREE.Vector3(0, height + WALL_THICKNESS / 2, 0),
     );
-    ceiling.receiveShadow = true;
 
     this.makeMesh(
       "room-1.wall-front",
@@ -182,8 +180,8 @@ export class RoomViewer {
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.copy(position);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
     mesh.userData.entityId = id;
     this.scene.add(mesh);
     this.entityMeshes.set(id, mesh);
