@@ -9,12 +9,13 @@ Interactive renovation offer and visualization system.
 3. [Smart Offer Product Contract](docs/SMART_OFFER_PRODUCT_CONTRACT.md)
 4. [3D Viewer Standard](docs/3D_VIEWER_STANDARD.md)
 5. [Work / Client Mode Contract](docs/WORK_CLIENT_MODE_CONTRACT.md)
-6. [Decision Log](docs/DECISION_LOG.md)
-7. [Product Vision & Quality Standard](docs/PRODUCT_VISION_STANDARD.md)
-8. [Service & Operation Registry](docs/SERVICE_OPERATION_REGISTRY.md)
-9. [Benchmark Research](docs/BENCHMARK_RESEARCH.md)
-10. [Ivanov Tools Reuse Audit](docs/TOOLS_REUSE_AUDIT.md)
-11. [Delivery Strategy](docs/DELIVERY_STRATEGY.md)
+6. [Client Delivery & IP Protection Contract](docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md)
+7. [Decision Log](docs/DECISION_LOG.md)
+8. [Product Vision & Quality Standard](docs/PRODUCT_VISION_STANDARD.md)
+9. [Service & Operation Registry](docs/SERVICE_OPERATION_REGISTRY.md)
+10. [Benchmark Research](docs/BENCHMARK_RESEARCH.md)
+11. [Ivanov Tools Reuse Audit](docs/TOOLS_REUSE_AUDIT.md)
+12. [Delivery Strategy](docs/DELIVERY_STRATEGY.md)
 
 ## Core idea
 
