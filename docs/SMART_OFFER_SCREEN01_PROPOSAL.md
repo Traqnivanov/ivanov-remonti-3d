@@ -241,3 +241,33 @@ It may contain:
 A separate Work / Edit workspace will be designed for Ivanov Remonti.
 
 The same Client Mode implementation should be reusable inside Work Mode through **Preview as Client**.
+
+
+## 13. Protected entry before Screen 01
+
+Screen 01 is not discovered publicly.
+
+The client reaches it through the access mode chosen in Work Mode.
+
+### Link mode
+- client opens the unique protected offer link;
+- after access validation, the Smart Offer opens.
+
+### Link + PIN mode
+- client opens the unique protected offer link;
+- a minimal Ivanov Remonti access screen appears;
+- client enters PIN;
+- after validation, the Smart Offer opens.
+
+The PIN gate should feel like part of the premium Ivanov Remonti experience, not like a technical admin login.
+
+Before successful access, do not expose unnecessary project details.
+
+The access screen may show:
+- Ivanov Remonti identity;
+- “Вашата Smart оферта”;
+- offer number or safe non-sensitive identifier;
+- PIN field when required;
+- concise privacy/access note.
+
+The main Screen 01 remains focused on 3D + offer after access succeeds.
