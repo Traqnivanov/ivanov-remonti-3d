@@ -137,8 +137,15 @@ Traqnivanov/ivanov-tools остава read-only reference.
 
 Подробният договор е в `docs/WORK_CLIENT_MODE_CONTRACT.md`.
 
-### Оставащо Owner решение
-Дали изпратената клиентска оферта чете live working project или публикувана immutable/revision snapshot версия. Work Controller препоръчва публикувани revisions, но това още не е заключено.
+### Статус на старото отворено решение
+
+**SUPERSEDED / РЕШЕНО ПО-КЪСНО:** въпросът live working project срещу published snapshot вече е решен с по-късното Owner решение **„Published Revision е клиентският publishing модел“**.
+
+Активната истина е:
+
+**Working Project → Preview as Client → Publish Revision → protected Client Viewer**
+
+Клиентът не чете live working draft.
 
 ## 22.09.2026 — Client access може да бъде Link или Link + PIN
 
@@ -170,15 +177,11 @@ Client Viewer е read-only.
 
 ## 22.09.2026 — Текущият public repo е риск преди proprietary implementation
 
-Към момента `Traqnivanov/ivanov-remonti-3d` е PUBLIC.
+**HISTORICAL / SUPERSEDED BY THE LATER OWNER DECISION BELOW.**
 
-Това не е променено автоматично.
+Към момента на това обсъждане `Traqnivanov/ivanov-remonti-3d` е PUBLIC и рискът е отчетен.
 
-Преди да започне съществен proprietary implementation, Owner трябва изрично да реши:
-- repo да стане private; или
-- public docs и private implementation да се разделят.
-
-Причина: публичното repo противоречи на целта да не се улеснява копирането на реалната имплементация.
+По-късното активно Owner решение е repo да остане PUBLIC по време на development и да има задължителен Protection Gate преди production/final release.
 
 ## 22.09.2026 — Repo остава public по време на разработката
 
@@ -327,3 +330,53 @@ Published Revision запазва това, което клиентът реал
 - старото решение, формулирано като интеграция на „двата калкулатора“, е заменено.
 
 M² се свързва с новата програма чрез shared project/domain state, а не чрез iframe или директно вграждане на стария HTML.
+
+
+## 22.09.2026 — First-view viewer проблемът се коригира без промяна на product core
+
+**Owner feedback / active implementation rule:** първият 3D кадър трябва да е реално центриран и с полезен мащаб на истинското устройство, а Reset да връща към същия полезен изглед.
+
+Това е Viewer Session / presentation проблем, не причина да се променят:
+- domain geometry;
+- quantity;
+- price;
+- Work/Client capability contract.
+
+Последователност на корекциите:
+- adaptive room/viewport framing;
+- след реален Owner screenshot — DPI/CSS canvas correction за Windows/high-DPI поведение.
+
+Правило за напред:
+**визуална корекция не се приема само по CI или headless screenshot; реалният Owner/device feedback има приоритет при видим UX дефект.**
+
+Последният pre-DPI вариант беше изрично отхвърлен като все още изместен вдясно. Latest DPI-corrected build трябва да получи отделен Owner visual verdict преди merge.
+
+## 22.09.2026 — Не прескачаме към следваща видима функция само защото prototype-ът е незавършен
+
+**Owner-confirmed process direction:** след доказване на един vertical slice не се избира произволно следващата видима екстра.
+
+Преди нов subsystem:
+**затваряне на текущия checkpoint → audit → explicit merge/continue decision → следващ одобрен slice.**
+
+Текущият планиран ред след First Vertical Slice е:
+1. **Slice 2 — Persistence** — Supabase persistence, schema/version migration, Work Auth, Save/Open;
+2. **Slice 3 — Publishing** — Published Revision, minimized client payload, Link / Link + PIN, separate Client Viewer;
+3. **Slice 4 — Complete room offer** — multiple services, openings, operation-specific quantity rules, fuller client workflow.
+
+Този ред не е необратима догма. Може да бъде сменен само при:
+**audit → по-добро доказано решение → impact/risk review → Owner decision.**
+
+Следователно не се започват самоволно врати/прозорци, материали, Supabase или друга голяма система, докато текущият PR/checkpoint не е затворен според правилата.
+
+## 22.09.2026 — PR #3 няма implicit merge approval
+
+**Owner/process rule:** PR #3 остава DRAFT, докато няма изрично Owner разрешение за merge.
+
+Не означават merge approval:
+- „ок“ за продължаване;
+- green CI;
+- technical PASS;
+- одобрение на отделна визуална корекция;
+- documentation sync.
+
+Преди merge Owner трябва да е видял релевантния интерактивен build и да даде изрично решение.

@@ -4,137 +4,169 @@
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Branch:** `feat/vertical-slice-v1`  
 **Acceptance basis:** `docs/FIRST_VERTICAL_SLICE_V1.md §11`  
-**Status:** **TECHNICAL PASS / OWNER VISUAL REVIEW NOT ACCEPTED YET**  
-**Important:** this is not an Owner product approval and is not a merge authorization.
+**Latest implementation checkpoint before documentation sync:** `be36a7b3c198175ab592e19e222b097196bebe8b`  
+**Status:** **TECHNICAL PASS / LATEST DPI-CORRECTED VIEWER AWAITS EXPLICIT OWNER VISUAL VERDICT / NO MERGE APPROVAL**
 
-## Owner visual review status
+This audit is a technical acceptance record. It is not merge authorization.
 
-The technical acceptance of the mechanism does **not** mean the Owner accepted the current visual/product experience.
+## 1. Owner visual-review history
 
-On 22.09.2026 the Owner opened the live interactive Work preview and explicitly rejected the current first impression as ready for approval.
+The first technically passing slice was not accepted visually.
 
-Observed/Owner-confirmed problems:
-- the 3D room/model is not visually centered in the main viewer;
-- the initial camera/framing places the room too low/right;
-- there is excessive empty dark space;
-- the model is too small/far away on first load;
-- the first view does not immediately explain the room or create the intended professional impression;
-- the direction is slightly closer to the intended idea, but still **far from the desired finished experience**.
+Owner-observed problems:
+- room/model pushed low/right;
+- too much empty dark space;
+- model too small/far on first load;
+- first view did not feel intentional enough.
 
-Therefore:
-- PR #3 stays DRAFT;
-- do **not** merge based only on the technical PASS;
-- the next work must improve the 3D first-view framing/centering and Owner-visible experience without changing the verified domain/quantity/capability contracts.
+Correction 1:
+- commit `499a86fc7663d49fff98fafa6014df1fdb4b2f2d`;
+- adaptive showcase framing based on room dimensions and viewport;
+- initial and reset framing unified;
+- framing tests added.
 
-## Verification evidence
+Owner then showed the model still right-shifted on the real Windows/browser setup.
 
-Latest fully passing verification before this audit:
+Correction 2:
+- implementation checkpoint `be36a7b3c198175ab592e19e222b097196bebe8b`;
+- high-DPI/CSS canvas sizing fixed by allowing renderer size to update the CSS canvas;
+- no domain/quantity/price/capability logic changed.
 
-- Pull Request CI run: `35774935220`
+Important:
+the Owner explicitly rejected the build before the DPI correction.  
+The latest DPI-corrected build has passed technical and screenshot QA, but no explicit Owner visual approval of that exact build is recorded yet in this review sequence.
+
+Therefore PR #3 remains DRAFT and must not be merged without an explicit Owner decision.
+
+## 2. Latest verification evidence
+
+For `be36a7b3c198175ab592e19e222b097196bebe8b`:
+
+- Push CI run: `35782023236` — SUCCESS
+- Pull Request CI run: `35782027582` — SUCCESS
+- Static preview publish run: `35782022859` — SUCCESS
 - strict TypeScript: PASS
-- Vitest: **18 / 18 tests PASS**
+- Vitest: **21 / 21 tests PASS**
 - production build: PASS
-- committed `apps/work/package-lock.json` + `npm ci`: PASS
+- `npm ci`: PASS
 - browser smoke: **PASS — Work + direct Client Preview**
-- Work screenshot QA: PASS
-- Client screenshot QA: PASS
+- Work screenshot QA: inspected
+- Client screenshot QA: inspected
+- static preview build: `fd5425ac5675e0aaedb480f1d9f3428eaf0a396d`
 
-The browser smoke uses a real headless Chromium session and checks application/runtime console errors, real canvas interaction, Work/Client boundaries and key Smart Offer interactions.
+The browser smoke uses a real Chromium session and checks runtime/console errors, canvas interaction, Work/Client boundaries and core Smart Offer interactions.
 
-## §11 acceptance matrix
+## 3. §11 acceptance matrix
 
 ### 3D
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| room is true 3D | VERIFIED | Three.js/WebGL room uses real floor/wall/ceiling meshes; rendered in Work and Client QA screenshots. |
-| orbit/zoom works comfortably | VERIFIED for first-slice functional acceptance | Browser smoke sends real drag + wheel input to the 3D canvas and verifies the rendered page changes; no app/runtime error is produced. |
-| wall/ceiling visibility works | VERIFIED | Browser smoke hides a real wall and ceiling and verifies visual changes; pure visibility tests also pass. |
-| auto cutaway can be enabled/disabled | VERIFIED | Browser smoke toggles Auto Cutaway both ways; `viewer-visibility.test.ts` verifies camera-side cutaway rules. |
-| no floating child artifacts for implemented geometry | VERIFIED FOR CURRENT SCOPE | Current child visual geometry is attached to its host mesh; visibility is inherited. Latest visual QA shows no floating artifacts. No furniture/opening child system exists in this slice. |
+| true 3D room | VERIFIED | Three.js/WebGL floor/walls/ceiling with stable IDs. |
+| orbit/zoom | VERIFIED | Real browser drag + wheel input changes rendered view. |
+| reset useful view | VERIFIED TECHNICALLY | Reset uses the same adaptive showcase-frame calculation as initial view. |
+| wall/ceiling visibility | VERIFIED | Browser smoke + pure visibility tests. |
+| auto cutaway ON/OFF | VERIFIED | Browser smoke + visibility rules. |
+| quantity independent of camera/visibility | VERIFIED | Domain quantity invariance tests remain green. |
+| first-view fit adapts to viewer | VERIFIED TECHNICALLY | `viewer-framing.test.ts` covers Work/Client viewport fitting. |
+| high-DPI canvas remains aligned to CSS viewer | IMPLEMENTED + CI/SCREENSHOT QA | Renderer CSS size now follows the real viewer dimensions. |
 
 ### Offer → Model
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| click Fine Putty offer row | VERIFIED | Browser smoke performs the actual offer-row click. |
-| correct wall(s) highlight | VERIFIED | `smart-offer-interaction.test.ts` resolves the exact assigned wall IDs; browser smoke verifies entering/exiting focus changes the rendered model presentation. |
-| quantity/price/Info stay synchronized | VERIFIED | Browser smoke snapshots quantity, total and Info before/after presentation-only interactions; values remain unchanged. |
+| Fine Putty row interaction | VERIFIED | Browser smoke performs actual row click. |
+| correct linked geometry highlight | VERIFIED | Interaction tests + rendered presentation change. |
+| quantity/price/Info stay synchronized | VERIFIED | Browser smoke snapshots values across presentation-only interaction. |
 
 ### Model → Offer
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| click a linked wall | VERIFIED | Browser smoke performs real pointer clicks on visible 3D canvas geometry through the viewer raycast path. |
-| Fine Putty row is emphasized/shown | VERIFIED | Browser smoke requires the Fine Putty row to become selected after a linked-wall canvas click; pure interaction tests cover the same link contract. |
+| linked wall can be clicked in 3D | VERIFIED | Real pointer/raycast browser path. |
+| linked Fine Putty row is emphasized | VERIFIED | Browser smoke + pure interaction test. |
 
 ### Integrity
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| hiding wall does not change quantity | VERIFIED | Visibility/quantity invariance test passes; quantity is derived from Project/domain geometry, not visible meshes. |
-| camera does not change quantity | VERIFIED | Auto-cutaway camera states are tested while quantity remains identical. |
-| price is not stored on mesh/material | VERIFIED | Price Book fixture and line-total logic live in calculation/domain code; renderer/viewer material code has no price source. |
-| changing selected service presentation does not change quantity | VERIFIED | Smart Offer interaction tests explicitly verify quantity and line total remain invariant across presentation-only selections. |
+| hidden wall does not change quantity | VERIFIED | Quantity derives from Project/domain geometry. |
+| camera does not change quantity | VERIFIED | Camera/cutaway states tested independently. |
+| price not stored on mesh/material | VERIFIED | Price Book fixture lives in calculation/domain layer. |
+| presentation does not mutate scope | VERIFIED | Interaction tests and Client mutation guards pass. |
 
 ### Work vs Client
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| Work controls exist only in Work UI | VERIFIED | Work/Client screenshots + browser smoke. |
-| Preview as Client has no authoring controls | VERIFIED | Client UI hides Work authoring; application capability guard rejects dimension/target mutation even if hidden controls are invoked programmatically. |
-| same project state feeds both | VERIFIED | Work and Preview toggle capability/presentation over the same in-memory `project` object; there is no separately retyped Client project state. |
+| Work authoring controls only in Work UI | VERIFIED | Screenshots + smoke. |
+| Client Preview cannot author | VERIFIED | Hidden controls are programmatically exercised and rejected by capability guard. |
+| direct Client cannot escape to Work | VERIFIED | Browser smoke. |
+| one project state feeds both | VERIFIED | No duplicate Client project state. |
 
 ### Quality
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| no console errors | VERIFIED | Browser smoke monitors runtime exceptions, `console.error` and browser page log errors; latest run passes. Headless Chrome host DBus/GPU stderr messages are runner/environment noise, not page console errors. |
-| strict TypeScript passes | VERIFIED | Latest CI passes `tsc --noEmit`. |
-| calculation tests pass | VERIFIED | Latest CI: 5 test files, 18 tests, all pass. |
-| manual visual QA performed | VERIFIED | Latest Work and direct Client screenshots were inspected after the implementation/interaction fixes. |
+| no page console/runtime errors | VERIFIED | Browser smoke error gate. |
+| strict TypeScript | VERIFIED | CI PASS. |
+| tests | VERIFIED | 6 test files, **21 tests PASS**. |
+| production build | VERIFIED | CI PASS. |
+| manual screenshot inspection | VERIFIED | Latest Work and Client CI artifacts inspected. |
+| explicit Owner visual acceptance of latest DPI build | **PENDING** | Required before merge discussion is closed. |
 
-## Approved-scope deferrals — not blockers
+## 4. Viewer correction isolation
 
-The following remain deliberately outside First Vertical Slice v1 and do **not** fail this acceptance audit:
+After the original technical acceptance, the viewer work changed framing/canvas behavior only.
 
-- openings / window-door deductions;
-- full legacy M² calculator migration;
-- multiple services and advanced operation-specific calculators;
+The following core modules remained byte-identical through the latest implementation checkpoint:
+- `apps/work/src/domain.ts`
+- `apps/work/src/calculation.ts`
+- `apps/work/src/capabilities.ts`
+- `apps/work/src/smart-offer-interaction.ts`
+- `apps/work/src/viewer-visibility.ts`
+
+Therefore the recent corrections did not alter:
+- project/domain geometry truth;
+- service scope;
+- quantity rules;
+- Price Book separation;
+- Work/Client capability contract;
+- cutaway rule logic.
+
+## 5. Approved-scope deferrals — not blockers
+
+Still deliberately outside First Vertical Slice v1:
+- openings / door-window deductions;
+- full M² calculator migration;
+- multiple services;
 - production Price Book;
 - Supabase persistence/auth;
-- Published Revisions;
+- Published Revision implementation;
 - protected standalone Client Viewer;
 - Link / Link + PIN;
 - Cloudflare production delivery;
-- PDF / signature / acceptance flow;
-- furniture, photo AI and full materials library.
+- PDF/signature/acceptance;
+- furniture/material library;
+- photo/AI reconstruction.
 
-## PR review closure
+Do not classify these as regressions in PR #3.
 
-Full PR review found one concrete reproducibility gap: dependencies were originally installed without a committed lockfile.
+## 6. Known non-blocking note
 
-That gap is now closed:
-- `apps/work/package-lock.json` is committed;
-- CI installs with `npm ci`;
-- the final push and pull-request CI both pass on the locked dependency graph;
-- final Work and Client screenshots were visually rechecked after the lockfile/CI cleanup.
+Vite still reports a JavaScript chunk around 518 KB minified, slightly above the 500 KB warning threshold.
 
-No new functional regression or architecture deviation was found in the PR review.
+This is a later performance item and is not a blocker for the first-slice mechanism.
 
-## Known non-blocking technical notes
+## 7. Result
 
-- Vite reports a JavaScript chunk around 518 KB minified, above its 500 KB warning threshold. This is a performance optimization item for later and does not invalidate the first-slice mechanism.
-- GitHub Pages was only an optional development-preview experiment. Repository Pages is not enabled, so the Pages workflow is now **manual-only** and does not run/fail on normal branch pushes.
-- Production hosting architecture remains Cloudflare + Supabase as already approved; this audit does not change it.
+Technical acceptance remains **PASS**.
 
-## Result
+Current closure gate:
 
-No required §11 acceptance item is currently blocked.
+1. verify CI remains green after documentation sync;
+2. Owner inspects the latest DPI-corrected interactive preview if not already explicitly accepted;
+3. obtain explicit Owner merge approval or a concrete correction request;
+4. only then merge or continue correction.
 
-The First Vertical Slice v1 is **technically ready for Pull Request review**.
-
-Next allowed action:
-1. open PR from `feat/vertical-slice-v1` to `main`;
-2. review diff/checks;
-3. **do not merge without Owner approval**.
+**No implicit “OK”, CI result, screenshot review by the Work Controller, or documentation update counts as merge approval.**

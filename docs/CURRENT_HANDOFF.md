@@ -3,707 +3,382 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Source branch:** `feat/vertical-slice-v1`  
-**Branch HEAD before this handoff update:** `51a50ad2e3fb8594d98d4a7118d17748f6dde01f`  
-**Open PR:** #3 — `First Vertical Slice v1: Smart Offer core loop` — **DRAFT / DO NOT MERGE**  
+**Latest implementation checkpoint before this documentation sync:** `be36a7b3c198175ab592e19e222b097196bebe8b`  
+**Open PR:** #3 — `First Vertical Slice v1: Smart Offer core loop` — **DRAFT / DO NOT MERGE WITHOUT EXPLICIT OWNER APPROVAL**  
 **Static preview branch:** `preview-vertical-slice-v1`  
-**Current preview build commit:** `dbfeaa72691bb366ad788f76d9da825455aa66a7`
+**Latest verified preview build before this documentation sync:** `fd5425ac5675e0aaedb480f1d9f3428eaf0a396d`
 
-This file is the handoff for the **next Chief Work Controller**.  
-Do not restart the project, redesign the product from zero, or treat the current prototype as the final product.
+This file is the active handoff for the next Chief Work Controller.
+
+Do not restart the project.  
+Do not invent a new product.  
+Do not jump to a new subsystem because the current prototype looks unfinished.  
+Verify the current branch HEAD first, because documentation-only commits may exist after the implementation checkpoint above.
 
 ---
 
-## 1. YOUR ROLE — READ THIS FIRST
-
-You are the new **Chief Work Controller** for Ivanov Remonti Smart Offer.
+## 1. ROLE AND AUTHORITY
 
 Authority order:
 
 1. **Owner** — final product authority.
-2. **Chief Work Controller** — architecture, sequencing, risk, QA, task sizing, technical decisions delegated by Owner.
-3. Any execution/OBK chat — implementation only under a bounded task.
+2. **Chief Work Controller** — architecture, sequencing, risk, QA, technical decisions delegated by Owner, and task sizing.
+3. **OBK / execution chat** — implementation only inside a bounded task.
 
-The Owner is not expected to decide tooling, code structure, CI, hosting mechanics, state architecture, package choices or implementation details.  
-You must lead those correctly and explain only what materially affects the product or requires an Owner decision.
+The Owner should not be asked to decide routine engineering details.  
+The Work Controller must not silently decide ambiguous product behavior.
 
-Do not ask the Owner to approve something he has not actually seen or understood.
+Core rule:
 
-Do not merge, publish to production, change product fundamentals, or silently widen scope without explicit Owner authority where required.
+**NO ASSUMPTION → NO IMPLEMENTATION**
 
-### Work rhythm
+For product ambiguity:
+**audit → problem/goal → options → recommendation → risk → Owner decision → implementation**
 
-Mandatory rule: `PROJECT_RULES_00_READ_FIRST.md §27 Adaptive Work Sizing`.
-
-Do **not** use a fixed “one tiny change → stop” rhythm.
-
-Use:
-- **micro-bundle** for several related low-risk fixes with one QA gate;
-- **standard task** for one clear functional block;
-- **split task** for risky/large/ambiguous work.
-
-Checkpoint only when there is a meaningful, verifiable result, a risk boundary, a failed QA gate, or an Owner decision.
+For routine technical work inside an approved direction, the Work Controller decides and verifies.
 
 ---
 
-## 2. PRODUCT IDENTITY — WHAT WE ARE BUILDING
+## 2. MANDATORY READING ORDER
 
-The product is:
-
-# **Ivanov Remonti Smart Offer**
-
-It is **not**:
-- a generic room planner;
-- a generic CAD;
-- a decorative 3D toy;
-- a construction animation;
-- a PDF quote with a 3D picture attached.
-
-It is an **interactive renovation offer built on a real editable model of the client object**.
-
-North Star:
-
-**обект ↔ услуга ↔ място в модела ↔ количество ↔ цена ↔ Info ↔ краен резултат**
-
-The room/object explains the offer.
-
-The offer explains the room/object.
-
-The client should understand:
-- what exactly will be done;
-- where it will be done;
-- how much is included;
-- how the price relates to the scope;
-- why the work is included;
-- what result they receive.
-
-The product promise is essentially:
-
-**Understand first → then decide.**
-
-A client must be able to click an offer line and see the exact relevant place in 3D.  
-A client must be able to click a real wall/object and see the related offer line(s).
-
----
-
-## 3. THE CORE PRODUCT LOOP — DO NOT BREAK IT
-
-The foundational loop is:
-
-**Project geometry → stable entity → service assignment → quantity rule → Price Book item → offer row → client Info/presentation**
-
-Reverse navigation is equally important:
-
-**3D entity → linked service assignment(s) → offer row**
-
-This means:
-- renderer/mesh identity is never business truth;
-- visible/hidden state is never quantity truth;
-- camera position is never quantity truth;
-- presentation highlight is never scope truth;
-- a service must point to stable entity IDs;
-- quantity must be derived from domain geometry/rules;
-- price must remain separate from renderer code.
-
----
-
-## 4. PRODUCT EXPERIENCE — WORK VS CLIENT
-
-There are two different capability profiles over the same canonical project truth.
-
-### Work / Edit
-
-For Ivanov Remonti.
-
-May eventually:
-- create/edit project;
-- enter dimensions;
-- add/move openings and objects;
-- assign services to exact areas;
-- select quantity rules;
-- select Price Book items;
-- manage materials;
-- prepare client Info;
-- preview client experience;
-- publish a revision.
-
-### Client / View
-
-Interactive but **read-only**.
-
-Client may:
-- rotate/zoom/reset camera;
-- use cutaway/visibility;
-- select service;
-- select model entity;
-- open Info;
-- inspect quantity/price/result.
-
-Client must never:
-- mutate dimensions;
-- change service scope;
-- change quantity formula;
-- change price;
-- edit Price Book;
-- receive broad Work capabilities.
-
-Important:
-Client Mode is **not** “Work Mode with buttons hidden”.
-
-The current slice already has application-level capability guards proving this boundary.
-
----
-
-## 5. STATE SEPARATION — CRITICAL
-
-Keep these conceptually distinct:
-
-1. **Working Project State** — editable business/project truth.
-2. **Published Offer Revision** — immutable client-visible snapshot, later.
-3. **Viewer Session State** — temporary camera/selection/hidden walls/UI state.
-
-Viewer Session State may change freely for the client.
-
-It must never alter:
-- geometry;
-- scope;
-- quantities;
-- prices;
-- published revision content.
-
-Later client delivery uses **Published Revisions**, not the live mutable Work draft.
-
----
-
-## 6. 3D STANDARD
-
-True Three.js 3D is required.
-
-Current and future standard includes:
-- real room geometry;
-- stable IDs;
-- orbit;
-- zoom;
-- reset camera;
-- manual Left / Right / Front / Back / Ceiling visibility;
-- Show All;
-- automatic cutaway;
-- high/top camera hides ceiling when appropriate;
-- hidden wall is visually hidden, not deleted;
-- child geometry must not float when its host is hidden;
-- service focus should be clear without turning the entire room into a crude solid color.
-
-### Visual principle
-
-The 3D viewer is a **main product hero**, not a leftover technical canvas.
-
-The first loaded frame must:
-- clearly show the room;
-- be centered;
-- use the available viewport well;
-- avoid huge dead/empty areas;
-- feel intentional and professional;
-- make the 3D understandable before the user touches anything.
-
-This is currently the **highest-priority visual defect**.
-
----
-
-## 7. CURRENT OWNER VERDICT — THIS OVERRIDES ANY FALSE “READY” IMPRESSION
-
-The first vertical slice is technically functioning, but **the Owner has NOT accepted the visual/product experience**.
-
-On 22.09.2026 the Owner successfully opened the interactive Work preview and gave explicit feedback:
-
-> the graphic/model is not centered;  
-> as a first view it is slightly approaching the idea, but it is still very, very far away.
-
-The screenshot showed:
-- room/model pushed low/right;
-- very large empty dark area;
-- model too small/far on load;
-- poor initial framing;
-- weak first impression.
-
-Therefore:
-
-### DO NOT MERGE PR #3.
-
-Technical acceptance is not product acceptance.
-
-The next Chief Work Controller must treat the current state as:
-
-**mechanism proven / first-view experience rejected and requiring correction.**
-
----
-
-## 8. EXACT NEXT ADAPTIVE WORK BLOCK
-
-Do **not** start openings, Supabase, Price Book production, more services, AI, materials library or another large subsystem.
-
-First fix the Owner-visible 3D experience.
-
-### Next block goal
-
-**Viewer framing + centering + first impression**
-
-Audit and correct as one coherent bounded block:
-
-- why the room appears low/right in the available viewer;
-- camera initial position;
-- OrbitControls target;
-- room visual center;
-- camera distance/FOV;
-- viewer sizing/resizing;
-- how side panels affect perceived viewport center;
-- reset-camera behavior;
-- first-load framing;
-- excessive unused dark space.
-
-Expected result:
-- room clearly centered in the 3D viewer;
-- room occupies a useful proportion of the viewer;
-- first view immediately reads as a room;
-- reset returns to the same good showcase frame;
-- Work and Client remain functionally identical where appropriate;
-- no quantity/state/capability logic changes.
-
-### Verification for this block
-
-Before reporting completion:
-1. strict TypeScript;
-2. all tests;
-3. production build;
-4. browser smoke;
-5. Work screenshot;
-6. Client screenshot;
-7. **actual visual inspection by Chief Work Controller**;
-8. static interactive preview update;
-9. Owner sees the result before any acceptance/merge discussion.
-
-Do not say “visually fixed” because CI passed.  
-You must inspect the produced visual.
-
----
-
-## 9. CURRENT IMPLEMENTATION — WHAT ALREADY EXISTS
-
-Stack:
-- Vite;
-- strict TypeScript;
-- Three.js;
-- Vitest.
-
-Current slice contains:
-- one rectangular room;
-- floor / ceiling / 4 walls;
-- stable surface IDs;
-- orbit / zoom / reset;
-- manual wall/ceiling visibility;
-- auto cutaway;
-- surface raycast selection;
-- Work Mode;
-- Client Preview;
-- capability profile and mutation guards;
-- first service: **Фина шпакловка**;
-- selected target walls;
-- service → 3D highlight;
-- 3D wall → service-row emphasis;
-- `Виж целия резултат`;
-- geometry-based wall m²;
-- DEV Price Book fixture;
-- line total;
-- client Info contract;
-- compact M² technical schema;
-- browser-level smoke testing;
-- screenshot QA;
-- committed dependency lockfile;
-- `npm ci` CI install.
-
-### Important code modules
-
-`apps/work/src/domain.ts`
-- ProjectState;
-- stable entities;
-- Fine Putty assignment;
-- client Info.
-
-`apps/work/src/geometry.ts`
-- shared room geometry;
-- wall/floor/ceiling areas;
-- perimeter;
-- volume.
-
-`apps/work/src/calculation.ts`
-- quantity provenance;
-- DEV Price Book fixture;
-- line total.
-
-`apps/work/src/viewer.ts`
-- Three.js scene;
-- camera;
-- OrbitControls;
-- meshes;
-- selection;
-- visibility;
-- highlight.
-
-`apps/work/src/viewer-visibility.ts`
-- pure auto-cutaway/visibility rules.
-
-`apps/work/src/smart-offer-interaction.ts`
-- Offer → Model / Model → Offer presentation state.
-
-`apps/work/src/capabilities.ts`
-- Work vs Client capability contract.
-
-`apps/work/src/m2-schema.ts`
-- compact 2D M² technical view from the same project geometry.
-
-`apps/work/scripts/browser-smoke.mjs`
-- real Chromium interaction;
-- console/runtime error gate;
-- Work/Client boundary checks;
-- 3D interactions.
-
----
-
-## 10. CURRENT TECHNICAL VERIFICATION
-
-At feature branch HEAD `51a50ad2e3fb8594d98d4a7118d17748f6dde01f`:
-
-- Vertical Slice push CI run `35777446971` = SUCCESS;
-- PR CI run `35777451581` = SUCCESS;
-- static preview publish run `35777447020` = SUCCESS;
-- strict TypeScript = PASS;
-- tests = PASS;
-- production build = PASS;
-- browser smoke = PASS.
-
-The formal acceptance matrix is:
-`docs/FIRST_VERTICAL_SLICE_ACCEPTANCE_AUDIT.md`
-
-Its meaning is now:
-**technical mechanism PASS / Owner visual approval NOT granted.**
-
----
-
-## 11. CURRENT PR / GIT STATE
-
-PR #3:
-**First Vertical Slice v1: Smart Offer core loop**
-
-State:
-- OPEN;
-- DRAFT;
-- mergeable;
-- do not merge.
-
-Base:
-`main` at `bd6077c0abcb66189cfa1d62c370bbf99409687c`
-
-Feature branch:
-`feat/vertical-slice-v1`
-
-Static preview build:
-`preview-vertical-slice-v1`
-
-The preview branch is generated from the Vite build and is only a development-review surface.
-
-It does not redefine production hosting.
-
----
-
-## 12. PREVIEW / HOSTING CONTEXT
-
-The Owner needed to see and use the product before approval.
-
-Attempts:
-- Vercel connector had no usable team/project context;
-- GitHub Pages repository service was not enabled;
-- StackBlitz failed for Owner because its WebContainers/browser compatibility path rejected the browser session.
-
-Current working solution:
-- workflow builds the Vite application;
-- publishes built files to `preview-vertical-slice-v1`;
-- Owner successfully opened the static build through a CDN/raw GitHub delivery URL.
-
-This is **temporary development preview infrastructure only**.
-
-Do not distort product architecture around it.
-
-Production direction remains:
-- GitHub = source/version control;
-- Cloudflare = future delivery/security;
-- Supabase Postgres/Auth/Storage = future backend/persistence;
-- protected server-side publishing/access/pricing later.
-
-No Firebase.  
-No Cloudflare D1 as primary database.
-
----
-
-## 13. M² CALCULATOR — EXACT OWNER DECISION
-
-Legacy repo:
-`Traqnivanov/ivanov-tools`
-
-Current integration source is **ONLY**:
-
-**Калкулатор М² → `kalkulator-combined.html`**
-
-Do not integrate:
-- `calculator.html`;
-- `room.html`.
-
-Legacy tool is reference/knowledge, not runtime dependency.
-
-Strict integration principle:
-
-**one shared project/domain geometry → 3D + M² technical view + quantities/materials + Smart Offer**
-
-Never:
-- iframe the old calculator;
-- depend on legacy DOM;
-- depend on legacy localStorage/Firebase;
-- maintain a second hidden room state;
-- ask user to enter L/W/H twice.
-
-For migrated formulas:
-legacy result → manual calculation → pure TS implementation → automated test.
-
----
-
-## 14. FUTURE PRODUCT SCOPE — KNOW THE DESTINATION, DO NOT BUILD IT ALL NOW
-
-The Master vision includes, over time:
-
-### Geometry / editing
-- multiple rooms;
-- irregular rooms later;
-- doors/windows;
-- openings with position/size/sill;
-- furniture;
-- radiator;
-- lights;
-- switches/outlets;
-- sanitary objects;
-- snapping;
-- move/rotate/duplicate/lock;
-- undo/redo.
-
-### Services
-Ivanov Remonti work includes:
-- putty/plaster/fine finish;
-- painting;
-- drywall;
-- insulation/mineral wool;
-- plumbing;
-- window/door reveals;
-- decorative plaster;
-- bathrooms/tiles;
-- hidden LED;
-- demolition;
-- masonry/partitions;
-- cornices/details;
-- electrical work;
-- full turnkey renovations.
-
-Different service types require different visual semantics:
-- surface → highlight/material/result;
-- construction → real 3D geometry;
-- hidden system → x-ray/cutaway;
-- object → selectable object;
-- low-visible preparation → highlighted zone + quantity + Info.
-
-Do not force every service into the same visual effect.
-
-### Materials / library
-Later:
-- uploaded material/photo textures;
-- scale/repeat/rotation;
-- own library;
-- paint/laminate/tile/plaster/door/light/furniture/sanitary categories.
-
-### Client delivery
-Later:
-- publish immutable revision;
-- client-safe minimized payload;
-- link or link + PIN;
-- opaque token;
-- no public directory;
-- revocation/regeneration;
-- no full Price Book/formula engine/private notes in client payload.
-
----
-
-## 15. PRICE / QUANTITY RULES
-
-Current price is deliberately a DEV fixture:
-**1 EUR/m²** for Fine Putty.
-
-It is not a business price and must not be mistaken for one.
-
-Client preview labels it as test price.
-
-Production rule:
-- quantity from geometry + approved rule;
-- Price Book separately versioned/protected;
-- published revision snapshots quantity/unit price/line total;
-- later Price Book changes must not rewrite what an old client revision showed.
-
-Currency: **EUR**.
-
----
-
-## 16. CURRENT FIRST-SLICE SCOPE BOUNDARIES
-
-Not yet implemented by design:
-- door/window openings;
-- deductions;
-- niches/projections;
-- full M² calculator migration;
-- advanced drywall calculations;
-- production Price Book;
-- Supabase persistence/auth;
-- Published Revisions;
-- protected standalone Client Viewer;
-- Link/PIN;
-- production Cloudflare delivery;
-- PDF/signature/acceptance;
-- furniture/material library;
-- AI photo/model generation.
-
-Do not mark these as bugs in the current slice.
-
-But also do not forget the Master destination.
-
----
-
-## 17. CURRENT KNOWN NON-BLOCKING TECHNICAL NOTE
-
-Vite reports a JS chunk around ~518 KB minified, slightly above its 500 KB warning threshold.
-
-Do not derail the current visual-first-view correction for this.
-
-Optimize when measured/appropriate, especially before broader client distribution.
-
----
-
-## 18. VISUAL QUALITY STANDARD
-
-The Owner is strict about visible quality.
-
-Rules:
-- do not send an uninspected UI result to Owner;
-- do not rely on “tests pass” as visual acceptance;
-- inspect actual screenshot/render;
-- if text is too small, clipped, overlapping, off-center or visually weak, fix it before presenting;
-- functional correctness is necessary, not sufficient;
-- prototype may be visually early, but obvious composition defects are not acceptable.
-
-Current owner feedback proves this point.
-
-The first screen must eventually feel:
-- clear;
-- intentional;
-- professional;
-- modern;
-- easy to understand;
-- visually centered;
-- not overloaded;
-- not empty/unfinished.
-
----
-
-## 19. PRODUCT DECISION RULE
-
-If a genuine product ambiguity exists:
-- do not silently choose;
-- frame the options and impact;
-- ask Owner only for the decision that truly requires product authority.
-
-If it is a normal technical implementation choice:
-- Chief Work Controller decides;
-- do not push routine engineering decisions onto Owner.
-
-If a task becomes much larger/riskier than expected:
-- split before losing control.
-
-If several tiny fixes are clearly related:
-- bundle them.
-
----
-
-## 20. GIT / QA RULE
-
-Work on the existing branch unless a deliberate branch transition is required.
-
-Before merge:
-- full diff review;
-- CI green;
-- UI/3D screenshot inspection;
-- Owner has actually seen the relevant product state;
-- explicit Owner merge approval.
-
-Never infer merge approval from:
-- “ok” to continue work;
-- technical PASS;
-- successful CI;
-- screenshot approval for an unrelated subpart.
-
-PR #3 currently has **no merge approval**.
-
----
-
-## 21. MANDATORY READING ORDER FOR THE NEW CHIEF WORK CONTROLLER
-
-Read exactly in this order before making meaningful changes:
+Follow `PROJECT_RULES_00_READ_FIRST.md §3` exactly before meaningful work:
 
 1. `PROJECT_RULES_00_READ_FIRST.md`
 2. `docs/MASTER_SPEC.md`
-3. `docs/PRODUCT_VISION_STANDARD.md`
-4. `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
-5. `docs/3D_VIEWER_STANDARD.md`
-6. `docs/WORK_CLIENT_MODE_CONTRACT.md`
-7. `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`
-8. `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`
-9. `docs/DATA_MODEL_V1.md`
-10. `docs/DECISION_LOG.md`
+3. `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
+4. `docs/3D_VIEWER_STANDARD.md`
+5. `docs/WORK_CLIENT_MODE_CONTRACT.md`
+6. `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`
+7. `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`
+8. `docs/DATA_MODEL_V1.md`
+9. `docs/DECISION_LOG.md`
+10. `docs/PRODUCT_VISION_STANDARD.md`
 11. `docs/SERVICE_OPERATION_REGISTRY.md`
 12. `docs/BENCHMARK_RESEARCH.md`
 13. `docs/TOOLS_REUSE_AUDIT.md`
 14. `docs/LEGACY_CALCULATOR_INTEGRATION_ARCHITECTURE.md`
 15. `docs/DELIVERY_STRATEGY.md`
-16. `docs/FIRST_VERTICAL_SLICE_V1.md`
-17. `docs/FIRST_VERTICAL_SLICE_ACCEPTANCE_AUDIT.md`
-18. **this file last**
+16. `docs/FIRST_VERTICAL_SLICE_V1.md` while this slice is active
+17. this handoff last
 
-Then inspect the current code and current live preview.
-
-Do not trust an older chat summary over current repository truth + latest explicit Owner feedback.
+Repository truth + latest explicit Owner decision beats an older chat summary.
 
 ---
 
-## 22. FIRST MESSAGE / BEHAVIOR OF THE NEW CHIEF WORK CONTROLLER
+## 3. PRODUCT IDENTITY
 
-The new controller should NOT begin by asking the Owner to re-explain the project.
+The product is **Ivanov Remonti Smart Offer**.
 
-It should:
-- confirm repo/branch/PR HEAD;
-- read the mandatory docs;
-- verify current CI;
-- inspect the actual current Work and Client preview;
-- acknowledge the Owner's visual rejection;
-- perform the bounded viewer framing/centering audit;
-- present a concrete correction plan if any product choice is needed;
-- otherwise implement the technical framing correction;
-- run QA;
-- visually inspect;
-- update static preview;
-- only then ask Owner to look at the improved first view.
+It is NOT:
+- a generic room planner;
+- a generic CAD;
+- a decorative 3D toy;
+- a construction-process animation;
+- a PDF quote with a 3D image attached.
+
+North Star:
+
+**обект ↔ услуга ↔ място в модела ↔ количество ↔ цена ↔ Info ↔ краен резултат**
+
+The room explains the offer.  
+The offer explains the room.
+
+The client must be able to understand:
+- what will be done;
+- where;
+- why;
+- how much;
+- at what price;
+- what result is proposed.
+
+Offer → Model and Model → Offer are both fundamental.
 
 ---
 
-## 23. FINAL HANDOFF SENTENCE
+## 4. NON-NEGOTIABLE ARCHITECTURE
 
-**Continue the same product. Preserve the proven core. Do not merge. Fix the rejected first-view 3D composition next: center and frame the room properly, reduce dead space, make reset/initial camera intentional, verify visually, publish the preview, and let the Owner see it before any approval discussion.**
+Preserve:
+
+- one canonical project/domain truth;
+- stable entity IDs;
+- renderer is NOT quantity/price truth;
+- camera/visibility/highlight are NOT scope truth;
+- quantity derives from domain geometry + approved rule;
+- price comes from a separate Price Book layer;
+- Work Mode and Client Mode are separate capability profiles;
+- Client Mode is interactive but read-only;
+- Viewer Session State never mutates Project State, quantity or price;
+- future client delivery uses **Published Revisions**, not the live mutable Work draft;
+- Client Viewer receives a minimized published payload, not the Work App.
+
+Current approved infrastructure direction:
+- GitHub — source/version control;
+- Cloudflare — delivery/security;
+- Supabase Postgres/Auth/Storage + protected server operations;
+- no Firebase;
+- no Cloudflare D1 as primary application DB.
+
+Repo remains public during development by Owner decision; Production Protection Gate comes later.
+
+---
+
+## 5. ADAPTIVE WORK SIZING — HOW TO WORK
+
+Mandatory: `PROJECT_RULES_00_READ_FIRST.md §27 Adaptive Work Sizing`.
+
+Do NOT use a mechanical “one tiny change and stop” rhythm.
+
+Use:
+- **micro-bundle** — several closely related low-risk corrections, one QA gate;
+- **standard task** — one clear functional block;
+- **split task** — risky, broad, ambiguous or multi-system work.
+
+Stop/checkpoint when:
+- there is a meaningful verifiable result;
+- a risk boundary is reached;
+- QA fails;
+- an Owner product decision is required.
+
+Do not expand scope while fixing one bounded problem.
+
+---
+
+## 6. FIRST VERTICAL SLICE — WHAT IS PROVEN
+
+The current slice proves the core loop with one rectangular room and one service: **Фина шпакловка**.
+
+Implemented:
+- true Three.js room;
+- floor / ceiling / four walls;
+- stable surface IDs;
+- orbit / zoom / reset;
+- manual wall/ceiling visibility;
+- automatic cutaway;
+- surface raycast selection;
+- Work Mode;
+- Preview as Client;
+- capability guards;
+- Fine Putty assignment to exact walls;
+- Offer → Model highlight;
+- Model → Offer emphasis;
+- `Виж целия резултат`;
+- geometry-derived wall m²;
+- DEV Price Book abstraction;
+- line total;
+- client Info;
+- compact M² technical schema from the same geometry;
+- browser smoke;
+- visual QA;
+- dependency lockfile and `npm ci`.
+
+The first slice is a **foundation proof**, not a finished product.
+
+---
+
+## 7. VIEWER FIRST-VIEW HISTORY — IMPORTANT
+
+Owner feedback exposed a visible first-view defect:
+- room too far/small;
+- room low/right;
+- large dead dark area;
+- weak first impression.
+
+The first correction introduced adaptive room framing:
+- commit `499a86fc7663d49fff98fafa6014df1fdb4b2f2d`;
+- framing now uses room dimensions + real viewer aspect;
+- initial view and Reset use the same showcase-frame logic;
+- framing tests were added.
+
+Owner then showed that on the real Windows/browser setup the model was still pushed right.
+
+Audit found the real-device issue:
+- renderer pixel ratio was >1;
+- `renderer.setSize(..., false)` left CSS canvas sizing inconsistent with the visual viewport;
+- CI at DPR=1 did not expose the same displacement.
+
+DPI/CSS canvas correction:
+- implementation checkpoint `be36a7b3c198175ab592e19e222b097196bebe8b`;
+- `renderer.setSize(width, height)` now keeps the CSS canvas aligned with the viewer on high-DPI displays.
+
+### Current visual acceptance state
+
+Do NOT invent an approval that has not happened.
+
+The Owner explicitly rejected the pre-DPI build as still right-shifted.  
+The latest DPI correction has technical/CI/visual-QA evidence, but the Owner has not yet given an explicit final visual verdict on that exact latest build in the current review sequence.
+
+Therefore:
+- framing direction is improved and technically corrected;
+- it is not final visual polish;
+- **PR #3 still has no merge approval**;
+- next Controller must not claim Owner acceptance of the latest build unless the Owner explicitly confirms it.
+
+---
+
+## 8. LATEST TECHNICAL VERIFICATION
+
+For implementation checkpoint `be36a7b3c198175ab592e19e222b097196bebe8b`:
+
+- Push CI: `35782023236` — SUCCESS
+- Pull Request CI: `35782027582` — SUCCESS
+- Static preview publish: `35782022859` — SUCCESS
+- strict TypeScript — PASS
+- Vitest — **21 / 21 tests PASS**
+- production build — PASS
+- browser smoke — PASS
+- Work screenshot QA — inspected
+- Client screenshot QA — inspected
+- static preview build: `fd5425ac5675e0aaedb480f1d9f3428eaf0a396d`
+
+After the viewer changes, these core files remained byte-identical to the previous proven checkpoint:
+- `apps/work/src/domain.ts`
+- `apps/work/src/calculation.ts`
+- `apps/work/src/capabilities.ts`
+- `apps/work/src/smart-offer-interaction.ts`
+- `apps/work/src/viewer-visibility.ts`
+
+So the viewer correction did not alter domain geometry truth, quantity, pricing, capability boundaries or cutaway rules.
+
+---
+
+## 9. PR #3 STATE
+
+PR #3:
+**First Vertical Slice v1: Smart Offer core loop**
+
+Current policy:
+- OPEN;
+- DRAFT;
+- mergeable at last audit;
+- **DO NOT MERGE without explicit Owner approval**.
+
+Never infer merge approval from:
+- “ok” meaning continue;
+- green CI;
+- technical PASS;
+- approval of one subpart;
+- a documentation update.
+
+Before merge:
+- current HEAD/diff must be verified;
+- CI must be green;
+- visual result must have been seen by Owner;
+- explicit Owner merge approval is required.
+
+---
+
+## 10. WHAT IS DELIBERATELY NOT IN THIS SLICE
+
+Not bugs and not reasons to widen PR #3:
+
+- door/window openings and deductions;
+- niches/projections;
+- full M² calculator migration;
+- multiple services;
+- production Price Book;
+- Supabase persistence/auth;
+- Published Revision implementation;
+- protected standalone Client Viewer;
+- Link / Link + PIN implementation;
+- Cloudflare production delivery;
+- PDF/signature/acceptance;
+- furniture/material library;
+- AI/photo reconstruction.
+
+Do not start these inside PR #3 merely because the screen looks incomplete.
+
+---
+
+## 11. M² CALCULATOR DECISION
+
+Only this legacy tool is current integration/reference scope:
+
+**Калкулатор М² → `Traqnivanov/ivanov-tools/kalkulator-combined.html`**
+
+Do NOT integrate:
+- `calculator.html`;
+- `room.html`.
+
+Strict rule:
+
+**one shared project/domain geometry → 3D + M² technical view + quantities/materials + Smart Offer**
+
+No iframe.  
+No duplicate hidden room state.  
+No legacy DOM/localStorage/Firebase runtime dependency.
+
+Formula migration:
+**legacy result → manual calculation → pure TypeScript → automated test → approval**
+
+---
+
+## 12. SEQUENCING AFTER FIRST-SLICE CLOSURE
+
+Do not choose the next feature ad hoc.
+
+Current approved development sequence after the First Vertical Slice is:
+
+### Slice 2 — Persistence
+- Supabase project persistence;
+- schema/version migration;
+- Work authentication;
+- reliable Save/Open.
+
+### Slice 3 — Publishing
+- Published Revision creation;
+- minimized client-safe payload;
+- Link / Link + PIN;
+- separate protected Client Viewer.
+
+### Slice 4 — Complete room offer
+- multiple services;
+- openings;
+- operation-specific quantity rules;
+- fuller client Info and room workflow.
+
+Then expand objects, materials, service families and realism in controlled slices.
+
+This sequence can be changed only through:
+**audit → impact/risk → better demonstrated solution → Owner decision**.
+
+Important:
+Do NOT jump directly to doors/windows, materials or another visible feature just because the current proof looks unfinished.
+
+---
+
+## 13. EXACT NEXT GATE FOR A NEW CHAT
+
+A new Chief Work Controller should:
+
+1. verify current branch HEAD and PR #3 state;
+2. read the mandatory source-of-truth documents;
+3. verify CI after this documentation sync;
+4. confirm that no app code changed after `be36a7b3c198175ab592e19e222b097196bebe8b` unless the diff proves otherwise;
+5. let the Owner inspect the latest interactive DPI-corrected preview if the Owner has not explicitly done so;
+6. obtain an **explicit Owner decision about merging PR #3**;
+7. if merge is approved, perform the approved merge procedure and then start a fresh audit/planning block for Slice 2;
+8. if merge is not approved, address only the concrete Owner finding — do not broaden scope.
+
+Do not start Slice 2 before PR #3 closure unless the Owner explicitly changes the sequencing.
+
+---
+
+## 14. VISUAL QUALITY RULE
+
+Technical PASS is never enough for visible UI/3D.
+
+Before showing a visual change as “fixed”:
+- inspect the real rendered result;
+- check centering, scale, clipping, readable text and dead space;
+- consider real-device DPI/browser behavior;
+- verify Work and Client views;
+- do not call prototype visuals final quality.
+
+The final product still needs much higher realism and polish.  
+The present slice only proves the product mechanism.
+
+---
+
+## 15. FINAL HANDOFF
+
+**Continue the same Smart Offer product. Preserve the proven core. Work adaptively, not randomly. Do not add the next attractive feature just because the prototype is incomplete. First close PR #3 through the current visual-review + explicit merge gate. Then follow the approved slice sequence unless Owner deliberately changes it.**
