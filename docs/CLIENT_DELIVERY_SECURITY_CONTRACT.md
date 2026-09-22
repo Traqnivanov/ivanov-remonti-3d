@@ -352,30 +352,29 @@ Whether publication is a live view or immutable revision is governed by the sepa
 
 ---
 
-## 14. Publishing revision model — pending final Owner lock
+## 14. Publishing revision model — OWNER-APPROVED
 
-Two technical models remain possible:
+**Published Revision/Snapshot is the approved current model.**
 
-### Live project publication
-The client always sees the current working state.
-
-Risk:
-- unfinished edits or changed prices may become visible unintentionally.
-
-### Published revision/snapshot
-The client sees only an explicitly published offer revision.
+The client never reads the live working draft.
 
 Example:
 
-**Working Project → Publish Revision 1 → Client sees Revision 1**
+**Working Project → Preview as Client → Publish Revision 1 → Client sees Revision 1**
 
 Later:
 
-**Edit Working Project → Publish Revision 2 → Client sees Revision 2**
+**Edit Working Project → Preview → Publish Revision 2 → Client sees the newly published revision according to the approved access workflow**
 
-Work Controller recommendation remains **Published Revision/Snapshot** because it protects both Ivanov Remonti and the client from accidental post-send changes.
+This protects both Ivanov Remonti and the client from accidental post-send changes.
 
-This stays marked as pending until Owner explicitly locks it.
+Rules:
+- unpublished Work changes are never exposed automatically;
+- a published scope/price is traceable;
+- older published states are not silently overwritten;
+- exact behavior of stable-link vs revision-specific-link remains a later UX decision.
+
+Infrastructure details are defined in `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`.
 
 ---
 
