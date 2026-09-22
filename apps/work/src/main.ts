@@ -82,7 +82,7 @@ app.innerHTML = `
         <h2>Smart Offer</h2>
 
         <button id="serviceRow" class="offer-row selected">
-          <strong>Фина шпакловка · ⓘ</strong>
+          <strong>Фина шпакловка <span class="info-glyph" aria-label="Информация">i</span></strong>
           <div class="offer-meta">
             <span id="quantityText">—</span>
             <span id="lineTotalText" class="offer-total">—</span>
@@ -97,7 +97,7 @@ app.innerHTML = `
         </section>
 
         <div class="info-card">
-          <h3>ⓘ Фина шпакловка</h3>
+          <h3><span class="info-glyph" aria-hidden="true">i</span> Фина шпакловка</h3>
           <b>Какво е</b><p id="infoWhat"></p>
           <b>Защо се прави</b><p id="infoWhy"></p>
           <b>Какво получавате</b><p id="infoResult"></p>
