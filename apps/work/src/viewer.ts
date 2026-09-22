@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ProjectState, SurfaceId, WallId } from "./domain";
 import { getAutoHiddenSurfaceIds, isSurfaceVisible } from "./viewer-visibility";
+import { calculateShowcaseFrame } from "./viewer-framing";
 
 type ViewerOptions = {
   container: HTMLElement;
@@ -26,6 +27,7 @@ export class RoomViewer {
   private highlighted = new Set<SurfaceId>();
   private project: ProjectState | null = null;
   private autoCutaway = true;
+  private showcaseFrameActive = true;
   private readonly onEntitySelect?: (id: SurfaceId) => void;
   private animationFrame = 0;
 
@@ -42,12 +44,12 @@ export class RoomViewer {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.container.appendChild(this.renderer.domElement);
 
-    this.camera.position.set(6.5, 4.6, 7.2);
+    this.camera.position.set(1, 1, 1);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
-    this.controls.target.set(0, 1.2, 0);
+    this.controls.target.set(0, 0, 0);
     this.controls.maxPolarAngle = Math.PI * 0.49;
     this.controls.minDistance = 2;
     this.controls.maxDistance = 18;
@@ -61,6 +63,7 @@ export class RoomViewer {
 
     this.renderer.domElement.addEventListener("pointerdown", this.handlePointerDown);
     this.renderer.domElement.addEventListener("pointerup", this.handlePointerUp);
+    this.controls.addEventListener("start", this.handleControlsStart);
     window.addEventListener("resize", this.resize);
 
     this.resize();
@@ -70,6 +73,8 @@ export class RoomViewer {
   setProject(project: ProjectState): void {
     this.project = project;
     this.rebuildRoom();
+    this.showcaseFrameActive = true;
+    this.applyShowcaseFrame();
     this.updateVisibility();
   }
 
@@ -98,9 +103,8 @@ export class RoomViewer {
   }
 
   resetCamera(): void {
-    this.camera.position.set(6.5, 4.6, 7.2);
-    this.controls.target.set(0, 1.2, 0);
-    this.controls.update();
+    this.showcaseFrameActive = true;
+    this.applyShowcaseFrame();
   }
 
   dispose(): void {
@@ -108,6 +112,7 @@ export class RoomViewer {
     window.removeEventListener("resize", this.resize);
     this.renderer.domElement.removeEventListener("pointerdown", this.handlePointerDown);
     this.renderer.domElement.removeEventListener("pointerup", this.handlePointerUp);
+    this.controls.removeEventListener("start", this.handleControlsStart);
     this.controls.dispose();
     this.renderer.dispose();
     this.container.replaceChildren();
@@ -169,7 +174,6 @@ export class RoomViewer {
       new THREE.Vector3(width / 2, height / 2, 0),
     );
 
-    this.controls.target.set(0, height * 0.45, 0);
     this.applyMaterials();
   }
 
@@ -264,6 +268,10 @@ export class RoomViewer {
     }
   }
 
+  private readonly handleControlsStart = (): void => {
+    this.showcaseFrameActive = false;
+  };
+
   private readonly handlePointerDown = (event: PointerEvent): void => {
     this.pointerDown.set(event.clientX, event.clientY);
   };
@@ -288,12 +296,36 @@ export class RoomViewer {
     if (id) this.onEntitySelect?.(id);
   };
 
+  private applyShowcaseFrame(
+    width = Math.max(1, this.container.clientWidth),
+    height = Math.max(1, this.container.clientHeight),
+  ): void {
+    if (!this.project) return;
+
+    const frame = calculateShowcaseFrame(
+      this.project.room,
+      { width, height },
+      this.camera.fov,
+    );
+
+    this.camera.position.set(frame.camera.x, frame.camera.y, frame.camera.z);
+    this.controls.target.set(frame.target.x, frame.target.y, frame.target.z);
+    this.controls.maxDistance = Math.max(18, frame.distance * 2.25);
+    this.controls.update();
+    this.updateAutoCutaway();
+    this.updateVisibility();
+  }
+
   private readonly resize = (): void => {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+
+    if (this.showcaseFrameActive && this.project) {
+      this.applyShowcaseFrame(width, height);
+    }
   };
 
   private animate = (): void => {
