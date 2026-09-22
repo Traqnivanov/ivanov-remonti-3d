@@ -1,9 +1,6 @@
 name: Deploy Work Preview to GitHub Pages
 
 on:
-  push:
-    branches:
-      - "feat/vertical-slice-v1"
   workflow_dispatch:
 
 permissions:
