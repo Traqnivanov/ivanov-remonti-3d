@@ -111,6 +111,20 @@ async function assertEval(session, expression, message) {
   if (!ok) throw new Error(message);
 }
 
+async function capturePage(session) {
+  const result = await session.call("Page.captureScreenshot", {
+    format: "png",
+    fromSurface: true,
+  });
+  return result.data;
+}
+
+function assertScreenshotChanged(before, after, message) {
+  if (!before || !after || before === after) {
+    throw new Error(message);
+  }
+}
+
 async function smokeViewerInput(session) {
   const rect = await evaluate(
     session,
@@ -150,12 +164,74 @@ async function runWorkSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display !== "none"', "Work: authoring panel should be visible");
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
 
+    const beforeViewerInput = await capturePage(session);
     await smokeViewerInput(session);
+    const afterViewerInput = await capturePage(session);
+    assertScreenshotChanged(
+      beforeViewerInput,
+      afterViewerInput,
+      "Work: orbit/zoom input did not change the rendered view",
+    );
+
+    await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
+    await delay(450);
 
     await evaluate(session, 'document.querySelector("#autoCutawayBtn").click()');
     await assertEval(session, '!document.querySelector("#autoCutawayBtn").classList.contains("active")', "Work: auto cutaway did not turn off");
+    await delay(200);
+
+    const manualBaseline = await capturePage(session);
+    await evaluate(session, 'document.querySelector('[data-wall="room-1.wall-right"]').click()');
+    await delay(200);
+    await assertEval(session, 'document.querySelector('[data-wall="room-1.wall-right"]').classList.contains("active")', "Work: manual wall hide did not activate");
+    const wallHidden = await capturePage(session);
+    assertScreenshotChanged(
+      manualBaseline,
+      wallHidden,
+      "Work: hiding a wall did not change the rendered view",
+    );
+    await evaluate(session, 'document.querySelector('[data-wall="room-1.wall-right"]').click()');
+    await delay(200);
+
+    const ceilingBaseline = await capturePage(session);
+    await evaluate(session, 'document.querySelector('[data-wall="room-1.ceiling"]').click()');
+    await delay(200);
+    await assertEval(session, 'document.querySelector('[data-wall="room-1.ceiling"]').classList.contains("active")', "Work: manual ceiling hide did not activate");
+    const ceilingHidden = await capturePage(session);
+    assertScreenshotChanged(
+      ceilingBaseline,
+      ceilingHidden,
+      "Work: hiding the ceiling did not change the rendered view",
+    );
+    await evaluate(session, 'document.querySelector('[data-wall="room-1.ceiling"]').click()');
+    await delay(150);
+
     await evaluate(session, 'document.querySelector("#autoCutawayBtn").click()');
     await assertEval(session, 'document.querySelector("#autoCutawayBtn").classList.contains("active")', "Work: auto cutaway did not turn back on");
+
+    const offerBefore = await evaluate(
+      session,
+      '({ quantity: document.querySelector("#quantityText").textContent, total: document.querySelector("#lineTotalText").textContent, info: document.querySelector("#infoWhat").textContent })',
+    );
+    const focusedView = await capturePage(session);
+    await evaluate(session, 'document.querySelector("#showResultBtn").click()');
+    await assertEval(session, '!document.querySelector("#serviceRow").classList.contains("selected")', "Work: show whole result did not exit service focus");
+    await delay(150);
+    const wholeResultView = await capturePage(session);
+    assertScreenshotChanged(
+      focusedView,
+      wholeResultView,
+      "Work: exiting service focus did not change the model presentation",
+    );
+    await evaluate(session, 'document.querySelector("#serviceRow").click()');
+    await assertEval(session, 'document.querySelector("#serviceRow").classList.contains("selected")', "Work: clicking Fine Putty did not restore offer focus");
+    const offerAfter = await evaluate(
+      session,
+      '({ quantity: document.querySelector("#quantityText").textContent, total: document.querySelector("#lineTotalText").textContent, info: document.querySelector("#infoWhat").textContent })',
+    );
+    if (JSON.stringify(offerAfter) !== JSON.stringify(offerBefore)) {
+      throw new Error("Work: quantity/price/Info changed during presentation-only interaction");
+    }
 
     await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Work: Preview as Client did not activate");
