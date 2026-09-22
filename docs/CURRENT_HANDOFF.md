@@ -3,7 +3,7 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Current branch:** `feat/vertical-slice-v1`  
-**Current verified implementation checkpoint:** `8515843a589cdb97085161b802edec0c4767451b`
+**Current verified implementation checkpoint:** `94e44303e5d93d8e023d245f34620f4eaf7506b1`
 
 ## 1. Roles / process
 
@@ -84,7 +84,7 @@ Visual QA already corrected:
 
 ## 5. Current verification
 
-At checkpoint `8515843a589cdb97085161b802edec0c4767451b`:
+At checkpoint `94e44303e5d93d8e023d245f34620f4eaf7506b1`:
 - **Vertical Slice CI = SUCCESS**
 - typecheck = success
 - tests = success
@@ -126,16 +126,16 @@ Current approved direction:
 Do NOT start a large new subsystem.
 
 Latest completed micro-task:
-- audited client-facing terminology for internal authoring/development leakage;
-- fixed the highest-priority authoring leak in the Info contract: “Само избраните в Work Mode стени.”;
-- client-facing replacement: “Само стените, включени в тази позиция от офертата.”;
+- replaced the client-visible prototype phrase “Прототипно Info за фина шпакловка.”;
+- new client-facing copy: “Фина шпакловка за изравняване и подготовка на включените стени.”;
+- scope wording remains correct;
 - DEV price labels remain intentionally visible because the current price is still a prototype fixture;
 - CI/typecheck/tests/build/screenshot QA all passed;
-- visual verification confirms the Work Mode wording is gone from Client Preview.
+- visual verification confirms the prototype phrase is gone from Client Preview.
 
 Next task:
 
-**Client Info copy audit: replace only the next most obvious prototype/internal phrase visible to the client (“Прототипно Info за фина шпакловка.”) with neutral client-facing placeholder copy, while keeping the scope and DEV-price honesty unchanged. Then run CI and visual QA.**
+**Client Info copy audit: replace only the next obvious internal/prototype explanation in “Защо се прави” (“Показва как краткото клиентско обяснение остава свързано с конкретната позиция.”) with a real client-facing reason for the service. Then run CI and visual QA.**
 
 After that, stop and report the result before taking the next small task.
 
