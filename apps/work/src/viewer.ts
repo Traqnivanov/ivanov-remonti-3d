@@ -17,6 +17,7 @@ export class RoomViewer {
   private readonly controls: OrbitControls;
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
+  private readonly pointerDown = new THREE.Vector2();
   private readonly entityMeshes = new Map<SurfaceId, THREE.Mesh>();
   private readonly manualHidden = new Set<SurfaceId>();
   private readonly autoHidden = new Set<SurfaceId>();
@@ -57,6 +58,7 @@ export class RoomViewer {
     this.scene.add(key);
 
     this.renderer.domElement.addEventListener("pointerdown", this.handlePointerDown);
+    this.renderer.domElement.addEventListener("pointerup", this.handlePointerUp);
     window.addEventListener("resize", this.resize);
 
     this.resize();
@@ -83,6 +85,7 @@ export class RoomViewer {
   showAll(): void {
     this.manualHidden.clear();
     this.autoHidden.clear();
+    this.autoCutaway = false;
     this.updateVisibility();
   }
 
@@ -102,6 +105,7 @@ export class RoomViewer {
     cancelAnimationFrame(this.animationFrame);
     window.removeEventListener("resize", this.resize);
     this.renderer.domElement.removeEventListener("pointerdown", this.handlePointerDown);
+    this.renderer.domElement.removeEventListener("pointerup", this.handlePointerUp);
     this.controls.dispose();
     this.renderer.dispose();
     this.container.replaceChildren();
@@ -248,12 +252,25 @@ export class RoomViewer {
   }
 
   private readonly handlePointerDown = (event: PointerEvent): void => {
+    this.pointerDown.set(event.clientX, event.clientY);
+  };
+
+  private readonly handlePointerUp = (event: PointerEvent): void => {
+    const dragDistance = this.pointerDown.distanceTo(
+      new THREE.Vector2(event.clientX, event.clientY),
+    );
+
+    if (dragDistance > 5) return;
+
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.pointer, this.camera);
-    const hits = this.raycaster.intersectObjects([...this.entityMeshes.values()], false);
+    const hits = this.raycaster.intersectObjects(
+      [...this.entityMeshes.values()].filter((mesh) => mesh.visible),
+      false,
+    );
     const id = hits[0]?.object.userData.entityId as SurfaceId | undefined;
     if (id) this.onEntitySelect?.(id);
   };
