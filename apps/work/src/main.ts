@@ -65,11 +65,11 @@ app.innerHTML = `
           <button id="resetCameraBtn">Reset camera</button>
           <button id="autoCutawayBtn" class="active">Auto cutaway</button>
           <button id="showAllBtn">Покажи всички</button>
-          <button class="work-only" data-wall="room-1.wall-left">Лява</button>
-          <button class="work-only" data-wall="room-1.wall-right">Дясна</button>
-          <button class="work-only" data-wall="room-1.wall-front">Предна</button>
-          <button class="work-only" data-wall="room-1.wall-back">Задна</button>
-          <button class="work-only" data-wall="room-1.ceiling">Таван</button>
+          <button data-wall="room-1.wall-left">Лява</button>
+          <button data-wall="room-1.wall-right">Дясна</button>
+          <button data-wall="room-1.wall-front">Предна</button>
+          <button data-wall="room-1.wall-back">Задна</button>
+          <button data-wall="room-1.ceiling">Таван</button>
         </div>
 
         <div class="viewer-note">
@@ -152,15 +152,21 @@ function wireControls(): void {
     mustGet("autoCutawayBtn").classList.toggle("active", autoCutaway);
   });
 
-  mustGet("showAllBtn").addEventListener("click", () => viewer.showAll());
+  mustGet("showAllBtn").addEventListener("click", () => {
+    viewer.showAll();
+    autoCutaway = false;
+    mustGet("autoCutawayBtn").classList.remove("active");
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-wall]")
+      .forEach((button) => button.classList.remove("active"));
+  });
 
   document.querySelectorAll<HTMLButtonElement>("[data-wall]").forEach((button) => {
-    let visible = true;
     button.addEventListener("click", () => {
-      visible = !visible;
       const id = button.dataset.wall as SurfaceId;
-      viewer.setManualVisibility(id, visible);
-      button.classList.toggle("active", !visible);
+      const nextHidden = !button.classList.contains("active");
+      viewer.setManualVisibility(id, !nextHidden);
+      button.classList.toggle("active", nextHidden);
     });
   });
 
