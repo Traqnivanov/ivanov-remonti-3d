@@ -67,12 +67,12 @@ async function createSession({ mobile = false } = {}) {
 
   if (mobile) {
     await call("Emulation.setDeviceMetricsOverride", {
-      width: 390,
-      height: 844,
-      deviceScaleFactor: 3,
-      mobile: true,
-      screenWidth: 390,
-      screenHeight: 844,
+      width: 360,
+      height: 800,
+      deviceScaleFactor: 2,
+      mobile: false,
+      screenWidth: 360,
+      screenHeight: 800,
     });
     await call("Emulation.setTouchEmulationEnabled", {
       enabled: true,
@@ -152,6 +152,10 @@ async function assertMobileLayout(session, label) {
       const viewerRect = viewer.getBoundingClientRect();
       const canvasRect = canvas.getBoundingClientRect();
       const toolbarRect = toolbar.getBoundingClientRect();
+      const toolbarButtons = [...toolbar.querySelectorAll("button")].map((button) => {
+        const r = button.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+      });
       const note = document.querySelector(".viewer-note");
       const noteRect = note?.getBoundingClientRect();
       const topbar = document.querySelector(".topbar");
@@ -159,6 +163,8 @@ async function assertMobileLayout(session, label) {
       return {
         innerWidth: window.innerWidth,
         innerHeight: window.innerHeight,
+        visualViewportWidth: window.visualViewport?.width ?? window.innerWidth,
+        visualViewportHeight: window.visualViewport?.height ?? window.innerHeight,
         scrollWidth: document.documentElement.scrollWidth,
         viewerLeft: viewerRect.left,
         viewerRight: viewerRect.right,
@@ -170,6 +176,8 @@ async function assertMobileLayout(session, label) {
         toolbarRight: toolbarRect.right,
         toolbarBottom: toolbarRect.bottom,
         toolbarHeight: toolbarRect.height,
+        toolbarButtonMaxRight: Math.max(...toolbarButtons.map((r) => r.right)),
+        toolbarButtonMinLeft: Math.min(...toolbarButtons.map((r) => r.left)),
         noteHeight: noteRect?.height ?? 0,
         topbarHeight: topbarRect?.height ?? 0,
       };
@@ -178,17 +186,26 @@ async function assertMobileLayout(session, label) {
 
   if (!metrics) throw new Error(label + ": mobile layout metrics are unavailable");
   console.log(label + " mobile metrics: " + JSON.stringify(metrics));
-  if (metrics.scrollWidth > metrics.innerWidth + 1) {
+  if (Math.abs(metrics.innerWidth - 360) > 1 || Math.abs(metrics.visualViewportWidth - 360) > 1) {
+    throw new Error(
+      label + ": mobile emulation viewport is not 360 CSS px (" +
+      metrics.innerWidth + " / " + metrics.visualViewportWidth + ")",
+    );
+  }
+  if (metrics.scrollWidth > metrics.visualViewportWidth + 1) {
     throw new Error(label + ": horizontal overflow detected (" + metrics.scrollWidth + " > " + metrics.innerWidth + ")");
   }
-  if (metrics.viewerWidth < 320 || metrics.viewerLeft < -1 || metrics.viewerRight > metrics.innerWidth + 1) {
+  if (metrics.viewerWidth < 320 || metrics.viewerLeft < -1 || metrics.viewerRight > metrics.visualViewportWidth + 1) {
     throw new Error(label + ": viewer does not fit the mobile viewport");
   }
   if (Math.abs(metrics.canvasWidth - metrics.viewerWidth) > 1) {
     throw new Error(label + ": canvas width does not match the mobile viewer");
   }
-  if (metrics.toolbarRight > metrics.innerWidth + 1) {
+  if (metrics.toolbarRight > metrics.visualViewportWidth + 1) {
     throw new Error(label + ": viewer toolbar overflows the mobile viewport");
+  }
+  if (metrics.toolbarButtonMaxRight > metrics.visualViewportWidth + 1 || metrics.toolbarButtonMinLeft < -1) {
+    throw new Error(label + ": one or more mobile viewer controls are clipped");
   }
   if (metrics.viewerTop > metrics.innerHeight * 0.4) {
     throw new Error(label + ": 3D viewer is pushed below the first mobile screen");
