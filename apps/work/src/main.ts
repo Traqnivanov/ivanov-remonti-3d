@@ -9,13 +9,19 @@ import {
 import { RoomViewer } from "./viewer";
 import { renderM2Schema } from "./m2-schema";
 import { getModeCapabilities, type AppEntry } from "./capabilities";
+import {
+  createInitialOfferInteraction,
+  getHighlightedEntityIds,
+  selectModelEntity,
+  selectOfferService,
+  showWholeResult,
+} from "./smart-offer-interaction";
 
 const project = createDefaultProject();
 const directClientEntry = new URLSearchParams(window.location.search).get("preview") === "1";
 const appEntry: AppEntry = directClientEntry ? "direct-client" : "work";
 let previewMode = directClientEntry;
-let selectedService = true;
-let selectedEntity: SurfaceId | null = null;
+let offerInteraction = createInitialOfferInteraction();
 let autoCutaway = true;
 
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -124,9 +130,7 @@ const viewerHost = mustGet<HTMLElement>("viewer");
 const viewer = new RoomViewer({
   container: viewerHost,
   onEntitySelect: (id) => {
-    selectedEntity = id;
-    const linked = project.serviceAssignment.targetEntityIds.includes(id as WallId);
-    selectedService = linked;
+    offerInteraction = selectModelEntity(project, id);
     syncViewerFocus();
     renderOffer();
   },
@@ -184,15 +188,13 @@ function wireControls(): void {
   });
 
   mustGet("serviceRow").addEventListener("click", () => {
-    selectedService = true;
-    selectedEntity = null;
+    offerInteraction = selectOfferService();
     syncViewerFocus();
     renderOffer();
   });
 
   mustGet("showResultBtn").addEventListener("click", () => {
-    selectedService = false;
-    selectedEntity = null;
+    offerInteraction = showWholeResult();
     syncViewerFocus();
     renderOffer();
   });
@@ -267,8 +269,7 @@ function renderWallTargets(): void {
       if (checkbox.checked) targets.add(id);
       else targets.delete(id);
       project.serviceAssignment.targetEntityIds = wallIds.filter((wallId) => targets.has(wallId));
-      selectedService = true;
-      selectedEntity = null;
+      offerInteraction = selectOfferService();
       syncViewerFocus();
       renderOffer();
     });
@@ -282,18 +283,17 @@ function renderWallTargets(): void {
 }
 
 function syncViewerFocus(): void {
-  if (selectedEntity) {
-    viewer.setHighlightedEntities([selectedEntity]);
-  } else if (selectedService) {
-    viewer.setHighlightedEntities(project.serviceAssignment.targetEntityIds);
-  } else {
-    viewer.setHighlightedEntities([]);
-  }
+  viewer.setHighlightedEntities(getHighlightedEntityIds(project, offerInteraction));
 
   const chip = mustGet("selectionChip");
-  if (selectedEntity) {
-    chip.innerHTML = `<span class="focus-chip">Избрано: ${escapeHtml(selectedEntity)}</span>`;
-  } else if (selectedService) {
+  if (offerInteraction.selectedEntity) {
+    const label = project.room.surfaces.find(
+      (surface) => surface.id === offerInteraction.selectedEntity,
+    )?.label;
+    chip.innerHTML = `<span class="focus-chip">Избрано: ${escapeHtml(
+      label ?? offerInteraction.selectedEntity,
+    )}</span>`;
+  } else if (offerInteraction.selectedService) {
     chip.innerHTML = '<span class="focus-chip">Фокус: Фина шпакловка</span>';
   } else {
     chip.replaceChildren();
@@ -315,7 +315,7 @@ function renderOffer(): void {
   mustGet("totalKpi").textContent = `${formatMoney(total)} €`;
 
   const row = mustGet("serviceRow");
-  row.classList.toggle("selected", selectedService);
+  row.classList.toggle("selected", offerInteraction.selectedService);
 
   const info = project.serviceAssignment.clientInfo;
   mustGet("infoWhat").textContent = info.what;
