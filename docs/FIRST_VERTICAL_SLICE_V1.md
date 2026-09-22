@@ -309,11 +309,11 @@ The purpose of the first slice is to expose mistakes cheaply.
 
 ## 15. Existing m² calculator integration checkpoint
 
-Before duplicating room-area or quantity logic, compare the vertical-slice implementation against the audited logic in:
+Before duplicating room-area or quantity logic, compare the vertical-slice implementation against the audited **Калкулатор М²** only:
 
-- `Traqnivanov/ivanov-tools/kalkulator-combined.html`;
-- `calculator.html`;
-- `room.html`.
+- `Traqnivanov/ivanov-tools/kalkulator-combined.html`.
+
+`calculator.html` and `room.html` are outside the current integration scope.
 
 For the first slice:
 - rectangular room geometry uses the same dimensional truth;
