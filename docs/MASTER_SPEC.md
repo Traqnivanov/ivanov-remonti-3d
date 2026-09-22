@@ -297,3 +297,25 @@ MASTER е текущата най-добра продуктова истина, 
 - по-нова изрична Owner посока.
 
 Историята остава в `docs/DECISION_LOG.md`, а MASTER винаги се актуализира към текущата активна логика.
+
+## 20. Infrastructure and data architecture
+
+Current approved architecture:
+
+- **GitHub** — source/version control;
+- **Cloudflare** — domains, delivery/hosting edge and security;
+- **Supabase Postgres** — canonical persistent project/business data;
+- **Supabase Auth** — Work App identity/access;
+- **Supabase Storage** — initial project images/textures/assets;
+- **Supabase protected server-side operations** — publishing, revisions, Link/PIN validation and minimized client payload;
+- **No Firebase** in the current architecture;
+- **No Cloudflare D1** as primary application database;
+- **Cloudflare R2** only later if scale/cost proves a need.
+
+Two separate application surfaces:
+- Work App — private authoring;
+- Client Viewer — read-only Smart Offer.
+
+The client does not read the live draft. Client delivery uses explicit **Published Revisions**.
+
+Detailed contract: `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`.
