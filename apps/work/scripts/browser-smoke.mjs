@@ -181,29 +181,29 @@ async function runWorkSmoke() {
     await delay(200);
 
     const manualBaseline = await capturePage(session);
-    await evaluate(session, 'document.querySelector('[data-wall="room-1.wall-right"]').click()');
+    await evaluate(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').click()");
     await delay(200);
-    await assertEval(session, 'document.querySelector('[data-wall="room-1.wall-right"]').classList.contains("active")', "Work: manual wall hide did not activate");
+    await assertEval(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').classList.contains('active')", "Work: manual wall hide did not activate");
     const wallHidden = await capturePage(session);
     assertScreenshotChanged(
       manualBaseline,
       wallHidden,
       "Work: hiding a wall did not change the rendered view",
     );
-    await evaluate(session, 'document.querySelector('[data-wall="room-1.wall-right"]').click()');
+    await evaluate(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').click()");
     await delay(200);
 
     const ceilingBaseline = await capturePage(session);
-    await evaluate(session, 'document.querySelector('[data-wall="room-1.ceiling"]').click()');
+    await evaluate(session, "document.querySelector('[data-wall=\"room-1.ceiling\"]').click()");
     await delay(200);
-    await assertEval(session, 'document.querySelector('[data-wall="room-1.ceiling"]').classList.contains("active")', "Work: manual ceiling hide did not activate");
+    await assertEval(session, "document.querySelector('[data-wall=\"room-1.ceiling\"]').classList.contains('active')", "Work: manual ceiling hide did not activate");
     const ceilingHidden = await capturePage(session);
     assertScreenshotChanged(
       ceilingBaseline,
       ceilingHidden,
       "Work: hiding the ceiling did not change the rendered view",
     );
-    await evaluate(session, 'document.querySelector('[data-wall="room-1.ceiling"]').click()');
+    await evaluate(session, "document.querySelector('[data-wall=\"room-1.ceiling\"]').click()");
     await delay(150);
 
     await evaluate(session, 'document.querySelector("#autoCutawayBtn").click()');
