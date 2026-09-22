@@ -284,3 +284,16 @@ Price Book, internal formulas, unreleased prices, private notes, admin capabilit
 Клиентското преживяване и защитата на вътрешния engine се оценяват заедно като част от Ivanov Unique Standard.
 
 Подробности: `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
+
+## 19. Living MASTER rule
+
+MASTER е текущата най-добра продуктова истина, не архив на вечни решения.
+
+Одобрена/LOCKED посока може да бъде заменена след одит, когато има:
+- доказана грешка;
+- по-добър UX/продуктов механизъм;
+- по-безопасна архитектура;
+- по-просто решение;
+- по-нова изрична Owner посока.
+
+Историята остава в `docs/DECISION_LOG.md`, а MASTER винаги се актуализира към текущата активна логика.
