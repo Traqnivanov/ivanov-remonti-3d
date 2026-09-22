@@ -36,13 +36,14 @@ North Star механизъм:
 3. `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
 4. `docs/3D_VIEWER_STANDARD.md`
 5. `docs/WORK_CLIENT_MODE_CONTRACT.md`
-6. `docs/DECISION_LOG.md`
-7. `docs/PRODUCT_VISION_STANDARD.md`
-8. `docs/SERVICE_OPERATION_REGISTRY.md`
-9. `docs/BENCHMARK_RESEARCH.md`
-10. `docs/TOOLS_REUSE_AUDIT.md`
-11. `docs/DELIVERY_STRATEGY.md`
-12. конкретният handoff/task за текущата работа
+6. `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`
+7. `docs/DECISION_LOG.md`
+8. `docs/PRODUCT_VISION_STANDARD.md`
+9. `docs/SERVICE_OPERATION_REGISTRY.md`
+10. `docs/BENCHMARK_RESEARCH.md`
+11. `docs/TOOLS_REUSE_AUDIT.md`
+12. `docs/DELIVERY_STRATEGY.md`
+13. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
 
@@ -363,3 +364,21 @@ Client Mode е read-only по отношение на Project State.
 Viewer/session действия като camera, zoom, selected service, cutaway и hidden wall могат да бъдат клиентски, но не променят geometry, quantities, scope или price.
 
 Подробният договор е `docs/WORK_CLIENT_MODE_CONTRACT.md`.
+
+## 22. Protected client delivery
+
+Client Mode не се доставя чрез изпращане на Work App, editable project или source.
+
+Owner избира за всяка оферта:
+- Link;
+- Link + PIN.
+
+Правило за всяка клиентска функция:
+
+**Client Experience + Protected Core**
+
+Функцията трябва да подобрява клиентското преживяване без ненужно да излага Work App, Price Book, formula/quantity engine, private project data, secrets или proprietary logic.
+
+Frontend hiding/obfuscation не се счита за достатъчна защита.
+
+Подробният договор е `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
