@@ -40,3 +40,24 @@ jobs:
 
       - name: Build
         run: npm run build
+
+
+      - name: Capture desktop screenshot
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 4173 > /tmp/vertical-slice-vite.log 2>&1 &
+          SERVER_PID=$!
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173 >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          google-chrome --headless --disable-gpu --no-sandbox             --window-size=1440,1000             --screenshot=/tmp/vertical-slice-desktop.png             http://127.0.0.1:4173
+          kill $SERVER_PID || true
+
+      - name: Upload visual QA screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: vertical-slice-visual-qa
+          path: /tmp/vertical-slice-desktop.png
+          if-no-files-found: error
