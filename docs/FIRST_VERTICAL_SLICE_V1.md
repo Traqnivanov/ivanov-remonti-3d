@@ -305,3 +305,24 @@ If the first slice reveals that:
 stop and correct the foundation before adding features.
 
 The purpose of the first slice is to expose mistakes cheaply.
+
+
+## 15. Existing m² calculator integration checkpoint
+
+Before duplicating room-area or quantity logic, compare the vertical-slice implementation against the audited logic in:
+
+- `Traqnivanov/ivanov-tools/kalkulator-combined.html`;
+- `calculator.html`;
+- `room.html`.
+
+For the first slice:
+- rectangular room geometry uses the same dimensional truth;
+- wall m² is verified against the existing m² calculator;
+- new code remains pure TypeScript/domain logic;
+- no old HTML runtime dependency is introduced.
+
+A simple 2D technical room schema may be added to Work Mode after the core 3D interaction is stable, but it must read from the same project state.
+
+The long-term Work Mode may combine:
+**3D room + 2D technical schema + quantities/materials**,
+without asking the user to enter the same dimensions twice.
