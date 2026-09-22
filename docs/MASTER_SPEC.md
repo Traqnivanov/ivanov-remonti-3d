@@ -128,6 +128,43 @@ Info съдържанието се структурира кратко:
 
 Основният източник са съществуващите Ivanov Remonti service pages и наръчници. Не измисляме нов факт, когато източникът не го подкрепя.
 
+## 8A. Work Mode и Client Mode
+
+Програмата има два ясно разграничени capability режима върху един и същ project state.
+
+### Work / Edit Mode — Ivanov Remonti
+Пълният редактор:
+- геометрия и размери;
+- помещения;
+- врати/прозорци;
+- обекти;
+- материали;
+- услуги;
+- количества;
+- Price Book;
+- цени;
+- проектни бележки;
+- client Info;
+- preview на клиентската оферта.
+
+### Client / View Mode — клиентът
+Read-only интерактивна Smart Offer среда:
+- 3D навигация;
+- стени/таван/cutaway;
+- услуги ↔ модел;
+- ⓘ Info;
+- количества;
+- единични цени;
+- суми;
+- обща цена;
+- краен резултат.
+
+Клиентът не може да променя project geometry, service scope, quantities, prices или Price Book.
+
+Viewer actions като camera, zoom, selected service и hidden wall са session state и не променят проекта.
+
+Подробен договор: `docs/WORK_CLIENT_MODE_CONTRACT.md`.
+
 ## 9. Практични функции, които ще спестяват време на обекта
 
 - Автоматично пресмятане на площ на стени, таван и под.
