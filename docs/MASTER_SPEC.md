@@ -267,3 +267,20 @@ Smart Offer е основният продукт.
 
 Съществуващите калкулатори в `Traqnivanov/ivanov-tools` се използват само като read-only reference и verification source; новата програма не зависи runtime от тях.
 
+## 8B. Client delivery и защита
+
+Клиентът не получава самия Work App.
+
+Той получава контролирана read-only web версия на конкретната Smart Offer.
+
+Ivanov Remonti избира за всяка оферта:
+- защитен Link;
+- защитен Link + PIN.
+
+Client Viewer получава само необходимото за визуализацията и офертата.
+
+Price Book, internal formulas, unreleased prices, private notes, admin capabilities, secrets и други client projects не се изпращат към клиентския viewer.
+
+Клиентското преживяване и защитата на вътрешния engine се оценяват заедно като част от Ivanov Unique Standard.
+
+Подробности: `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
