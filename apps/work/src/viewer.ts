@@ -127,13 +127,13 @@ export class RoomViewer {
 
     const { widthM: width, lengthM: length, heightM: height } = this.project.room;
 
-    const floor = this.makeMesh(
+    this.makeMesh(
       "room-1.floor",
       new THREE.BoxGeometry(width, WALL_THICKNESS, length),
       new THREE.Vector3(0, -WALL_THICKNESS / 2, 0),
     );
 
-    const ceiling = this.makeMesh(
+    this.makeMesh(
       "room-1.ceiling",
       new THREE.BoxGeometry(width, WALL_THICKNESS, length),
       new THREE.Vector3(0, height + WALL_THICKNESS / 2, 0),
