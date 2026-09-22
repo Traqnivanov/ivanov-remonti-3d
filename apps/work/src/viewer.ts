@@ -19,6 +19,7 @@ export class RoomViewer {
   private readonly pointer = new THREE.Vector2();
   private readonly pointerDown = new THREE.Vector2();
   private readonly entityMeshes = new Map<SurfaceId, THREE.Mesh>();
+  private readonly entityOutlines = new Map<SurfaceId, THREE.LineSegments>();
   private readonly manualHidden = new Set<SurfaceId>();
   private readonly autoHidden = new Set<SurfaceId>();
   private highlighted = new Set<SurfaceId>();
@@ -121,7 +122,14 @@ export class RoomViewer {
       }
       this.scene.remove(mesh);
     }
+    for (const outline of this.entityOutlines.values()) {
+      outline.geometry.dispose();
+      const material = outline.material;
+      if (Array.isArray(material)) material.forEach((item) => item.dispose());
+      else material.dispose();
+    }
     this.entityMeshes.clear();
+    this.entityOutlines.clear();
 
     if (!this.project) return;
 
@@ -183,8 +191,20 @@ export class RoomViewer {
     mesh.castShadow = false;
     mesh.receiveShadow = false;
     mesh.userData.entityId = id;
+    const outline = new THREE.LineSegments(
+      new THREE.EdgesGeometry(geometry),
+      new THREE.LineBasicMaterial({
+        color: 0x60718a,
+        transparent: true,
+        opacity: 0.28,
+      }),
+    );
+    outline.renderOrder = 2;
+    mesh.add(outline);
+
     this.scene.add(mesh);
     this.entityMeshes.set(id, mesh);
+    this.entityOutlines.set(id, outline);
     return mesh;
   }
 
@@ -194,10 +214,18 @@ export class RoomViewer {
       const isHighlighted = this.highlighted.has(id);
       const isWall = id.includes(".wall-");
 
+      const outline = this.entityOutlines.get(id);
+      if (outline) {
+        const outlineMaterial = outline.material as THREE.LineBasicMaterial;
+        outlineMaterial.color.setHex(isHighlighted ? 0xe8b84b : 0x60718a);
+        outlineMaterial.opacity = isHighlighted ? 1 : 0.28;
+        outlineMaterial.needsUpdate = true;
+      }
+
       if (isHighlighted) {
-        material.color.setHex(0xd9a441);
-        material.emissive.setHex(0x392500);
-        material.emissiveIntensity = 0.55;
+        material.color.setHex(0x465164);
+        material.emissive.setHex(0x7a4f00);
+        material.emissiveIntensity = 0.28;
         material.opacity = 1;
       } else if (id === "room-1.floor") {
         material.color.setHex(0x192536);
