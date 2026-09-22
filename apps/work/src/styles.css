@@ -265,6 +265,7 @@ input[type="number"] {
     order: 1;
     min-height: 510px;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
     background: #080d15;
   }
