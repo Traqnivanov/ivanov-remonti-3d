@@ -35,6 +35,11 @@ button, input { font: inherit; }
 
 .mode-switch { margin-left: auto; display: flex; gap: 8px; }
 
+.preview-exit {
+  display: none;
+  margin-left: auto;
+}
+
 button {
   border: 1px solid #32425a;
   border-radius: 8px;
@@ -194,6 +199,7 @@ input[type="number"] {
 .preview-mode .panel.left { display: none; }
 .preview-mode .workspace { grid-template-columns: minmax(0, 1fr) 360px; }
 .preview-mode .work-only { display: none !important; }
+.preview-mode:not(.direct-client-entry) .preview-exit { display: inline-flex; }
 
 .focus-chip {
   display: inline-flex;
