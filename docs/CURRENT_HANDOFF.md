@@ -3,7 +3,7 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Current branch:** `feat/vertical-slice-v1`  
-**Current verified implementation checkpoint:** `6a61fa512355c967a646181b776dd05a09679a18`
+**Current verified implementation checkpoint:** `62318ecd39d3c691570bd6f53e455c8a1fc21a5f`
 
 ## 1. Roles / process
 
@@ -85,7 +85,7 @@ Visual QA already corrected:
 
 ## 5. Current verification
 
-At checkpoint `6a61fa512355c967a646181b776dd05a09679a18`:
+At checkpoint `62318ecd39d3c691570bd6f53e455c8a1fc21a5f`:
 - **Vertical Slice CI = SUCCESS**
 - typecheck = success
 - tests = success
@@ -128,46 +128,39 @@ Do not start a large new subsystem. Size the next block according to PROJECT_RUL
 
 Latest completed adaptive blocks:
 
-### Smart Offer core loop acceptance
-- isolated presentation/selection state in `apps/work/src/smart-offer-interaction.ts`;
-- added tests for Offer → Model: selecting Fine Putty resolves exactly the assigned target walls;
-- added tests for Model → Offer: selecting a linked wall keeps the Fine Putty offer row selected;
-- added unrelated-geometry test: selecting floor does not falsely claim Fine Putty is linked;
-- “Виж целия резултат” exits focus without changing project quantity or price;
-- presentation-only interactions are explicitly tested to keep quantity and line total invariant;
-- `main.ts` now consumes the same tested interaction logic instead of duplicating selection rules;
-- selected entity chip now shows the human surface label instead of leaking the stable technical ID.
+### Final First Vertical Slice acceptance closure
+- added browser-level smoke verification with real Chromium input;
+- real drag + wheel interaction changes the rendered 3D view;
+- manual wall hide and ceiling hide change the rendered view;
+- Auto Cutaway toggles ON/OFF through the actual UI;
+- Offer → Model is verified through the actual offer-row interaction plus exact target-ID tests;
+- Model → Offer is verified through an actual pointer click on linked 3D geometry through the viewer raycast path;
+- quantity / price / Info remain synchronized through presentation changes;
+- hidden Client authoring controls are programmatically exercised and confirmed unable to mutate dimensions or service scope;
+- direct Client Preview cannot escape into Work;
+- browser page runtime exceptions / console.error / page log errors are a CI gate;
+- explicit visibility/camera tests verify quantity stays invariant;
+- latest verification: 5 test files / 18 tests PASS, strict TypeScript PASS, production build PASS, browser smoke PASS, Work/Client screenshot QA PASS.
 
-Core-loop commits:
-- `36ea7f99f01057c1301d2abb840f3bb10064d177` — interaction state;
-- `e86c908366fefcd4b24589c92dfcab6f98c8e7df` — Offer ↔ Model tests;
-- `74dcaf8eadbf156bbe03f89359f25611285d96d5` — application integration;
-- `1db888680f8cbe3c067e5f13a5590a544700d305` — quantity/price invariance test.
+Technical acceptance audit:
+- `docs/FIRST_VERTICAL_SLICE_ACCEPTANCE_AUDIT.md`
+- status: **TECHNICAL PASS — READY FOR PR / OWNER REVIEW**
+- no required `FIRST_VERTICAL_SLICE_V1.md §11` item is blocked.
 
-### Viewer visibility / cutaway acceptance
-- isolated auto-cutaway and visibility resolution in `apps/work/src/viewer-visibility.ts`;
-- tests verify dominant camera side hides the correct wall;
-- high camera also hides the ceiling;
-- manual hiding and automatic hiding combine non-destructively;
-- `RoomViewer` now uses the tested pure visibility rules;
-- no quantity/price path depends on viewer visibility state.
+CI cleanup:
+- GitHub Pages preview remains optional and is now manual-only because repository Pages is not enabled;
+- failed Pages preview runs are not application failures and no longer run on normal branch pushes;
+- production architecture remains unchanged.
 
-Visibility commits:
-- `b4305bbf5f53d65fa8767c46b25801c7c24b644c` — visibility rules;
-- `b5246391f84986b89414a5dd1e67e9f1257d708f` — visibility tests;
-- `6a61fa512355c967a646181b776dd05a09679a18` — viewer integration.
-
-Verification at this checkpoint:
-- strict TypeScript = PASS;
-- all automated tests = PASS;
-- production build = PASS;
-- Work screenshot QA = PASS;
-- direct Client Preview screenshot QA = PASS;
-- no visible regression in room geometry, service focus, offer values or Work/Client presentation.
+Acceptance / closure commits include:
+- `82a348601e16aa7ebba864812519c13cff8e3433` — actual linked-wall Model → Offer browser verification;
+- `62318ecd39d3c691570bd6f53e455c8a1fc21a5f` — final clean visibility/quantity invariance test state;
+- `4e46a8dc0fc122b28e016569c3000cd54fa67e3a` — Pages preview manual-only;
+- `d96d3162dee5e08f43156af383cc28e8dd257b18` — formal technical acceptance audit.
 
 Next work block:
 
-**Run the final First Vertical Slice acceptance audit against every item in `FIRST_VERTICAL_SLICE_V1.md §11`. Do not add new product features. Close only concrete verification gaps (especially console-error/smoke verification if not currently proven), then classify each acceptance item as verified, intentionally deferred by the approved slice scope, or blocked. If all required items are verified, prepare the branch for PR review; do not merge without Owner approval.**
+**Open a Pull Request from `feat/vertical-slice-v1` to `main`, review the full diff and required checks, and report any real regression/risk found. Do NOT merge without explicit Owner approval.**
 
 ## 9. Required reading for a new chat
 
