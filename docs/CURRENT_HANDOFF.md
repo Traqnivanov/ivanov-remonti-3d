@@ -3,7 +3,7 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Current branch:** `feat/vertical-slice-v1`  
-**Current verified implementation checkpoint:** `94e44303e5d93d8e023d245f34620f4eaf7506b1`
+**Current verified implementation checkpoint:** `86baec9804d38c09c843068cd70fa8dc09f1a1c5`
 
 ## 1. Roles / process
 
@@ -85,7 +85,7 @@ Visual QA already corrected:
 
 ## 5. Current verification
 
-At checkpoint `94e44303e5d93d8e023d245f34620f4eaf7506b1`:
+At checkpoint `86baec9804d38c09c843068cd70fa8dc09f1a1c5`:
 - **Vertical Slice CI = SUCCESS**
 - typecheck = success
 - tests = success
@@ -126,17 +126,20 @@ Current approved direction:
 
 Do not start a large new subsystem. Size the next block according to PROJECT_RULES §27.
 
-Latest completed micro-task:
-- replaced the client-visible prototype phrase “Прототипно Info за фина шпакловка.”;
-- new client-facing copy: “Фина шпакловка за изравняване и подготовка на включените стени.”;
-- scope wording remains correct;
-- DEV price labels remain intentionally visible because the current price is still a prototype fixture;
+Latest completed adaptive block:
+- completed the Fine Putty client Info cleanup using existing Ivanov Remonti service content as the wording basis;
+- removed the remaining prototype/internal explanation from “Защо се прави”;
+- aligned What / Why / Result / Includes into one coherent client-facing Info card without changing service scope, quantity or pricing logic;
+- removed the visible client subtitle “Vertical Slice v1 · Work / Client Preview” and replaced it in Client Preview with “Интерактивна оферта”;
+- kept Work Mode technical wording in Work;
+- changed client-visible DEV price wording to explicit “ТЕСТОВА ЦЕНА”, while preserving DEV fixture semantics internally;
+- localized the remaining viewer hint and key camera/cutaway controls to Bulgarian;
 - CI/typecheck/tests/build/screenshot QA all passed;
-- visual verification confirms the prototype phrase is gone from Client Preview.
+- visual verification confirms the Client Preview no longer exposes the cleaned internal/prototype wording.
 
 Next work block:
 
-**Run one coherent low-risk client-copy cleanup pass over the existing Fine Putty Info card. Replace the remaining obvious prototype/internal explanation(s) with real client-facing wording only where the intended meaning is already unambiguous. Do not change scope, quantity, price, service logic or layout. Then run CI and visual QA and report at that meaningful checkpoint.**
+**Strengthen the Work/Client capability boundary. Client Preview must not rely only on hidden authoring controls: project-mutating actions must be rejected at application capability level while Client mode is active. Preserve the Work user’s ability to preview and return to Work, and keep direct `?preview=1` client preview unable to switch into Work. Add focused tests for the capability rule where practical, then run CI and visual QA.**
 
 ## 9. Required reading for a new chat
 
