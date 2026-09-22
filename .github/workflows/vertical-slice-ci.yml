@@ -39,12 +39,12 @@ jobs:
       - name: Commit generated lockfile once
         if: github.event_name == 'push'
         run: |
-          if git ls-files --error-unmatch apps/work/package-lock.json >/dev/null 2>&1; then
+          if git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/work/package-lock.json
+          git add package-lock.json
           git commit -m "build: lock Work dependencies"
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
