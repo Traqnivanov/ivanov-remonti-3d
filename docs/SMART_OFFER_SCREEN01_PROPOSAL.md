@@ -2,7 +2,7 @@
 
 **Status:** PROPOSAL FOR OWNER REVIEW — NOT LOCKED UI  
 **Basis:** Smart Offer Product Contract + Brand & Content Audit v1  
-**Purpose:** define the first client-facing screen before any application implementation.
+**Purpose:** define the first **Client / View Mode** Smart Offer screen before any application implementation.
 
 ## 1. Screen goal
 
@@ -210,3 +210,34 @@ The prototype is not accepted if the room is replaced by:
 - a 2D room image;
 - a fake perspective card;
 - a fixed camera that prevents inspecting the interior.
+
+## 12. Screen 01 is Client Mode, not the editor
+
+This screen is specifically for the client.
+
+It must not contain authoring actions such as:
+- Edit project;
+- Add room;
+- change room dimensions;
+- move doors/windows as project edits;
+- add/delete objects;
+- add/delete services;
+- change quantities;
+- change unit prices;
+- edit Price Book;
+- save authoring changes.
+
+It may contain:
+- room switching;
+- 3D orbit/zoom;
+- wall/ceiling cutaway;
+- service selection;
+- model entity selection;
+- Info;
+- quantity/price/total;
+- final-result view;
+- later approved PDF/share controls.
+
+A separate Work / Edit workspace will be designed for Ivanov Remonti.
+
+The same Client Mode implementation should be reusable inside Work Mode through **Preview as Client**.
