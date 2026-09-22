@@ -3,7 +3,7 @@
 **Date:** 22.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Current branch:** `feat/vertical-slice-v1`  
-**Current verified implementation checkpoint:** `86baec9804d38c09c843068cd70fa8dc09f1a1c5`
+**Current verified implementation checkpoint:** `68de592e743fa26adbed2ab52d23819a6bfcd29d`
 
 ## 1. Roles / process
 
@@ -85,7 +85,7 @@ Visual QA already corrected:
 
 ## 5. Current verification
 
-At checkpoint `86baec9804d38c09c843068cd70fa8dc09f1a1c5`:
+At checkpoint `68de592e743fa26adbed2ab52d23819a6bfcd29d`:
 - **Vertical Slice CI = SUCCESS**
 - typecheck = success
 - tests = success
@@ -127,19 +127,26 @@ Current approved direction:
 Do not start a large new subsystem. Size the next block according to PROJECT_RULES §27.
 
 Latest completed adaptive block:
-- completed the Fine Putty client Info cleanup using existing Ivanov Remonti service content as the wording basis;
-- removed the remaining prototype/internal explanation from “Защо се прави”;
-- aligned What / Why / Result / Includes into one coherent client-facing Info card without changing service scope, quantity or pricing logic;
-- removed the visible client subtitle “Vertical Slice v1 · Work / Client Preview” and replaced it in Client Preview with “Интерактивна оферта”;
-- kept Work Mode technical wording in Work;
-- changed client-visible DEV price wording to explicit “ТЕСТОВА ЦЕНА”, while preserving DEV fixture semantics internally;
-- localized the remaining viewer hint and key camera/cutaway controls to Bulgarian;
+- strengthened the Work / Client capability boundary instead of relying only on hidden controls;
+- added `apps/work/src/capabilities.ts` with explicit Work vs Client capabilities;
+- added focused tests proving project authoring is allowed only in Work entry + Work mode;
+- direct `?preview=1` client entry cannot gain Work authoring capability or return to Work;
+- hidden dimension and wall-target controls now reject project mutations while Client mode is active;
+- Work user can enter Client Preview and receives a dedicated owner-only “Назад към Work” exit control;
+- direct client preview does not receive that exit control;
+- viewer-session actions (camera, cutaway, visibility, selection) remain allowed in Client mode;
 - CI/typecheck/tests/build/screenshot QA all passed;
-- visual verification confirms the Client Preview no longer exposes the cleaned internal/prototype wording.
+- visual QA confirms normal Work mode remains intact and direct Client Preview stays clean/read-only in presentation.
+
+Current capability commits in this block:
+- `87aa1fe5fd2f1b0fc5bd442a3530884029b155ed` — capability profile;
+- `338233bb9f3408813796f0385bcc78f495a41f50` — capability tests;
+- `27140155de5388b509c308492bfa65448ece1955` — mutation guards;
+- `68de592e743fa26adbed2ab52d23819a6bfcd29d` — Work-only preview exit UI.
 
 Next work block:
 
-**Strengthen the Work/Client capability boundary. Client Preview must not rely only on hidden authoring controls: project-mutating actions must be rejected at application capability level while Client mode is active. Preserve the Work user’s ability to preview and return to Work, and keep direct `?preview=1` client preview unable to switch into Work. Add focused tests for the capability rule where practical, then run CI and visual QA.**
+**Run a focused functional acceptance audit of the core Smart Offer loop: Offer → Model and Model → Offer. Verify service selection, linked wall selection, highlight synchronization and quantity/price integrity against `FIRST_VERTICAL_SLICE_V1.md`. Refactor only the minimum state/link logic needed to make these interactions explicitly testable; fix concrete defects only. Then run tests, build and visual QA.**
 
 ## 9. Required reading for a new chat
 
