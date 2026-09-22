@@ -52,7 +52,8 @@ jobs:
             fi
             sleep 1
           done
-          google-chrome --headless --disable-gpu --no-sandbox             --window-size=1440,1000             --screenshot=/tmp/vertical-slice-desktop.png             http://127.0.0.1:4173
+          google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,1000 --screenshot=/tmp/vertical-slice-work.png http://127.0.0.1:4173
+          google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,1000 --screenshot=/tmp/vertical-slice-client.png "http://127.0.0.1:4173/?preview=1"
           kill $SERVER_PID || true
 
       - name: Upload visual QA screenshot
