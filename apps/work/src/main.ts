@@ -8,9 +8,12 @@ import {
 } from "./calculation";
 import { RoomViewer } from "./viewer";
 import { renderM2Schema } from "./m2-schema";
+import { getModeCapabilities, type AppEntry } from "./capabilities";
 
 const project = createDefaultProject();
-let previewMode = new URLSearchParams(window.location.search).get("preview") === "1";
+const directClientEntry = new URLSearchParams(window.location.search).get("preview") === "1";
+const appEntry: AppEntry = directClientEntry ? "direct-client" : "work";
+let previewMode = directClientEntry;
 let selectedService = true;
 let selectedEntity: SurfaceId | null = null;
 let autoCutaway = true;
@@ -29,6 +32,7 @@ app.innerHTML = `
         <button id="workModeBtn" class="active">Work Mode</button>
         <button id="previewModeBtn">Preview as Client</button>
       </div>
+      <button id="exitPreviewBtn" class="preview-exit">Назад към Work</button>
     </header>
 
     <main class="workspace">
@@ -151,6 +155,7 @@ setPreviewMode(previewMode);
 function wireControls(): void {
   mustGet("workModeBtn").addEventListener("click", () => setPreviewMode(false));
   mustGet("previewModeBtn").addEventListener("click", () => setPreviewMode(true));
+  mustGet("exitPreviewBtn").addEventListener("click", () => setPreviewMode(false));
 
   mustGet("resetCameraBtn").addEventListener("click", () => viewer.resetCamera());
 
@@ -194,8 +199,11 @@ function wireControls(): void {
 }
 
 function setPreviewMode(enabled: boolean): void {
+  if (!enabled && !currentCapabilities().canReturnToWork) return;
+
   previewMode = enabled;
   mustGet("shell").classList.toggle("preview-mode", previewMode);
+  mustGet("shell").classList.toggle("direct-client-entry", directClientEntry);
   mustGet("workModeBtn").classList.toggle("active", !previewMode);
   mustGet("previewModeBtn").classList.toggle("active", previewMode);
   mustGet("brandSubtitle").textContent = previewMode
@@ -206,6 +214,13 @@ function setPreviewMode(enabled: boolean): void {
 }
 
 function updateDimensions(): void {
+  if (!currentCapabilities().canAuthorProject) {
+    widthInput.value = String(project.room.widthM);
+    lengthInput.value = String(project.room.lengthM);
+    heightInput.value = String(project.room.heightM);
+    return;
+  }
+
   const width = safeDimension(widthInput.value, project.room.widthM);
   const length = safeDimension(lengthInput.value, project.room.lengthM);
   const height = safeDimension(heightInput.value, project.room.heightM);
@@ -243,6 +258,11 @@ function renderWallTargets(): void {
     checkbox.type = "checkbox";
     checkbox.checked = project.serviceAssignment.targetEntityIds.includes(id);
     checkbox.addEventListener("change", () => {
+      if (!currentCapabilities().canAuthorProject) {
+        checkbox.checked = project.serviceAssignment.targetEntityIds.includes(id);
+        return;
+      }
+
       const targets = new Set(project.serviceAssignment.targetEntityIds);
       if (checkbox.checked) targets.add(id);
       else targets.delete(id);
@@ -302,6 +322,10 @@ function renderOffer(): void {
   mustGet("infoWhy").textContent = info.why;
   mustGet("infoResult").textContent = info.result;
   mustGet("infoIncludes").textContent = info.includes;
+}
+
+function currentCapabilities() {
+  return getModeCapabilities(previewMode ? "client" : "work", appEntry);
 }
 
 function safeDimension(raw: string, fallback: number): number {
