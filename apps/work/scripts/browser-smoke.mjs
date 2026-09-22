@@ -46,7 +46,8 @@ async function createSession() {
     }
 
     if (message.method === "Log.entryAdded" && message.params.entry?.level === "error") {
-      const entry = message.params.entry;\n      browserErrors.push("Browser log error: " + (entry.text ?? "unknown") + (entry.url ? " @ " + entry.url : ""));
+      const entry = message.params.entry;
+      browserErrors.push("Browser log error: " + (entry.text ?? "unknown") + (entry.url ? " @ " + entry.url : ""));
     }
   });
 
