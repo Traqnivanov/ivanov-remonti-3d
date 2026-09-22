@@ -383,3 +383,22 @@ Owner изрично потвърди, че полезните функции н
 четат от едни и същи domain данни.
 
 Това премахва двойното въвеждане и е по-силно от директно вграждане на стария калкулатор.
+
+
+## 15. Owner correction — current integration source is only Калкулатор М²
+
+The earlier broad audit inspected several Ivanov Tools pages, but the **current implementation scope is narrower**.
+
+For the Smart Offer integration, the only legacy calculator currently selected is:
+
+**Калкулатор М² → `kalkulator-combined.html`**
+
+The Ivanov Tools home page confirms that the visible **„Калкулатор М²“** card opens `kalkulator-combined.html`.
+
+Current rule:
+- use `kalkulator-combined.html` as the M² logic/workflow source;
+- do not integrate `calculator.html`;
+- do not integrate `room.html`;
+- keep those files untouched unless a later explicit Owner decision expands scope.
+
+Any earlier wording suggesting that both calculators are planned for integration is superseded by this correction.
