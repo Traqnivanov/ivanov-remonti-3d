@@ -87,7 +87,7 @@ export function createDefaultProject(): ProjectState {
       priceBookItemId: "dev-fine-putty",
       presentationMode: "highlight",
       clientInfo: {
-        what: "Прототипно Info за фина шпакловка.",
+        what: "Фина шпакловка за изравняване и подготовка на включените стени.",
         why: "Показва как краткото клиентско обяснение остава свързано с конкретната позиция.",
         result: "Равна подготвена повърхност според обхвата на офертата.",
         includes: "Само стените, включени в тази позиция от офертата.",
