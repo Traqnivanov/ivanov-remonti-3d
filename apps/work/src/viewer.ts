@@ -321,7 +321,7 @@ export class RoomViewer {
     const height = Math.max(1, this.container.clientHeight);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height, false);
+    this.renderer.setSize(width, height);
 
     if (this.showcaseFrameActive && this.project) {
       this.applyShowcaseFrame(width, height);
