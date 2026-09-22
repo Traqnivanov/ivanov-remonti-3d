@@ -31,7 +31,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          npm config set package-lock true
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          test -s package-lock.json
           npm install --no-audit --no-fund
 
       - name: Typecheck
@@ -102,5 +104,5 @@ jobs:
           path: |
             /tmp/vertical-slice-work.png
             /tmp/vertical-slice-client.png
-            apps/work/package-lock.json
+            ${{ github.workspace }}/apps/work/package-lock.json
           if-no-files-found: error
