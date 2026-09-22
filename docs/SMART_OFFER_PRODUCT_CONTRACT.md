@@ -308,3 +308,19 @@ Ivanov Remonti създава, коригира и ценообразува пр
 Не може да променя project scope, geometry, services, quantities или prices.
 
 Подробният capability и state contract е в `docs/WORK_CLIENT_MODE_CONTRACT.md`.
+
+## 17. Client delivery and protected core
+
+The client does not receive the editor or working project.
+
+The Smart Offer is delivered through a controlled read-only client web viewer.
+
+Per offer, Ivanov Remonti chooses:
+- Link;
+- Link + PIN.
+
+The client experience and protection of the internal system are both part of Ivanov Unique.
+
+Detailed contract:
+
+`docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
