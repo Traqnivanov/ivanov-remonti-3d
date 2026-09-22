@@ -387,3 +387,15 @@ Owner избира за всяка оферта:
 Frontend hiding/obfuscation не се счита за достатъчна защита.
 
 Подробният договор е `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`.
+
+## 23. Repository development visibility policy
+
+By explicit Owner decision, `Traqnivanov/ivanov-remonti-3d` remains PUBLIC while the program is being developed.
+
+This is allowed during development, but:
+- never commit secrets/API keys;
+- never commit real client personal data;
+- never commit production credentials;
+- treat all repository content as publicly visible.
+
+Before production/final release there is a mandatory **Protection Gate**. The program is not considered production-ready until the final repository/source protection strategy and production security review are completed.
