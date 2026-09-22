@@ -154,6 +154,8 @@ async function assertMobileLayout(session, label) {
       const toolbarRect = toolbar.getBoundingClientRect();
       const note = document.querySelector(".viewer-note");
       const noteRect = note?.getBoundingClientRect();
+      const topbar = document.querySelector(".topbar");
+      const topbarRect = topbar?.getBoundingClientRect();
       return {
         innerWidth: window.innerWidth,
         innerHeight: window.innerHeight,
@@ -163,10 +165,13 @@ async function assertMobileLayout(session, label) {
         viewerWidth: viewerRect.width,
         viewerHeight: viewerRect.height,
         viewerTop: viewerRect.top,
+        canvasTop: canvasRect.top,
         canvasWidth: canvasRect.width,
         toolbarRight: toolbarRect.right,
+        toolbarBottom: toolbarRect.bottom,
         toolbarHeight: toolbarRect.height,
         noteHeight: noteRect?.height ?? 0,
+        topbarHeight: topbarRect?.height ?? 0,
       };
     })()`,
   );
@@ -187,8 +192,11 @@ async function assertMobileLayout(session, label) {
   if (metrics.viewerTop > metrics.innerHeight * 0.4) {
     throw new Error(label + ": 3D viewer is pushed below the first mobile screen");
   }
-  if (metrics.toolbarHeight > metrics.viewerHeight * 0.2) {
-    throw new Error(label + ": mobile viewer toolbar consumes too much of the 3D scene");
+  if (metrics.toolbarBottom > metrics.canvasTop + 1) {
+    throw new Error(label + ": mobile viewer toolbar overlaps the 3D canvas");
+  }
+  if (metrics.toolbarHeight > metrics.viewerHeight * 0.22) {
+    throw new Error(label + ": mobile viewer toolbar consumes too much vertical space");
   }
   if (metrics.noteHeight > metrics.viewerHeight * 0.14) {
     throw new Error(label + ": mobile viewer note consumes too much of the 3D scene");
@@ -415,6 +423,32 @@ async function runMobileWorkSmoke() {
     await assertMobileLayout(session, "Work");
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
     await smokeViewerTouch(session);
+
+    await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
+    await delay(220);
+    await assertEval(
+      session,
+      'document.querySelector("#shell").classList.contains("preview-mode")',
+      "Mobile Owner Preview: Preview as Client did not activate",
+    );
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector("#exitPreviewBtn")).display !== "none"',
+      "Mobile Owner Preview: return-to-Work control is missing",
+    );
+    await assertMobileLayout(session, "Owner Preview");
+    await saveScreenshot(session, "/tmp/vertical-slice-mobile-owner-preview.png");
+
+    const ownerPreviewTopbarHeight = await evaluate(
+      session,
+      'document.querySelector(".topbar").getBoundingClientRect().height',
+    );
+    if (ownerPreviewTopbarHeight > 76) {
+      throw new Error(
+        "Mobile Owner Preview: header is too tall (" + ownerPreviewTopbarHeight + "px)",
+      );
+    }
+
     throwBrowserErrors(session);
   } finally {
     session.close();
@@ -475,4 +509,4 @@ await runWorkSmoke();
 await runDirectClientSmoke();
 await runMobileWorkSmoke();
 await runMobileClientSmoke();
-console.log("Browser smoke passed: desktop Work + desktop Client + mobile Work + mobile Client");
+console.log("Browser smoke passed: desktop Work + desktop Client + mobile Work + mobile Owner Preview + mobile Client");

@@ -248,7 +248,8 @@ input[type="number"] {
 
   .viewer-wrap {
     order: 1;
-    min-height: 430px;
+    min-height: 510px;
+    background: #080d15;
   }
 
   .panel.left {
@@ -262,17 +263,32 @@ input[type="number"] {
   }
 
   .viewer-toolbar {
-    top: 8px;
-    left: 8px;
-    right: 8px;
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
+    padding: 8px;
+    background: #080d15;
+    border-bottom: 1px solid #22334c;
+    pointer-events: auto;
   }
 
   .viewer-toolbar button {
-    padding: 7px 8px;
+    min-width: 0;
+    min-height: 38px;
+    padding: 6px 5px;
     border-radius: 7px;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.1;
+    white-space: normal;
+  }
+
+  .viewer {
+    top: 90px;
   }
 
   .viewer-note {
@@ -281,6 +297,36 @@ input[type="number"] {
     bottom: 8px;
     padding: 5px 7px;
     font-size: 11px;
+  }
+
+  .preview-mode:not(.direct-client-entry) .topbar {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .preview-mode:not(.direct-client-entry) .brand {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .preview-mode:not(.direct-client-entry) .brand strong {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .preview-mode:not(.direct-client-entry) .brand span {
+    font-size: 10px;
+  }
+
+  .preview-mode:not(.direct-client-entry) .preview-exit {
+    flex: 0 0 auto;
+    margin-left: 0;
+    padding: 8px 9px;
+    font-size: 11px;
+    white-space: nowrap;
   }
 
   .viewer-help { display: none; }
