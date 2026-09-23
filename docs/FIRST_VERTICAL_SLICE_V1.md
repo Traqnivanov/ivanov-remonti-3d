@@ -1,7 +1,9 @@
 # FIRST REAL VERTICAL SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** OWNER-APPROVED NEXT IMPLEMENTATION TARGET  
-**Purpose:** prove the core Smart Offer mechanism end-to-end before building the full application.
+**Status:** HISTORICAL / MERGED FIRST-SLICE BASELINE  
+**Merged baseline:** `main@cda27d78faf28565b7faef2f4917aa14c5d8a2d4`  
+**Current-state authority:** `PROJECT_STATE.md`  
+**Purpose:** preserve the scope and acceptance target that proved the core Smart Offer mechanism end-to-end.
 
 ---
 
