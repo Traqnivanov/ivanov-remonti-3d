@@ -17,8 +17,9 @@ It is not a history log. Git and historical documents preserve the past.
 - Active working branch: `feat/persistence-slice-v1`
 - Active PR: **#4 — DRAFT / OPEN**
 - Latest verified product-code checkpoint: `8a09c6066e085fdf7dd8ffce9f5230648c797cc7`
-- Continuity migration started from branch head `26146868d4d3ef4c6a67f06667f1615d055972d2`.
-- Every new chat must verify the **actual current branch HEAD and PR state** before implementation; do not assume the recorded documentation-migration HEAD is still latest.
+- Continuity system: **ACTIVE / MIGRATION VERIFIED**.
+- Continuity migration was verified through branch head `c4b1b59b613647bfb832d2da2730fdffaa2caf3d` with Vertical Slice CI #222 SUCCESS and static preview #112 SUCCESS.
+- Every new chat must still verify the **actual current branch HEAD and PR state** before implementation; Git continues moving after this state record.
 
 ---
 
@@ -203,18 +204,29 @@ These are known and must not be forgotten, but they are **not blockers for start
 
 ## 8. Current verification status
 
-At the continuity-migration start:
-- latest pre-migration Vertical Slice CI: **#208 — SUCCESS**;
-- latest pre-migration static preview: **#98 — SUCCESS**;
+Continuity migration verification:
+- canonical `START_HERE.md`: present;
+- canonical `PROJECT_STATE.md`: present;
+- single Current Work Issue: **#5**;
+- old `CURRENT_HANDOFF.md`: preserved but explicitly SUPERSEDED;
+- First Slice implementation/acceptance docs: explicitly HISTORICAL;
+- Work/Client publishing contract: synchronized to Owner-approved Published Revision;
+- M²-only legacy integration scope: surfaced at the top of the reuse audit;
+- PR #4 description: synchronized to actual P2.1–P2.4 state;
+- active conflict scan: no unresolved active contradiction found;
+- Vertical Slice CI **#222 — SUCCESS**;
+- static preview **#112 — SUCCESS**;
 - P2.4 repository verification: PASS;
 - no P2.5 visible change exists yet, therefore P2.5 visual QA has not started.
 
-Documentation-only continuity commits may trigger newer CI runs. A new chat must verify the current latest run rather than treating the run numbers above as eternal state.
+A new chat must verify the current latest branch/PR/CI state rather than treating these run numbers as eternal state.
 
 ---
 
 ## 9. NEXT EXACT STEP
 
-**Complete the continuity-system migration and verify that no active decision, condition, criterion or risk was lost. Then perform the P2.5 short visible-integration audit + concrete proposal + Criteria Check.**
+**P2.5 — perform the short visible-integration audit, produce one concrete Create/Open/Save interaction proposal, and record the full Criteria Check as PASS / PARTIAL-RISK / NOT APPLICABLE.**
 
-**Do not implement P2.5 UI before explicit Owner approval of that proposal.**
+Then stop for **explicit Owner approval**.
+
+**Do not implement P2.5 UI before that approval.**
