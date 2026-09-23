@@ -7,6 +7,8 @@ import {
   type ProjectListItem,
   type ProjectRepository,
   type ProjectStatus,
+  type SaveProjectInput,
+  type SaveProjectResult,
 } from "./project-repository";
 import {
   CURRENT_PROJECT_SCHEMA_VERSION,
@@ -14,9 +16,9 @@ import {
   serializeProjectState,
 } from "./persistence";
 
-type ProjectReadRepository = Pick<
+type SupabaseProjectRepository = Pick<
   ProjectRepository,
-  "create" | "list" | "open"
+  "create" | "list" | "open" | "save"
 >;
 
 type ProjectRow = {
@@ -36,6 +38,17 @@ type ProjectListRow = Omit<
   "owner_user_id" | "work_state" | "created_at"
 >;
 
+type ProjectSaveRow = {
+  id: string;
+  work_version: number;
+  updated_at: string;
+};
+
+type ProjectVersionRow = {
+  id: string;
+  work_version: number;
+};
+
 const PROJECT_ROW_COLUMNS =
   "id, title, owner_user_id, status, schema_version, work_version, work_state, created_at, updated_at";
 
@@ -45,7 +58,7 @@ const PROJECT_LIST_COLUMNS =
 export function createSupabaseProjectReadRepository(
   client: SupabaseClient,
   ownerUserId: string,
-): ProjectReadRepository {
+): SupabaseProjectRepository {
   const normalizedOwnerUserId = requireNonBlank(
     ownerUserId,
     "Owner user id",
@@ -95,6 +108,88 @@ export function createSupabaseProjectReadRepository(
       return ((data ?? []) as ProjectListRow[]).map(mapListItem);
     },
 
+    async save(input: SaveProjectInput): Promise<SaveProjectResult> {
+      const projectId = requireNonBlank(input.projectId, "Project id");
+
+      if (input.project.projectId !== projectId) {
+        throw new ProjectRepositoryError(
+          "INVALID_INPUT",
+          "Save project id does not match the project state id.",
+        );
+      }
+
+      const expectedWorkVersion = requirePositiveInputVersion(
+        input.expectedWorkVersion,
+      );
+      const nextWorkVersion = expectedWorkVersion + 1;
+
+      if (!Number.isSafeInteger(nextWorkVersion)) {
+        throw new ProjectRepositoryError(
+          "INVALID_INPUT",
+          "Next work version would exceed the safe integer range.",
+        );
+      }
+
+      const workState = serializeProjectState(input.project);
+
+      const { data, error } = await client
+        .from("projects")
+        .update({
+          schema_version: CURRENT_PROJECT_SCHEMA_VERSION,
+          work_version: nextWorkVersion,
+          work_state: workState,
+        })
+        .eq("id", projectId)
+        .eq("owner_user_id", normalizedOwnerUserId)
+        .eq("work_version", expectedWorkVersion)
+        .select("id, work_version, updated_at")
+        .maybeSingle<ProjectSaveRow>();
+
+      if (error) {
+        throw storageFailure("Unable to save project.", error);
+      }
+
+      if (data) {
+        return mapSaveResult(data, projectId, nextWorkVersion);
+      }
+
+      const { data: current, error: versionError } = await client
+        .from("projects")
+        .select("id, work_version")
+        .eq("id", projectId)
+        .maybeSingle<ProjectVersionRow>();
+
+      if (versionError) {
+        throw storageFailure(
+          "Unable to verify project version after save conflict.",
+          versionError,
+        );
+      }
+
+      if (!current) {
+        throw new ProjectRepositoryError(
+          "NOT_FOUND",
+          "Project was not found.",
+        );
+      }
+
+      const currentWorkVersion = requirePositiveInteger(
+        current.work_version,
+        "Current project work version",
+      );
+
+      if (currentWorkVersion !== expectedWorkVersion) {
+        throw new ProjectRepositoryError(
+          "STALE_WRITE",
+          `Project changed since it was opened. Expected version ${expectedWorkVersion}, current version ${currentWorkVersion}.`,
+        );
+      }
+
+      throw storageFailure(
+        "Project save matched no row even though the expected version is still current.",
+      );
+    },
+
     async open(projectId: string): Promise<OpenedProject> {
       const normalizedProjectId = requireNonBlank(
         projectId,
@@ -122,6 +217,38 @@ export function createSupabaseProjectReadRepository(
 
       return mapOpenedProject(data);
     },
+  };
+}
+
+function mapSaveResult(
+  row: ProjectSaveRow,
+  expectedProjectId: string,
+  expectedWorkVersion: number,
+): SaveProjectResult {
+  const projectId = requireNonBlank(row.id, "Saved project id");
+  const workVersion = requirePositiveInteger(
+    row.work_version,
+    "Saved project work version",
+  );
+  const updatedAt = requireNonBlank(
+    row.updated_at,
+    "Saved project updated timestamp",
+  );
+
+  if (projectId !== expectedProjectId) {
+    throw storageFailure("Saved project id does not match the requested project.");
+  }
+
+  if (workVersion !== expectedWorkVersion) {
+    throw storageFailure(
+      `Saved project version is invalid. Expected ${expectedWorkVersion}, received ${workVersion}.`,
+    );
+  }
+
+  return {
+    projectId,
+    workVersion,
+    updatedAt,
   };
 }
 
@@ -200,6 +327,16 @@ function requireNonBlank(value: string, label: string): string {
     );
   }
   return normalized;
+}
+
+function requirePositiveInputVersion(value: number): number {
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new ProjectRepositoryError(
+      "INVALID_INPUT",
+      "Expected work version must be a positive safe integer.",
+    );
+  }
+  return value;
 }
 
 function storageFailure(
