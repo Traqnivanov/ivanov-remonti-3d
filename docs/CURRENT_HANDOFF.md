@@ -218,15 +218,15 @@ Current checkpoint:
 - Supabase schema is still untouched;
 - Persistence audit/contract is documented.
 
-**P2.2a schema draft is complete. Next task: P2.2b security audit only.**
+**P2.2b security audit is complete. Next task: P2.2c apply reviewed migration only.**
 
 Current gate:
-1. schema draft exists in repo;
+1. schema + security migration draft is complete and reviewed;
 2. Supabase remains untouched;
-3. next perform grants/RLS security review and complete the migration;
-4. do not apply until that review is clean;
-5. after review, P2.2c applies the migration;
-6. P2.2d verifies resulting schema/security before P2.3.
+3. next P2.2c applies only this reviewed migration;
+4. no Auth/UI/repository work is added in the same task;
+5. after apply, P2.2d verifies tables, constraints, grants, RLS policies and migration history;
+6. only after P2.2d passes may work move to P2.3.
 
 Do not manually create tables in Dashboard.
 
