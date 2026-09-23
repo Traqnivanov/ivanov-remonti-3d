@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.1 PERSISTENCE DOMAIN BOUNDARY COMPLETE / P2.2 DB FOUNDATION NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.2a SCHEMA DRAFT COMPLETE / P2.2b SECURITY REVIEW NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -349,10 +349,18 @@ Verified:
 
 Supabase schema remains untouched.
 
-Next task is **P2.2 — Database foundation**:
-1. prepare the migration as a reviewed code diff;
-2. include `work_users`, `projects`, constraints, indexes, timestamp handling, explicit grants and RLS;
-3. review the migration before any execution;
-4. only then apply it to Supabase and verify the resulting schema/security.
+P2.2a is complete:
+- migration draft exists at `supabase/migrations/20260923163000_persistence_foundation.sql`;
+- includes `work_users`, `projects`, constraints, indexes and updated timestamp handling;
+- migration has NOT been applied to Supabase.
+
+Next task is **P2.2b — security audit only**:
+1. review default/public privileges;
+2. add explicit revokes/grants;
+3. add RLS + policies;
+4. review the complete migration again;
+5. do NOT apply it yet.
+
+Only after P2.2b is clean does P2.2c apply the migration.
 
 No direct “click-create tables and fix later” workflow.
