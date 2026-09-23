@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.2a SCHEMA DRAFT COMPLETE / P2.2b SECURITY REVIEW NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.2b SECURITY REVIEW COMPLETE / P2.2c APPLY MIGRATION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -225,7 +225,8 @@ Backend contract:
 
 ### Create
 - authenticated authorized Work user creates a project;
-- server/database generates project UUID;
+- Work repository generates a UUID before serialization/insert, so `projects.id` and `work_state.projectId` are identical from the first write;
+- the database still has a UUID default as a defensive fallback, but normal Create sends the explicit project UUID;
 - initial persisted state is created through the current serializer;
 - `work_version = 1`.
 
@@ -354,13 +355,21 @@ P2.2a is complete:
 - includes `work_users`, `projects`, constraints, indexes and updated timestamp handling;
 - migration has NOT been applied to Supabase.
 
-Next task is **P2.2b — security audit only**:
-1. review default/public privileges;
-2. add explicit revokes/grants;
-3. add RLS + policies;
-4. review the complete migration again;
-5. do NOT apply it yet.
+P2.2b is complete:
+- current Supabase default privileges were audited;
+- browser roles are explicitly revoked before minimum grants;
+- future postgres-created public tables/sequences/functions default private for browser roles;
+- service_role is explicitly allowed for protected server work and is never browser-shipped;
+- RLS is enabled on both tables;
+- `work_users` exposes only the active authenticated user's own allow-list row;
+- `projects` SELECT/INSERT/UPDATE require ownership + active Work authorization;
+- no DELETE grant/policy exists in Slice 2;
+- Auth-user deletion is restricted so persisted project ownership cannot cascade away;
+- project UUID creation contract is consistent with the JSONB `projectId` constraint;
+- migration remains unapplied.
 
-Only after P2.2b is clean does P2.2c apply the migration.
+Next task is **P2.2c — apply this reviewed migration only**.
+
+After apply, P2.2d must verify real tables, constraints, grants, RLS policies and migration history before P2.3.
 
 No direct “click-create tables and fix later” workflow.
