@@ -5,9 +5,12 @@
 **Branch:** `feat/vertical-slice-v1`  
 **Acceptance basis:** `docs/FIRST_VERTICAL_SLICE_V1.md §11`  
 **Latest implementation checkpoint before documentation sync:** `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`  
-**Status:** **TECHNICAL PASS / DESKTOP CHECKPOINT ACCEPTABLE / HARDENED MOBILE QA PASS / OWNER REAL-DEVICE MOBILE ACCEPTED / NO MERGE APPROVAL**
+**Status:** **HISTORICAL ACCEPTANCE RECORD — FIRST SLICE LATER EXPLICITLY APPROVED AND MERGED**
 
-This audit is a technical acceptance record. It is not merge authorization.
+**Final merged baseline:** `main@cda27d78faf28565b7faef2f4917aa14c5d8a2d4`  
+**Current-state authority:** `PROJECT_STATE.md`
+
+This file preserves the acceptance evidence and the fact that, at the time of the audit, merge approval was still pending. A later explicit Owner decision **“Merge PR #3”** superseded that pending state and PR #3 was merged. Do not read the old pending-merge language below as current status.
 
 ## 1. Owner visual-review history
 
