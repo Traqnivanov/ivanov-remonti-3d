@@ -7,7 +7,11 @@
 **Supabase project:** `ivanov-remonti-3d`  
 **Supabase project ref:** `qjfpbxucrxrtpygusnuv`  
 **Region:** `eu-west-1`  
+**Current-state authority:** `PROJECT_STATE.md`  
+**Current work:** GitHub Issue #5  
 **Initial database state at audit:** empty `public` schema, no migrations.
+
+> Sections 16+ preserve implementation checkpoint evidence. They are historical execution records inside this technical contract and do not replace `PROJECT_STATE.md` for the current NEXT.
 
 ## 1. Goal
 
