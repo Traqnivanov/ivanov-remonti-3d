@@ -218,13 +218,13 @@ Current checkpoint:
 - Supabase schema is still untouched;
 - Persistence audit/contract is documented.
 
-**Next task: P2.1 only.**
+**P2.1 is complete and CI-proven. Next task: P2.2 only.**
 
 Before any Supabase migration:
-1. implement and test the persistence-domain boundary;
-2. Controller reviews it;
-3. prepare P2.2 migration as a separate reviewed diff;
-4. only then apply schema to Supabase.
+1. prepare P2.2 migration as a separate reviewed diff;
+2. Controller reviews schema, grants and RLS;
+3. only then apply the reviewed migration to Supabase;
+4. verify the resulting schema/security before moving to P2.3.
 
 Do not manually create tables in Dashboard.
 
