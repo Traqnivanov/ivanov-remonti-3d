@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.2c MIGRATION APPLIED / P2.2d DATABASE VERIFICATION NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.2d DATABASE VERIFICATION PASS / P2.3 AUTH BOUNDARY NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -373,12 +373,34 @@ P2.2c is complete:
 - Supabase returned `success: true`;
 - no Auth/UI/Save/Open work was added in the same task.
 
-Next task is **P2.2d — database verification only**:
-- verify real tables and columns;
-- verify constraints and indexes;
-- verify grants;
-- verify RLS and policy definitions;
-- verify migration history;
-- do not start P2.3 until this passes.
+P2.2d is complete — PASS.
+
+Verified against the live Supabase database:
+- `public.work_users` and `public.projects` exist with the expected columns;
+- primary keys and both foreign keys exist with `ON DELETE RESTRICT`;
+- project JSONB/schema/version/status/title constraints exist;
+- ownership/status indexes exist;
+- both `updated_at` triggers exist and are enabled;
+- RLS is enabled on both tables;
+- exactly the expected policies exist:
+  - `work_users_select_self_active`;
+  - `projects_select_own`;
+  - `projects_insert_own`;
+  - `projects_update_own`;
+- `anon` has no Work table SELECT/INSERT privileges;
+- `authenticated` has SELECT only on `work_users` and SELECT/INSERT/UPDATE on `projects`;
+- `authenticated` has no `work_users` INSERT/UPDATE/DELETE and no project DELETE;
+- `anon` / `authenticated` cannot CREATE objects in `public`;
+- the internal `set_updated_at()` helper is not executable by browser roles;
+- service role retains protected server privileges;
+- migration history contains `persistence_foundation`;
+- Supabase Security Advisor reports no security findings.
+
+Performance Advisor reports only the two new project indexes as unused. This is expected at this checkpoint because both application tables contain zero rows and no Work repository traffic exists yet; it is not a removal signal.
+
+No schema changes were made during P2.2d.
+
+Next task is **P2.3 — Supabase client + Work Auth boundary**.
+Keep it split into small tasks; do not combine Auth, project repository and visible Save/Open UI in one block.
 
 No direct “click-create tables and fix later” workflow.
