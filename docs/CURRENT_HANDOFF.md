@@ -218,16 +218,17 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.3b authenticated + authorized Work-user boundary is PASS. Next gate: Owner decision on visible sign-in method before any Auth UI.**
+**P2.3c1 email/password sign-in logic is PASS. Next task: P2.3c2 minimal private login UI + visual QA only.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
-2. P2.3a browser client configuration is complete and CI-proven;
-3. P2.3b authenticated + active Work-user authorization boundary is complete and CI-proven;
-4. no visible Auth UI exists yet and no sign-in method has been guessed;
-5. next requires Owner approval of the visible sign-in method (email+password vs magic link/OTP are the current minimal candidates);
-6. after approval, implement only the minimal private Work sign-in entry;
-7. do not start P2.4 project Save/Open repository in the same task.
+2. P2.3a client configuration and P2.3b authorization boundary are complete;
+3. Owner selected email + password;
+4. P2.3c1 sign-in logic is complete and CI-proven;
+5. next P2.3c2 implements only the minimal private login screen and wires it to the existing Auth boundaries;
+6. P2.3c2 requires mobile-first + desktop visual QA because it changes visible UI;
+7. no public signup is added;
+8. do not start P2.4 project Save/Open repository in the same task.
 
 Do not manually create tables in Dashboard.
 
