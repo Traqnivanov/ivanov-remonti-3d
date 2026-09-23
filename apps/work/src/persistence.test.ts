@@ -58,7 +58,7 @@ describe("project persistence boundary", () => {
       "room-1.floor",
       "room-1.ceiling",
     ]);
-    expect(parsed.serviceAssignments[0].targetEntityIds).toEqual(
+    expect(parsed.serviceAssignments[0]!.targetEntityIds).toEqual(
       project.serviceAssignment.targetEntityIds,
     );
   });
