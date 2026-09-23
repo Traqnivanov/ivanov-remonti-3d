@@ -218,19 +218,18 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.3 Auth is complete and live-verified. Next task: P2.4a repository contract + mocked unit tests only.**
+**P2.4a repository contract + mocked unit tests is PASS. Next task: P2.4b Create/List/Open Supabase adapter only.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
-2. P2.3 client configuration, authorization boundary, email/password sign-in logic and login UI are complete;
-3. first real Work Auth user exists and has exactly one active owner allow-list row;
-4. persistence preview publishes successfully with the browser-safe Supabase variable;
-5. Owner completed a real email/password sign-in and entered Work successfully;
-6. signed-out behavior was exercised live; unauthorized behavior remains covered by tests + RLS/allow-list enforcement;
-7. password recovery redirect still points to localhost and is deferred until recovery becomes a user-facing feature;
-8. next task is **P2.4a only — project repository contract + mocked unit tests**;
-9. do not perform live project writes in P2.4a;
-10. do not add visible Create/Open/Save UI before P2.5.
+2. P2.3 Auth is complete and live-verified;
+3. P2.4a repository contract is complete and CI-proven;
+4. repository contract is independent from Supabase implementation details;
+5. no live project rows were created in P2.4a;
+6. next task is **P2.4b only — Supabase adapter for Create/List/Open**;
+7. P2.4b may create one bounded live test project only after adapter tests pass;
+8. do not implement Save or stale-write handling until P2.4c;
+9. do not add visible Create/Open/Save UI before P2.5.
 
 Do not manually create tables in Dashboard.
 
