@@ -1,9 +1,11 @@
-# PROJECT RULES 00 — READ FIRST
+# PROJECT RULES 00 — DETAILED RULEBOOK
 
 **Проект:** Ivanov Remonti 3D Visualizer  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Статус:** FOUNDATION / задължителни правила  
 **Owner:** Траян Иванов
+
+> **Canonical project entry:** every new chat starts from `START_HERE.md`, then `PROJECT_STATE.md`, then the Current Work Issue. This file remains the detailed quality/process rulebook; it is no longer the first continuity file.
 
 ## 1. Йерархия
 
@@ -11,7 +13,7 @@
 2. **Главен асистент / Work Controller** — отговаря за архитектура, одит, риск, планиране, стандарти, възлагане на ограничени задачи и финален review.
 3. **OBK** — изпълнителен чат. Работи само по точно възложен обхват. Не променя продуктови решения, не разширява задачата и не променя защитена архитектура без разрешение.
 
-При конфликт между документи или задачи печели последното **изрично Owner решение**, записано в `docs/DECISION_LOG.md` и отразено в Smart Offer contract / MASTER.
+При конфликт не се гадае. Следва се precedence-ът в `START_HERE.md`: latest explicit Owner decision → `PROJECT_STATE.md` for current facts → active approved contracts → Current Work Issue for temporary execution → historical material.
 
 ## 2. Главна цел
 
@@ -27,32 +29,33 @@ North Star механизъм:
 
 Програмата **не симулира как майсторът физически извършва работата**.
 
-## 3. Source of truth
+## 3. Source of truth and startup
 
-Преди работа се четат в този ред:
+Canonical continuity entry is defined by `START_HERE.md`.
 
-1. `PROJECT_RULES_00_READ_FIRST.md`
-2. `docs/MASTER_SPEC.md`
-3. `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
-4. `docs/3D_VIEWER_STANDARD.md`
-5. `docs/WORK_CLIENT_MODE_CONTRACT.md`
-6. `docs/CLIENT_DELIVERY_SECURITY_CONTRACT.md`
-7. `docs/INFRASTRUCTURE_DATA_ARCHITECTURE.md`
-8. `docs/DATA_MODEL_V1.md`
-9. `docs/DECISION_LOG.md`
-10. `docs/PRODUCT_VISION_STANDARD.md`
-11. `docs/SERVICE_OPERATION_REGISTRY.md`
-12. `docs/BENCHMARK_RESEARCH.md`
-13. `docs/TOOLS_REUSE_AUDIT.md`
-14. `docs/LEGACY_CALCULATOR_INTEGRATION_ARCHITECTURE.md`
-15. `docs/DELIVERY_STRATEGY.md`
-16. `docs/FIRST_VERTICAL_SLICE_V1.md` — историческият acceptance baseline на merged First Slice
-17. `docs/PERSISTENCE_SLICE_V1.md` — докато Slice 2 Persistence е текущият активен slice
-18. конкретният handoff/task за текущата работа
+Every new chat follows:
 
-Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
+1. `START_HERE.md`
+2. `PROJECT_STATE.md`
+3. Current Work Issue linked from `PROJECT_STATE.md`
+4. verify actual branch / HEAD / PR
+5. read only the dependency documents required by the current task
 
-При конфликт печели последното изрично Owner решение в `DECISION_LOG.md` / Smart Offer contract.
+The full permanent document stack is **not** mandatory reading on every start.
+
+Use the dependency map in `START_HERE.md §11` to decide which contracts are relevant.
+
+`PROJECT_STATE.md` is the only official current-state document.
+
+The Current Work Issue contains temporary execution state and never overrides approved product contracts.
+
+Historical handoffs, old acceptance audits and old proposals are evidence, not current instructions.
+
+If active sources appear to conflict:
+
+**STOP — reconcile before implementation. Do not guess.**
+
+New important product decisions must not remain only in chat. After Owner approval they are recorded in the appropriate permanent contract and, when material, in `docs/DECISION_LOG.md`.
 
 ## 4. Правило преди код
 
