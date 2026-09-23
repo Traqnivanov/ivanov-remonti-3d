@@ -218,15 +218,15 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.3a Supabase client configuration is PASS. Next task: P2.3b authenticated + authorized Work-user boundary only.**
+**P2.3b authenticated + authorized Work-user boundary is PASS. Next gate: Owner decision on visible sign-in method before any Auth UI.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
 2. P2.3a browser client configuration is complete and CI-proven;
-3. browser config is locked to the dedicated Ivanov Remonti project and publishable-key credentials only;
-4. no real publishable key or privileged credential is committed;
-5. next P2.3b implements only authenticated session + active `work_users` authorization boundary;
-6. visible sign-in method/UI remains a separate decision/task and must not be guessed;
+3. P2.3b authenticated + active Work-user authorization boundary is complete and CI-proven;
+4. no visible Auth UI exists yet and no sign-in method has been guessed;
+5. next requires Owner approval of the visible sign-in method (email+password vs magic link/OTP are the current minimal candidates);
+6. after approval, implement only the minimal private Work sign-in entry;
 7. do not start P2.4 project Save/Open repository in the same task.
 
 Do not manually create tables in Dashboard.
