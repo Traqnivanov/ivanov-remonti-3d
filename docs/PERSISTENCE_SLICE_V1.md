@@ -654,3 +654,29 @@ No visible Create/Open/Save UI was added.
 
 Next task: **P2.4b — live Supabase repository adapter for Create/List/Open only**.
 Do not implement Save/stale-write handling until P2.4c.
+
+
+## 22. P2.4b adapter checkpoint — code/tests PASS, live verification pending
+
+The Supabase Create/List/Open adapter is implemented and mocked-test proven.
+
+Implemented:
+- authenticated-owner-scoped adapter factory;
+- Create writes explicit project UUID, owner UUID, draft status, schema version, work version 1 and serialized canonical state;
+- List reads metadata only and orders by latest update;
+- Open reads one RLS-visible row and deserializes through the persistence boundary;
+- RLS-hidden foreign rows remain indistinguishable from missing rows;
+- malformed stored state fails instead of inventing project data;
+- no Save implementation was added.
+
+Verification:
+- strict typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser regression smoke PASS;
+- PR CI #183 SUCCESS.
+
+No live project row has been created yet.
+
+Next micro-task: **P2.4b-live — one bounded real Create → List → Open verification using the already authorized Owner session.**
+This must not add product Create/Open UI and must not implement Save.
