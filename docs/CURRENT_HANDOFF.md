@@ -218,7 +218,7 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.4c Save + optimistic concurrency code/tests is PASS. Next micro-task: one bounded live save + stale-write verification only.**
+**P2.4c Save + stale-write rejection is live-verified PASS. Next task: P2.4d final repository verification only.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
@@ -228,10 +228,11 @@ Current gate:
 5. no live project rows were created in P2.4a;
 6. P2.4b adapter code/tests and real Create→List→Open verification are PASS;
 7. temporary live QA entry has been removed and cleanup CI is PASS;
-8. P2.4c Save adapter + mocked concurrency tests are PASS;
-9. the bounded QA project still remains at work_version 1;
-10. next micro-task is **P2.4c-live only — real save 1→2 + intentional stale retry from version 1**;
-11. do not add visible Create/Open/Save UI before P2.5.
+8. P2.4c Save adapter, real save 1→2 and stale retry rejection are PASS;
+9. the bounded QA project is now at work_version 2 and the successful state was preserved;
+10. temporary save QA code has been removed and cleanup CI #204 is PASS;
+11. next task is **P2.4d only — final repository verification/read-only consolidation**;
+12. do not add visible Create/Open/Save UI before P2.5.
 
 Do not manually create tables in Dashboard.
 
