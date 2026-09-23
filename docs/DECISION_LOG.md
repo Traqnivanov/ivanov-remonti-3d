@@ -495,3 +495,61 @@ Merge commit:
 - първо P2.3c1 sign-in logic + tests;
 - после отделно P2.3c2 minimal visible login UI + visual QA;
 - P2.4 Save/Open не се смесва с Auth задачите.
+
+
+## 23.09.2026 — Owner одобри canonical continuity system за всички следващи чатове
+
+Owner одобри специално за `ivanov-remonti-3d` професионална continuity система, при условие че **не се губи нито едно важно решение, условие, критерий, риск или одобрена посока**.
+
+Активното правило е:
+
+- `START_HERE.md` = постоянният вход и operating rules;
+- `PROJECT_STATE.md` = единственото официално текущо състояние;
+- точно един GitHub Issue с префикс **[CURRENT WORK]** = временната текуща работа;
+- Git / PR = историята;
+- Master/contracts остават трайната продуктова/архитектурна база и се четат според dependency map, а не всичките при всеки старт.
+
+Задължителен boot за нов чат:
+
+**START_HERE → PROJECT_STATE → Current Work Issue → verify branch/HEAD/PR → task-relevant dependency docs**
+
+Нов чат преди работа потвърждава:
+- къде сме;
+- кое е официално;
+- кое е временно;
+- кое е непроверено;
+- NEXT EXACT STEP.
+
+При конфликт:
+
+**STOP — NO GUESSING.**
+
+За съществена промяна:
+
+**audit → concrete proposal → visible Criteria Check → Owner approval → implementation → technical verification → exact preview → visual verification → record result → NEXT**
+
+Criteria Check използва **PASS / PARTIAL-RISK / NOT APPLICABLE** и покрива приложимото:
+- human benefit;
+- 3-second clarity;
+- primary action;
+- Smart Offer North Star;
+- Work/Client safety;
+- mobile/readability/touch/focus/accessibility;
+- Project State vs Viewer Session State;
+- quantity/price truth;
+- privacy/RLS/security/data;
+- performance;
+- side effects;
+- recovery/error/stale states;
+- need for new product decision.
+
+Visible UI/3D не се приема само по code/CI. Ако не е гледано реално: **НЕ Е ВИЗУАЛНО ПРОВЕРЕНО**. Ако не е тествано: **НЕ Е ПРОВЕРЕНО**.
+
+Continuity migration е консервативна:
+- старите handoff/checkpoint материали първо се маркират historical/superseded, а не се трият;
+- активните решения и criteria се пренасят преди какъвто и да е cleanup;
+- history остава достъпна чрез Git.
+
+Основният acceptance test е:
+
+**ако текущият чат изчезне, нов чат трябва да може от repo + Current Work Issue да продължи правилно без Owner да разказва проекта отначало.**
