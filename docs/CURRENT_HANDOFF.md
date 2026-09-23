@@ -218,7 +218,7 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.3c2 private email/password login UI + visual QA is PASS. Next task: P2.3d live Auth provisioning/verification only.**
+**P2.3c2 private email/password login UI + visual QA is PASS. P2.3d live Auth verification is in progress.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
@@ -228,7 +228,10 @@ Current gate:
 5. no public signup exists;
 6. next P2.3d performs real live Auth provisioning + one real sign-in verification against the dedicated Supabase project;
 7. first Work Auth user must exist before its `work_users` allow-list row can be added;
-8. connector access does not provide an Auth-admin create-user action, so user provisioning may require one bounded Dashboard step;
+8. first Auth user is created and active owner allow-list row exists;
+9. Repository variable `SUPABASE_PUBLISHABLE_KEY` is configured for the persistence preview workflow;
+10. next verify preview publish + one real email/password login;
+11. connector access does not provide an Auth-admin create-user action, so user provisioning required one bounded Dashboard step;
 9. do not start P2.4 project Save/Open repository in the same task.
 
 Do not manually create tables in Dashboard.
