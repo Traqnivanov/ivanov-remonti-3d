@@ -1,9 +1,6 @@
--- P2.2a — Persistence schema foundation DRAFT.
--- IMPORTANT: this file is reviewed code only at this checkpoint.
--- Do not apply to Supabase until P2.2b security review is complete.
---
--- Security (RLS / grants / policies) is intentionally added in P2.2b
--- before this migration is allowed to run.
+-- P2.2a + P2.2b — Persistence schema + security foundation DRAFT.
+-- IMPORTANT: reviewed code only at this checkpoint.
+-- Do not apply to Supabase until the complete migration review is accepted.
 
 create table public.work_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -83,3 +80,118 @@ create trigger projects_set_updated_at
 before update on public.projects
 for each row
 execute function public.set_updated_at();
+
+
+-- ---------------------------------------------------------------------------
+-- Explicit privilege baseline
+-- ---------------------------------------------------------------------------
+-- The project was created with automatic exposure disabled, but we do not
+-- trust ambient/default privileges. Current and future application tables
+-- must be explicit-by-design.
+
+revoke all on table public.work_users from public, anon, authenticated;
+revoke all on table public.projects from public, anon, authenticated;
+
+grant select on table public.work_users to authenticated;
+grant select, insert, update on table public.projects to authenticated;
+
+-- Protected server operations may use service_role later. It is never shipped
+-- to the browser.
+grant all on table public.work_users to service_role;
+grant all on table public.projects to service_role;
+
+-- Future objects created by postgres in public start private for browser roles.
+alter default privileges for role postgres in schema public
+  revoke all on tables from anon, authenticated;
+
+alter default privileges for role postgres in schema public
+  revoke all on sequences from anon, authenticated;
+
+alter default privileges for role postgres in schema public
+  revoke execute on functions from public, anon, authenticated;
+
+alter default privileges for role postgres in schema public
+  grant all on tables to service_role;
+
+alter default privileges for role postgres in schema public
+  grant all on sequences to service_role;
+
+alter default privileges for role postgres in schema public
+  grant execute on functions to service_role;
+
+-- Trigger helper is internal database plumbing, not a browser RPC.
+revoke all on function public.set_updated_at() from public, anon, authenticated;
+grant execute on function public.set_updated_at() to service_role;
+
+-- ---------------------------------------------------------------------------
+-- Row Level Security
+-- ---------------------------------------------------------------------------
+
+alter table public.work_users enable row level security;
+alter table public.projects enable row level security;
+
+-- Work users can only see their own active allow-list row.
+create policy work_users_select_self_active
+on public.work_users
+for select
+to authenticated
+using (
+  user_id = (select auth.uid())
+  and active = true
+);
+
+-- Projects are private to their owner, and the owner must still be an active
+-- authorized Work user.
+
+create policy projects_select_own
+on public.projects
+for select
+to authenticated
+using (
+  owner_user_id = (select auth.uid())
+  and exists (
+    select 1
+    from public.work_users as wu
+    where wu.user_id = (select auth.uid())
+      and wu.active = true
+  )
+);
+
+create policy projects_insert_own
+on public.projects
+for insert
+to authenticated
+with check (
+  owner_user_id = (select auth.uid())
+  and exists (
+    select 1
+    from public.work_users as wu
+    where wu.user_id = (select auth.uid())
+      and wu.active = true
+  )
+);
+
+create policy projects_update_own
+on public.projects
+for update
+to authenticated
+using (
+  owner_user_id = (select auth.uid())
+  and exists (
+    select 1
+    from public.work_users as wu
+    where wu.user_id = (select auth.uid())
+      and wu.active = true
+  )
+)
+with check (
+  owner_user_id = (select auth.uid())
+  and exists (
+    select 1
+    from public.work_users as wu
+    where wu.user_id = (select auth.uid())
+      and wu.active = true
+  )
+);
+
+-- No DELETE privilege or DELETE policy in Slice 2.
