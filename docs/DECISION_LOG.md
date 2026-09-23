@@ -481,3 +481,17 @@ Merge commit:
 **P2.1 persistence domain boundary → P2.2 reviewed DB migration/RLS → P2.3 Auth → P2.4 repository Save/Open → P2.5 minimal UI → P2.6 acceptance.**
 
 Не се създават таблици ръчно и не се прескача директно към Publishing, врати/прозорци или други видими функции.
+
+
+## 23.09.2026 — Owner избра Work sign-in: имейл + парола
+
+След P2.3b Owner избра вариант **1 — имейл + парола** за частния Work вход.
+
+Активното решение е:
+- Work App използва Supabase Auth email + password sign-in;
+- няма публична регистрация като продуктова функция;
+- magic link / OTP не е текущият вход;
+- sign-in implementation се разделя на малки checkpoints;
+- първо P2.3c1 sign-in logic + tests;
+- после отделно P2.3c2 minimal visible login UI + visual QA;
+- P2.4 Save/Open не се смесва с Auth задачите.
