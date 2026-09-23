@@ -92,6 +92,7 @@ jobs:
           wait "$CHROME_PID" 2>/dev/null || true
           CHROME_PID=""
 
+          google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,900 --screenshot=/tmp/persistence-login-desktop.png http://127.0.0.1:4173
           google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,1000 --screenshot=/tmp/vertical-slice-client.png "http://127.0.0.1:4173/?preview=1"
 
       - name: Upload visual QA screenshot
