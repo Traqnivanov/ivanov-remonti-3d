@@ -123,6 +123,84 @@ async function waitForApp(session, url) {
   throw new Error("App did not become ready: " + url);
 }
 
+async function waitForLogin(session, url) {
+  await session.call("Page.navigate", { url });
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    try {
+      const ready = await evaluate(
+        session,
+        'document.readyState === "complete" && Boolean(document.querySelector("#workLoginForm"))',
+      );
+      if (ready) {
+        await delay(180);
+        return;
+      }
+    } catch {
+      // Navigation can replace the execution context between polls.
+    }
+    await delay(100);
+  }
+
+  throw new Error("Work login did not become ready: " + url);
+}
+
+async function authorizeQaWork(session) {
+  await waitForLogin(session, baseUrl);
+  await evaluate(
+    session,
+    'sessionStorage.setItem("ivanov-remonti:qa-authorized", "1")',
+  );
+  await waitForApp(session, baseUrl);
+}
+
+async function assertLoginLayout(session, label) {
+  const metrics = await evaluate(
+    session,
+    `(() => {
+      const card = document.querySelector(".work-login-card");
+      const form = document.querySelector("#workLoginForm");
+      const email = document.querySelector("#workLoginEmail");
+      const password = document.querySelector("#workLoginPassword");
+      const submit = document.querySelector("#workLoginSubmit");
+      if (!card || !form || !email || !password || !submit) return null;
+      const cardRect = card.getBoundingClientRect();
+      const controls = [email, password, submit].map((el) => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, height: r.height };
+      });
+      return {
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        cardLeft: cardRect.left,
+        cardRight: cardRect.right,
+        cardWidth: cardRect.width,
+        controls,
+        signupText: document.body.textContent.toLowerCase().includes("регистрация"),
+      };
+    })()`,
+  );
+
+  if (!metrics) throw new Error(label + ": login metrics are unavailable");
+  if (metrics.scrollWidth > metrics.innerWidth + 1) {
+    throw new Error(label + ": login has horizontal overflow");
+  }
+  if (metrics.cardLeft < -1 || metrics.cardRight > metrics.innerWidth + 1) {
+    throw new Error(label + ": login card is clipped");
+  }
+  if (metrics.signupText) {
+    throw new Error(label + ": public registration language leaked into private Work login");
+  }
+  for (const control of metrics.controls) {
+    if (control.left < -1 || control.right > metrics.innerWidth + 1) {
+      throw new Error(label + ": login control is clipped");
+    }
+    if (control.height < 44) {
+      throw new Error(label + ": login control is smaller than 44px");
+    }
+  }
+}
+
 async function assertEval(session, expression, message) {
   const ok = await evaluate(session, expression);
   if (!ok) throw new Error(message);
@@ -347,10 +425,43 @@ function throwBrowserErrors(session) {
   }
 }
 
+async function runLoginSmoke() {
+  const desktop = await createSession();
+  try {
+    await waitForLogin(desktop, baseUrl);
+    await assertLoginLayout(desktop, "Desktop login");
+    await assertEval(
+      desktop,
+      'document.querySelector("#workLoginEmail").getAttribute("autocomplete") === "username"',
+      "Desktop login: email autocomplete is not configured",
+    );
+    await assertEval(
+      desktop,
+      'document.querySelector("#workLoginPassword").getAttribute("autocomplete") === "current-password"',
+      "Desktop login: password autocomplete is not configured",
+    );
+    await saveScreenshot(desktop, "/tmp/persistence-login-desktop.png");
+    throwBrowserErrors(desktop);
+  } finally {
+    desktop.close();
+  }
+
+  const mobile = await createSession({ mobile: true });
+  try {
+    await waitForLogin(mobile, baseUrl);
+    await assertLoginLayout(mobile, "Mobile login");
+    await saveScreenshot(mobile, "/tmp/persistence-login-mobile.png");
+    throwBrowserErrors(mobile);
+  } finally {
+    mobile.close();
+  }
+}
+
 async function runWorkSmoke() {
   const session = await createSession();
   try {
-    await waitForApp(session, baseUrl);
+    await authorizeQaWork(session);
+    await saveScreenshot(session, "/tmp/vertical-slice-work.png");
 
     await assertEval(session, 'document.querySelector("#viewer canvas") instanceof HTMLCanvasElement', "Work: true 3D canvas is missing");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display !== "none"', "Work: authoring panel should be visible");
@@ -449,7 +560,7 @@ async function runWorkSmoke() {
 async function runMobileWorkSmoke() {
   const session = await createSession({ mobile: true });
   try {
-    await waitForApp(session, baseUrl);
+    await authorizeQaWork(session);
     await assertMobileLayout(session, "Work");
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
     await smokeViewerTouch(session);
@@ -535,8 +646,9 @@ async function runDirectClientSmoke() {
   }
 }
 
+await runLoginSmoke();
 await runWorkSmoke();
 await runDirectClientSmoke();
 await runMobileWorkSmoke();
 await runMobileClientSmoke();
-console.log("Browser smoke passed: desktop Work + desktop Client + mobile Work + mobile Owner Preview + mobile Client");
+console.log("Browser smoke passed: private login + desktop Work + desktop Client + mobile Work + mobile Owner Preview + mobile Client");
