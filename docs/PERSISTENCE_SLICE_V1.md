@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.3a CLIENT CONFIG COMPLETE / P2.3b AUTHORIZATION BOUNDARY NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.3b AUTHORIZATION BOUNDARY COMPLETE / SIGN-IN METHOD DECISION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -435,3 +435,53 @@ No Auth UI, login method, Work-user authorization flow or project Save/Open repo
 
 Next task: **P2.3b — authenticated session + authorized Work-user boundary only**.
 Do not combine it with visible login UI or P2.4 Save/Open.
+
+
+## 17. P2.3b checkpoint — authenticated + authorized Work-user boundary
+
+P2.3b is complete.
+
+Implemented:
+- `resolveWorkAccess(client)` as a non-UI authorization boundary;
+- explicit states:
+  - `signed-out`;
+  - authenticated but `unauthorized`;
+  - `authorized` active Work user;
+- local session presence is checked first;
+- authenticated identity is then verified with Supabase Auth `getUser()` before Work authorization;
+- active Work access is resolved through `public.work_users`;
+- lookup is constrained by authenticated user ID and `active = true`;
+- database/session failures are surfaced as typed `WorkAuthBoundaryError` values instead of being hidden as signed-out/unauthorized;
+- no Work user creation/elevation path exists in browser code.
+
+Tests cover:
+- signed-out path with no Work DB lookup;
+- verified authorized Work user;
+- authenticated user without active Work access;
+- session read failure;
+- unverified/invalid identity;
+- Work authorization lookup failure.
+
+Verification:
+- strict typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser smoke PASS;
+- PR CI #158 SUCCESS.
+
+No visible Auth UI was added.
+No sign-in method was chosen.
+No `main.ts` integration was added.
+No P2.4 project Save/Open work was started.
+
+### Next gate
+
+The technical Auth boundary now exists, but the visible sign-in method is intentionally unresolved.
+
+Before visible Auth implementation, Owner must approve the sign-in experience. Reasonable initial options are:
+- email + password;
+- magic link / OTP email.
+
+Do not guess this UX choice.
+
+After the sign-in method is approved, implement only the minimal private Work sign-in entry; keep public signup disabled as a product flow.
