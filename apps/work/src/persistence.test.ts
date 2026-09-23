@@ -69,10 +69,9 @@ describe("project persistence boundary", () => {
       schemaVersion: 2,
     };
 
-    expect(() => parseAndMigrateProjectState(future)).toThrowError(
-      expect.objectContaining<ProjectPersistenceError>({
-        code: "UNSUPPORTED_SCHEMA_VERSION",
-      }),
+    expectPersistenceError(
+      () => parseAndMigrateProjectState(future),
+      "UNSUPPORTED_SCHEMA_VERSION",
     );
   });
 
@@ -80,11 +79,7 @@ describe("project persistence boundary", () => {
     const malformed = serializeProjectState(createDefaultProject());
     malformed.rooms[0].geometry.widthM = 0;
 
-    expect(() => parseAndMigrateProjectState(malformed)).toThrowError(
-      expect.objectContaining<ProjectPersistenceError>({
-        code: "INVALID_STATE",
-      }),
-    );
+    expectPersistenceError(() => parseAndMigrateProjectState(malformed), "INVALID_STATE");
   });
 
   it("accepts a generalized persisted document but refuses runtime shapes not yet supported", () => {
@@ -100,10 +95,9 @@ describe("project persistence boundary", () => {
     });
 
     expect(parseAndMigrateProjectState(generalized).rooms).toHaveLength(2);
-    expect(() => deserializeProjectState(generalized)).toThrowError(
-      expect.objectContaining<ProjectPersistenceError>({
-        code: "UNSUPPORTED_RUNTIME_SHAPE",
-      }),
+    expectPersistenceError(
+      () => deserializeProjectState(generalized),
+      "UNSUPPORTED_RUNTIME_SHAPE",
     );
   });
 
@@ -118,3 +112,17 @@ describe("project persistence boundary", () => {
     expect(project.serviceAssignment.targetEntityIds).toHaveLength(4);
   });
 });
+
+
+function expectPersistenceError(
+  action: () => unknown,
+  code: ProjectPersistenceError["code"],
+): void {
+  try {
+    action();
+    throw new Error(`Expected ProjectPersistenceError with code ${code}.`);
+  } catch (error) {
+    expect(error).toBeInstanceOf(ProjectPersistenceError);
+    expect((error as ProjectPersistenceError).code).toBe(code);
+  }
+}
