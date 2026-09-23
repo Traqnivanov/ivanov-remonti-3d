@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.4b CREATE/LIST/OPEN LIVE PASS / P2.4c SAVE + OPTIMISTIC CONCURRENCY NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.4c SAVE CODE PASS / P2.4c-LIVE OPTIMISTIC CONCURRENCY VERIFICATION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -711,3 +711,48 @@ No visible product Create/Open UI was added.
 No Save implementation exists yet.
 
 Next task: **P2.4c — Save + optimistic `work_version` + stale-write conflict only**.
+
+
+## 24. P2.4c code checkpoint — Save + optimistic concurrency
+
+P2.4c code is complete — PASS.
+
+Implemented in the Supabase project repository adapter:
+- `save(input)` writes only when all of the following match:
+  - project id;
+  - authenticated owner id;
+  - expected `work_version`;
+- successful save writes:
+  - current schema version;
+  - serialized canonical `work_state`;
+  - `work_version = expected + 1`;
+- successful save must return the same project id and exactly the expected next version;
+- if update matches zero rows, a read-only version probe distinguishes:
+  - hidden/missing row → `NOT_FOUND`;
+  - newer visible version → `STALE_WRITE`;
+  - same version but no update → `STORAGE_FAILURE` as an unexpected condition;
+- mismatched row/project ids are rejected before repository I/O;
+- invalid work versions are rejected;
+- update failures are never reinterpreted as stale success.
+
+Mocked tests cover:
+- successful version N → N+1 save;
+- explicit owner/id/version predicates;
+- stale-write detection;
+- missing/RLS-hidden project handling;
+- unexpected same-version no-row save;
+- storage failure;
+- mismatched project id rejection.
+
+Verification:
+- strict typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser regression smoke PASS;
+- PR CI #195 SUCCESS.
+
+No live save was performed in this checkpoint.
+The bounded QA project remains at `work_version = 1`.
+
+Next micro-task: **P2.4c-live — one real save from version 1 → 2, then intentionally retry from stale version 1 and prove `STALE_WRITE`.**
+No UI.
