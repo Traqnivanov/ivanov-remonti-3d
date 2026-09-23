@@ -433,7 +433,7 @@ Latest verified static preview:
 - hardened 360 px automated QA — PASS;
 - Work Controller mobile screenshot review — PASS;
 - desktop Opera regression review — PASS;
-- **Owner real-device recheck — PENDING**;
+- **Owner real-device recheck — ACCEPTED FOR FIRST SLICE CHECKPOINT**;
 - PR #3 remains DRAFT / no merge approval.
 
 

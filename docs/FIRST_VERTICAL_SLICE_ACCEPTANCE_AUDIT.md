@@ -44,7 +44,7 @@ Important:
 - hardened automated mobile/touch QA and Work Controller visual inspection now pass;
 - Owner real-phone/device **recheck is accepted for the First Vertical Slice checkpoint**.
 
-Therefore PR #3 remains DRAFT and must not be merged without explicit Owner approval after the remaining real-device visual gate.
+Therefore PR #3 remains DRAFT and must not be merged without explicit Owner approval. The real-device mobile visual gate is already accepted for this First Slice checkpoint.
 
 ## 2. Latest verification evidence
 
