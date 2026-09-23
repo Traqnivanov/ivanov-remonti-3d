@@ -5,7 +5,7 @@
 **Branch:** `feat/vertical-slice-v1`  
 **Acceptance basis:** `docs/FIRST_VERTICAL_SLICE_V1.md §11`  
 **Latest implementation checkpoint before documentation sync:** `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`  
-**Status:** **TECHNICAL PASS / DESKTOP CHECKPOINT ACCEPTABLE / HARDENED MOBILE QA PASS / OWNER REAL-DEVICE RECHECK PENDING / NO MERGE APPROVAL**
+**Status:** **TECHNICAL PASS / DESKTOP CHECKPOINT ACCEPTABLE / HARDENED MOBILE QA PASS / OWNER REAL-DEVICE MOBILE ACCEPTED / NO MERGE APPROVAL**
 
 This audit is a technical acceptance record. It is not merge authorization.
 
@@ -42,7 +42,7 @@ Important:
 - QA was hardened to assert a real 360 px CSS layout, all visible control bounds, horizontal overflow and the real Work → Preview transition;
 - commits through `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe` separated controls from the 3D canvas and constrained the mobile layout correctly;
 - hardened automated mobile/touch QA and Work Controller visual inspection now pass;
-- Owner real-phone/device **recheck** is still pending.
+- Owner real-phone/device **recheck is accepted for the First Vertical Slice checkpoint**.
 
 Therefore PR #3 remains DRAFT and must not be merged without explicit Owner approval after the remaining real-device visual gate.
 
@@ -133,7 +133,7 @@ The browser smoke uses a real Chromium session and checks runtime/console errors
 | hardened mobile emulated QA | VERIFIED | True 360 px layout target; Work, Owner Preview and direct Client; touch, overflow and per-control clipping gates. |
 | Work Controller mobile visual inspection | VERIFIED | Latest Work, Owner Preview and direct Client mobile screenshots inspected. |
 | previous Owner real-device mobile review | REJECTED / SUPERSEDED BUILD | Proved the earlier QA false positive and forced the hardened gate. |
-| Owner real-device mobile recheck | **PENDING** | Required before merge discussion is closed. |
+| Owner real-device mobile recheck | **ACCEPTED FOR FIRST SLICE CHECKPOINT** | Not final-polish approval and not merge authorization. |
 
 ## 4. Viewer correction isolation
 
@@ -185,9 +185,9 @@ Technical acceptance remains **PASS**.
 Current closure gate:
 
 1. verify CI remains green after documentation sync;
-2. Owner opens the latest interactive build on a real phone/device;
-3. if mobile is accepted, obtain explicit Owner merge approval;
-4. if mobile reveals a concrete issue, fix only that bounded issue and repeat mobile-first QA;
+2. Owner real-device mobile gate is ACCEPTED for this checkpoint;
+3. perform final merge-gate audit on current HEAD/PR state;
+4. obtain explicit Owner merge approval;
 5. only then merge or continue correction.
 
 **No implicit “OK”, CI result, screenshot review by the Work Controller, or documentation update counts as merge approval.**

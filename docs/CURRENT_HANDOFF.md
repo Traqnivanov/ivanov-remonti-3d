@@ -220,13 +220,13 @@ Mobile:
 - latest implementation checkpoint: `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`;
 - latest hardened mobile CI + screenshot QA now pass;
 - Work Controller visually inspected Work, Owner Preview and direct Client mobile screenshots and desktop screenshots;
-- **Owner must re-check the latest build on the real phone**; the previous real-device rejection remains historical evidence and must not be overwritten.
+- **Owner real-device recheck: ACCEPTED for the First Vertical Slice checkpoint.** The previous real-device rejection remains historical evidence and must not be overwritten.
 
 Therefore:
 - the specific defects shown by the Owner are corrected in the latest tested build;
 - this is still prototype quality, not final visual polish;
 - **PR #3 still has no merge approval**;
-- do not claim final Owner mobile acceptance until the Owner re-checks the latest build.
+- Owner mobile acceptance for this checkpoint is recorded. This is not final-polish approval and is not merge authorization.
 
 ---
 
@@ -388,8 +388,8 @@ A new Chief Work Controller should:
 4. confirm the latest implementation checkpoint is `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe` unless a later code diff proves otherwise;
 5. note that the old mobile PASS was invalidated by Owner real-device evidence and replaced by the hardened 360 px QA;
 6. note that hardened automated QA + Work Controller visual QA are now PASS for Work, Owner Preview and direct Client;
-7. let the Owner re-check the latest build on a real phone/device;
-8. only after the real-device mobile gate is accepted, obtain an **explicit Owner decision about merging PR #3**;
+7. note that Owner real-device mobile review is now ACCEPTED for the First Vertical Slice checkpoint;
+8. perform the final merge-gate audit, then obtain an **explicit Owner decision about merging PR #3**;
 9. if merge is approved, perform the approved merge procedure and then start a fresh audit/planning block for Slice 2;
 10. if merge is not approved, address only the concrete Owner finding — do not broaden scope.
 

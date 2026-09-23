@@ -435,3 +435,21 @@ Latest verified static preview:
 - desktop Opera regression review — PASS;
 - **Owner real-device recheck — PENDING**;
 - PR #3 remains DRAFT / no merge approval.
+
+
+## 23.09.2026 — Owner прие latest mobile build за First Vertical Slice checkpoint
+
+След hardened 360 px QA и реална повторна проверка на телефон Owner даде **„Ок“** в контекст, в който предварително беше уточнено, че това означава:
+
+**Owner приема текущото mobile изживяване за First Vertical Slice checkpoint.**
+
+Това заключва само mobile visual gate за този checkpoint.
+
+Не означава:
+- финален mobile polish;
+- готов продукт;
+- одобрение на следващи slices;
+- merge разрешение за PR #3.
+
+Следващата стъпка е:
+**final merge-gate audit → отделно explicit Owner merge decision.**
