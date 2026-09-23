@@ -218,21 +218,23 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.4c Save + stale-write rejection is live-verified PASS. Next task: P2.4d final repository verification only.**
+**P2.4 Project Repository is complete and verified PASS. Next gate: P2.5 visible integration audit/proposal before implementation.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
 2. P2.3 Auth is complete and live-verified;
 3. P2.4a repository contract is complete and CI-proven;
-4. repository contract is independent from Supabase implementation details;
-5. no live project rows were created in P2.4a;
-6. P2.4b adapter code/tests and real Create→List→Open verification are PASS;
-7. temporary live QA entry has been removed and cleanup CI is PASS;
-8. P2.4c Save adapter, real save 1→2 and stale retry rejection are PASS;
-9. the bounded QA project is now at work_version 2 and the successful state was preserved;
-10. temporary save QA code has been removed and cleanup CI #204 is PASS;
-11. next task is **P2.4d only — final repository verification/read-only consolidation**;
-12. do not add visible Create/Open/Save UI before P2.5.
+4. P2.4b Create/List/Open is live-verified;
+5. P2.4c Save 1→2 + stale-write rejection is live-verified;
+6. P2.4d final read-only repository/security/cleanup verification is PASS;
+7. P2.4 Project Repository is therefore complete;
+8. current live QA row remains at work_version 2 with preserved canonical state;
+9. temporary QA routes/files are absent from source and latest preview bundle;
+10. current CI #206 and static preview #96 are SUCCESS;
+11. Security Advisor has one non-blocking leaked-password-protection warning deferred to P2.6;
+12. next gate is **P2.5 — short visible integration audit + proposal before UI implementation**;
+13. P2.5 scope is only Create/Open/Save current Work project + clear save/version state; no unrelated redesign;
+14. Client Preview remains read-only.
 
 Do not manually create tables in Dashboard.
 
