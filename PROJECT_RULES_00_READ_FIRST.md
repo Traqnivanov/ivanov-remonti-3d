@@ -46,8 +46,9 @@ North Star механизъм:
 13. `docs/TOOLS_REUSE_AUDIT.md`
 14. `docs/LEGACY_CALCULATOR_INTEGRATION_ARCHITECTURE.md`
 15. `docs/DELIVERY_STRATEGY.md`
-16. `docs/FIRST_VERTICAL_SLICE_V1.md` — когато текущата работа е първата имплементация
-17. конкретният handoff/task за текущата работа
+16. `docs/FIRST_VERTICAL_SLICE_V1.md` — историческият acceptance baseline на merged First Slice
+17. `docs/PERSISTENCE_SLICE_V1.md` — докато Slice 2 Persistence е текущият активен slice
+18. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
 
