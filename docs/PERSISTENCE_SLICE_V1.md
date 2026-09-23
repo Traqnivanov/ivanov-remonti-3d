@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.2d DATABASE VERIFICATION PASS / P2.3 AUTH BOUNDARY NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.3a CLIENT CONFIG COMPLETE / P2.3b AUTHORIZATION BOUNDARY NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -404,3 +404,34 @@ Next task is **P2.3 — Supabase client + Work Auth boundary**.
 Keep it split into small tasks; do not combine Auth, project repository and visible Save/Open UI in one block.
 
 No direct “click-create tables and fix later” workflow.
+
+
+## 16. P2.3a checkpoint — Supabase client configuration
+
+P2.3a is complete.
+
+Implemented:
+- official `@supabase/supabase-js` browser client dependency;
+- locked dependency tree compatible with the Node 22 CI runtime;
+- dedicated Work Supabase config module;
+- hard guard that the configured URL targets only project ref `qjfpbxucrxrtpygusnuv`;
+- hard guard that browser credentials use an `sb_publishable_` key format;
+- no database password, secret key or service-role key is accepted by the browser config path;
+- `apps/work/.env.example` contains placeholders only;
+- Vite environment typing for the two allowed variables;
+- unit tests for correct project, cross-project rejection, non-publishable-key rejection and client creation.
+
+The real publishable key is intentionally not committed to the repository.
+
+Verification:
+- dependency install PASS;
+- strict typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser smoke PASS;
+- PR CI #154 SUCCESS.
+
+No Auth UI, login method, Work-user authorization flow or project Save/Open repository was implemented in P2.3a.
+
+Next task: **P2.3b — authenticated session + authorized Work-user boundary only**.
+Do not combine it with visible login UI or P2.4 Save/Open.
