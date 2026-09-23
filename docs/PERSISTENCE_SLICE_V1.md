@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — AUDIT/PLANNING COMPLETE, IMPLEMENTATION NOT STARTED  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.1 PERSISTENCE DOMAIN BOUNDARY COMPLETE / P2.2 DB FOUNDATION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -331,12 +331,28 @@ Primary risks and controls:
 
 ## 15. Exact next implementation gate
 
-Before schema changes:
+P2.1 is complete at commit `b598f62917c21766e1021763b6b151084a51a186`.
 
-1. this contract is the working technical baseline;
-2. create no tables manually in Dashboard;
-3. P2.1 is implemented and tested first;
-4. then prepare P2.2 migration as a reviewed diff;
-5. only after review apply the migration to Supabase.
+Verified:
+- generalized `PersistedProjectV1`;
+- serializer;
+- strict validation/parser boundary;
+- unsupported schema rejection;
+- runtime adapter for the current First Slice subset;
+- stable ID round trip;
+- persisted/runtime data detachment;
+- strict typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser smoke PASS;
+- PR CI run #131 SUCCESS.
+
+Supabase schema remains untouched.
+
+Next task is **P2.2 — Database foundation**:
+1. prepare the migration as a reviewed code diff;
+2. include `work_users`, `projects`, constraints, indexes, timestamp handling, explicit grants and RLS;
+3. review the migration before any execution;
+4. only then apply it to Supabase and verify the resulting schema/security.
 
 No direct “click-create tables and fix later” workflow.
