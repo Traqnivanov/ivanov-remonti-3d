@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.3c2 LOGIN UI + VISUAL QA PASS / P2.3d LIVE AUTH VERIFICATION NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.3 AUTH COMPLETE / P2.4 PROJECT REPOSITORY NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -561,3 +561,38 @@ Before P2.3 can close, perform a real live Auth verification:
 3. run one real email/password sign-in against the dedicated Supabase project;
 4. verify authorized access and unauthorized/signed-out boundaries;
 5. keep P2.4 Save/Open out of this task.
+
+
+## 20. P2.3d checkpoint — live Auth verification
+
+P2.3d is complete — PASS.
+
+Live verification completed against the dedicated Supabase project:
+- the first real Supabase Auth Work user was created;
+- the final Auth user is mapped to exactly one active `work_users` row;
+- allow-list row is `role = owner`, `active = true`;
+- persistence preview workflow published successfully with repository variable `SUPABASE_PUBLISHABLE_KEY`;
+- the preview build contains the correct project ref and a browser-safe publishable key path;
+- no `service_role` credential is present in the browser bundle;
+- Owner performed a real email/password sign-in in the published preview and entered the Work application successfully;
+- signed-out behavior was exercised live because the private login screen was shown before authentication;
+- unauthorized behavior remains covered by P2.3b/P2.3c1 tests and the live RLS/allow-list database boundary already verified in P2.2d; creating a second throwaway Auth account solely to repeat that branch live is intentionally not required.
+
+A temporary password-recovery attempt exposed the project default redirect still pointing to localhost. This does not block the selected email+password login flow and is not part of Slice 2 Save/Open. Record it as a later Auth recovery configuration task before password recovery is exposed as a user-facing feature.
+
+P2.3 is now complete:
+- P2.3a client configuration — PASS;
+- P2.3b authenticated + authorized Work-user boundary — PASS;
+- P2.3c1 email/password sign-in logic — PASS;
+- P2.3c2 private login UI + visual QA — PASS;
+- P2.3d real live sign-in — PASS.
+
+### Next gate — P2.4 Project repository
+
+Split P2.4 into small checkpoints:
+1. **P2.4a — repository contract + mocked unit tests only**;
+2. **P2.4b — Create/List/Open live Supabase repository operations**;
+3. **P2.4c — Save + optimistic `work_version` + stale-write conflict**;
+4. **P2.4d — live repository verification**.
+
+Do not add visible Create/Open/Save UI until P2.5.
