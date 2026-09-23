@@ -44,7 +44,6 @@ export async function runSaveConcurrencyLiveQa(
 
     const opened = await repository.open(qaItem.id);
 
-    let saveVersion = opened.workVersion;
     let savedNow = false;
 
     if (opened.workVersion === EXPECTED_STALE_VERSION) {
@@ -59,7 +58,6 @@ export async function runSaveConcurrencyLiveQa(
         );
       }
 
-      saveVersion = saved.workVersion;
       savedNow = true;
     } else if (opened.workVersion !== 2) {
       throw new Error(
