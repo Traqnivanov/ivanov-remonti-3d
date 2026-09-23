@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.3 AUTH COMPLETE / P2.4 PROJECT REPOSITORY NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.4a REPOSITORY CONTRACT PASS / P2.4b LIVE CREATE-LIST-OPEN NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -596,3 +596,61 @@ Split P2.4 into small checkpoints:
 4. **P2.4d — live repository verification**.
 
 Do not add visible Create/Open/Save UI until P2.5.
+
+
+## 21. P2.4a checkpoint — project repository contract
+
+P2.4a is complete — PASS.
+
+Implemented:
+- Supabase-independent `ProjectRepository` port with:
+  - `create`;
+  - `list`;
+  - `open`;
+  - `save`;
+- explicit repository DTOs:
+  - `ProjectListItem`;
+  - `OpenedProject`;
+  - `CreateProjectInput`;
+  - `SaveProjectInput`;
+  - `SaveProjectResult`;
+- typed `ProjectRepositoryError` contract including:
+  - invalid input;
+  - not found;
+  - access denied;
+  - stale write;
+  - storage failure;
+- `prepareNewProjectDraft()`:
+  - normalizes title;
+  - generates exactly one canonical project ID;
+  - creates the current default Work state with that ID;
+- `prepareSaveProject()`:
+  - carries explicit expected `work_version`;
+  - rejects invalid concurrency versions before repository I/O;
+- `assertOpenedProjectContract()`:
+  - requires metadata/project ID consistency;
+  - requires current supported schema version;
+  - requires positive safe `work_version`.
+
+Mocked tests cover:
+- generated project ID consistency;
+- title validation;
+- explicit expected version;
+- invalid version rejection;
+- opened project metadata/state consistency;
+- ID mismatch rejection;
+- full Create/List/Open/Save repository port shape without any Supabase dependency.
+
+Verification:
+- strict typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser regression smoke PASS;
+- PR CI #179 SUCCESS.
+
+No live `projects` rows were created in P2.4a.
+No Supabase repository adapter exists yet.
+No visible Create/Open/Save UI was added.
+
+Next task: **P2.4b — live Supabase repository adapter for Create/List/Open only**.
+Do not implement Save/stale-write handling until P2.4c.
