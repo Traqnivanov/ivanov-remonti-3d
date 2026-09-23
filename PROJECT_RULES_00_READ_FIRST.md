@@ -294,11 +294,16 @@ AI/photoreal render може да подобрява визията, но ням
 ### Mobile QA gate — задължителен за UI/3D
 За всяка видима UI/3D промяна преди окончателно приемане, merge или представяне като „готово“:
 1. mobile viewport test;
-2. touch interaction check, когато има interaction;
-3. Work Mode mobile check, ако промяната засяга Work;
-4. Client Mode mobile check, ако промяната засяга Client;
-5. desktop check за consistency;
-6. реален browser/device review, когато е наличен; CI/headless screenshot сам по себе си не е достатъчен за финален visual verdict.
+2. тестът **изрично доказва реалната CSS layout ширина**, а не приема, че emulator/device profile е приложен правилно;
+3. проверяват се horizontal overflow и **границите на всеки видим бутон/контрол**, не само общият container;
+4. touch interaction check, когато има interaction;
+5. Work Mode mobile check, ако промяната засяга Work;
+6. Client Mode mobile check, ако промяната засяга Client;
+7. ако има реален преход Work → Preview as Client, той се тества като отделно mobile състояние — direct Client URL не го замества;
+8. desktop check за consistency;
+9. реален browser/device review, когато е наличен; CI/headless screenshot сам по себе си не е достатъчен за финален visual verdict.
+
+Ако реален Owner/device screenshot противоречи на headless PASS, **реалното устройство печели** и QA gate се счита за отворен, докато причината не бъде изяснена.
 
 **Mobile е приоритет, но desktop не се пренебрегва.**
 При конфликт на пространство/сложност първо се пазят mobile clarity, readability и основният workflow, после се адаптира desktop.

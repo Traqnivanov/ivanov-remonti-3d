@@ -4,8 +4,8 @@
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Branch:** `feat/vertical-slice-v1`  
 **Acceptance basis:** `docs/FIRST_VERTICAL_SLICE_V1.md §11`  
-**Latest implementation checkpoint before documentation sync:** `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0`  
-**Status:** **TECHNICAL PASS / DESKTOP CHECKPOINT ACCEPTABLE / MOBILE QA PASS / OWNER REAL-DEVICE MOBILE REVIEW PENDING / NO MERGE APPROVAL**
+**Latest implementation checkpoint before documentation sync:** `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`  
+**Status:** **TECHNICAL PASS / DESKTOP CHECKPOINT ACCEPTABLE / HARDENED MOBILE QA PASS / OWNER REAL-DEVICE RECHECK PENDING / NO MERGE APPROVAL**
 
 This audit is a technical acceptance record. It is not merge authorization.
 
@@ -36,32 +36,39 @@ Important:
 - the Owner explicitly rejected the pre-DPI build;
 - the later DPI-corrected desktop view was then judged acceptable for the First Slice checkpoint, not final polish;
 - mobile-first QA subsequently exposed two real issues: Work viewer below the first screen and oversized mobile viewer overlays;
-- commit `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0` corrected those issues;
-- automated mobile/touch QA and Work Controller mobile visual inspection now pass;
-- Owner real-phone/device review is still pending.
+- commit `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0` improved those issues, but **Owner real-device screenshots rejected that state**;
+- the Owner screenshots showed controls covering the 3D scene, clipped controls and an oversized Work → Preview header;
+- audit found the original mobile emulation was a false positive because its effective CSS layout was much wider than the requested phone profile;
+- QA was hardened to assert a real 360 px CSS layout, all visible control bounds, horizontal overflow and the real Work → Preview transition;
+- commits through `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe` separated controls from the 3D canvas and constrained the mobile layout correctly;
+- hardened automated mobile/touch QA and Work Controller visual inspection now pass;
+- Owner real-phone/device **recheck** is still pending.
 
 Therefore PR #3 remains DRAFT and must not be merged without explicit Owner approval after the remaining real-device visual gate.
 
 ## 2. Latest verification evidence
 
-For `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0`:
+For `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`:
 
-- Push CI run: `35786031509` — SUCCESS
-- Pull Request CI run: `35786037054` — SUCCESS
-- Static preview publish run: `35786031503` — SUCCESS
+- Push CI run: `35791907144` — SUCCESS
+- Pull Request CI run: `35791911659` — SUCCESS
+- Static preview publish run: `35791907178` — SUCCESS
 - strict TypeScript: PASS
 - Vitest: **21 / 21 tests PASS**
 - production build: PASS
 - `npm ci`: PASS
 - desktop Work smoke: PASS
 - desktop direct Client smoke: PASS
-- mobile Work smoke at 390×844: PASS
-- mobile direct Client smoke at 390×844: PASS
+- mobile Work smoke at true 360 px layout target: PASS
+- mobile Work → Owner Preview smoke: PASS
+- mobile direct Client smoke: PASS
 - touch orbit: PASS
 - horizontal overflow gate: PASS
+- visible button/control clipping gate: PASS
 - desktop screenshots: inspected
-- mobile Work/Client screenshots: inspected
-- static preview build: `f6c34784f33d9c4d04e8baa039c534317cfbcaed`
+- mobile Work/Owner Preview/direct Client screenshots: inspected
+- real Opera desktop regression check: PASS
+- static preview build: `6beb1cf18adffc2515a490df286f154f0d380a5d`
 
 The browser smoke uses a real Chromium session and checks runtime/console errors, canvas interaction, Work/Client boundaries and core Smart Offer interactions.
 
@@ -123,9 +130,10 @@ The browser smoke uses a real Chromium session and checks runtime/console errors
 | production build | VERIFIED | CI PASS. |
 | manual screenshot inspection | VERIFIED | Latest Work and Client CI artifacts inspected. |
 | desktop checkpoint acceptance | VERIFIED FOR FIRST SLICE | Owner judged the corrected desktop composition acceptable for this checkpoint, not final polish. |
-| mobile emulated QA | VERIFIED | 390×844 Work/Client layout, touch orbit, no horizontal overflow, compact overlays. |
-| Work Controller mobile visual inspection | VERIFIED | Latest mobile Work and Client screenshots inspected. |
-| Owner real-device mobile acceptance | **PENDING** | Required before merge discussion is closed. |
+| hardened mobile emulated QA | VERIFIED | True 360 px layout target; Work, Owner Preview and direct Client; touch, overflow and per-control clipping gates. |
+| Work Controller mobile visual inspection | VERIFIED | Latest Work, Owner Preview and direct Client mobile screenshots inspected. |
+| previous Owner real-device mobile review | REJECTED / SUPERSEDED BUILD | Proved the earlier QA false positive and forced the hardened gate. |
+| Owner real-device mobile recheck | **PENDING** | Required before merge discussion is closed. |
 
 ## 4. Viewer correction isolation
 

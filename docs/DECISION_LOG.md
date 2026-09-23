@@ -402,3 +402,36 @@ CI/headless mobile emulation е полезен gate, но за видими кр
 Mobile priority не означава desktop neglect. И двете трябва да работят, но при конфликт на пространство и сложност първо се защитава mobile clarity и основният workflow.
 
 Това правило не се прилага към чисто backend/domain/documentation промени без видим UI ефект.
+
+
+## 23.09.2026 — Mobile QA трябва да доказва реалния CSS viewport и реалния navigation state
+
+**Owner real-device evidence corrected the QA process.**
+
+Предишен automated mobile PASS се оказа false positive:
+- emulator profile беше зададен като narrow phone;
+- effective CSS layout в теста беше значително по-широк;
+- Owner phone screenshot показа clipped/overlapping controls, които headless test не беше уловил;
+- direct Client test не покриваше отделното състояние **Work → Preview as Client**.
+
+Активно правило:
+1. mobile test трябва да измери и assert-не реалната CSS layout ширина;
+2. проверява се document horizontal overflow;
+3. проверяват се bounds на **всеки видим бутон/контрол**;
+4. 3D controls не могат да покриват protected canvas safe area;
+5. Work, Work → Preview as Client и direct Client са отделни QA states, когато съществуват;
+6. Owner/device screenshot има по-висока тежест от headless PASS при видим конфликт;
+7. при такъв конфликт gate се отваря отново и старият PASS се маркира като невалиден за този visual issue.
+
+Latest corrected implementation checkpoint:
+`5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`
+
+Latest verified static preview:
+`6beb1cf18adffc2515a490df286f154f0d380a5d`
+
+Статус:
+- hardened 360 px automated QA — PASS;
+- Work Controller mobile screenshot review — PASS;
+- desktop Opera regression review — PASS;
+- **Owner real-device recheck — PENDING**;
+- PR #3 remains DRAFT / no merge approval.

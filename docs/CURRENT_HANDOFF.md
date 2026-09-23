@@ -212,43 +212,55 @@ Mobile:
 - a mandatory mobile QA gate was added in commit `af8262697d5396bd30b3eb16dd91784335a7e0cd`;
 - initial QA found Work viewer pushed below the first mobile screen and Client controls too dominant;
 - bounded mobile fix `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0` moved the viewer first on mobile and compacted overlays;
-- touch orbit, overflow, Work/Client layout and mobile screenshots now pass;
-- Work Controller visually inspected both mobile Work and mobile Client screenshots and considers the checkpoint technically/visually acceptable;
-- **real Owner phone/device review is still pending**.
+- **Owner real-device screenshots then proved that this was NOT yet acceptable**: controls still covered the room, some controls were clipped, and Work → Preview as Client had an oversized header;
+- audit found the first emulator gate had a false-positive condition: it was configured as a 390 px device but the effective CSS layout width was about 600 px, so it did not represent the Owner phone;
+- the QA was hardened to assert a real 360 px CSS layout, every visible control boundary, horizontal overflow, touch, and three separate mobile states: Work, Work → Owner Preview, and direct Client;
+- mobile controls were moved into a dedicated row outside the 3D canvas safe area;
+- mobile container/grid width constraints were corrected;
+- latest implementation checkpoint: `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`;
+- latest hardened mobile CI + screenshot QA now pass;
+- Work Controller visually inspected Work, Owner Preview and direct Client mobile screenshots and desktop screenshots;
+- **Owner must re-check the latest build on the real phone**; the previous real-device rejection remains historical evidence and must not be overwritten.
 
 Therefore:
-- First Slice visual blockers found so far are corrected;
+- the specific defects shown by the Owner are corrected in the latest tested build;
 - this is still prototype quality, not final visual polish;
 - **PR #3 still has no merge approval**;
-- do not claim final Owner mobile acceptance until the Owner checks the real mobile build.
+- do not claim final Owner mobile acceptance until the Owner re-checks the latest build.
 
 ---
 
 ## 8. LATEST TECHNICAL VERIFICATION
 
-For implementation checkpoint `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0`:
+For implementation checkpoint `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`:
 
-- Push CI: `35786031509` — SUCCESS
-- Pull Request CI: `35786037054` — SUCCESS
-- Static preview publish: `35786031503` — SUCCESS
+- Push CI: `35791907144` — SUCCESS
+- Pull Request CI: `35791911659` — SUCCESS
+- Static preview publish: `35791907178` — SUCCESS
 - strict TypeScript — PASS
 - Vitest — **21 / 21 tests PASS**
 - production build — PASS
-- desktop browser smoke — PASS
-- mobile Work browser smoke — PASS
-- mobile Client browser smoke — PASS
+- desktop Work smoke — PASS
+- desktop direct Client smoke — PASS
+- mobile Work smoke — PASS
+- mobile Work → Owner Preview smoke — PASS
+- mobile direct Client smoke — PASS
 - touch orbit — PASS
 - horizontal overflow gate — PASS
-- Work/Client desktop screenshots — inspected
-- Work/Client mobile screenshots — inspected
-- static preview build: `f6c34784f33d9c4d04e8baa039c534317cfbcaed`
+- visible-control clipping gate — PASS
+- desktop Work/Client screenshots — inspected
+- mobile Work/Owner Preview/direct Client screenshots — inspected
+- Opera desktop regression check — PASS
+- static preview build: `6beb1cf18adffc2515a490df286f154f0d380a5d`
 
-Measured mobile layout after the fix:
-- Work viewer top: **95 px** at 390×844;
-- Client viewer top: **64 px**;
-- viewer width: **390 px** with no horizontal overflow;
-- mobile toolbar height: **64.375 px**;
-- mobile focus note height: **31 px**.
+Hardened mobile metrics:
+- requested layout width: **360 CSS px**;
+- headless Chromium content width after scrollbar reservation: **345 px**;
+- Work viewer width: **345 px**, no horizontal overflow;
+- Owner Preview viewer width: **345 px**, no horizontal overflow;
+- direct Client viewer width: **345 px**, no horizontal overflow;
+- toolbar and every visible button remain inside the mobile content width;
+- toolbar ends exactly before the 3D canvas begins — no overlay over the room.
 
 After the viewer changes, these core files remained byte-identical to the previous proven checkpoint:
 - `apps/work/src/domain.ts`
@@ -373,12 +385,13 @@ A new Chief Work Controller should:
 1. verify current branch HEAD and PR #3 state;
 2. read the mandatory source-of-truth documents;
 3. verify CI after this documentation sync;
-4. confirm the latest implementation checkpoint is `6d7030dbd48399d72a3cac362f94ddbc9ab06aa0` unless a later code diff proves otherwise;
-5. note that automated + Work Controller mobile QA is already PASS;
-6. let the Owner inspect the latest build on a real phone/device;
-7. only after the real-device mobile gate is accepted, obtain an **explicit Owner decision about merging PR #3**;
-8. if merge is approved, perform the approved merge procedure and then start a fresh audit/planning block for Slice 2;
-9. if merge is not approved, address only the concrete Owner finding — do not broaden scope.
+4. confirm the latest implementation checkpoint is `5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe` unless a later code diff proves otherwise;
+5. note that the old mobile PASS was invalidated by Owner real-device evidence and replaced by the hardened 360 px QA;
+6. note that hardened automated QA + Work Controller visual QA are now PASS for Work, Owner Preview and direct Client;
+7. let the Owner re-check the latest build on a real phone/device;
+8. only after the real-device mobile gate is accepted, obtain an **explicit Owner decision about merging PR #3**;
+9. if merge is approved, perform the approved merge procedure and then start a fresh audit/planning block for Slice 2;
+10. if merge is not approved, address only the concrete Owner finding — do not broaden scope.
 
 Do not start Slice 2 before PR #3 closure unless the Owner explicitly changes the sequencing.
 
