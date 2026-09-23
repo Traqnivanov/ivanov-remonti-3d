@@ -16,14 +16,14 @@ describe("project persistence boundary", () => {
     expect(persisted.schemaVersion).toBe(CURRENT_PROJECT_SCHEMA_VERSION);
     expect(persisted.projectId).toBe("project-123");
     expect(persisted.rooms).toHaveLength(1);
-    expect(persisted.rooms[0].geometry).toEqual({
+    expect(persisted.rooms[0]!.geometry).toEqual({
       widthM: 4.2,
       lengthM: 4.8,
       heightM: 2.6,
     });
-    expect(persisted.rooms[0].openings).toEqual([]);
-    expect(persisted.rooms[0].objects).toEqual([]);
-    expect(persisted.rooms[0].materials).toEqual([]);
+    expect(persisted.rooms[0]!.openings).toEqual([]);
+    expect(persisted.rooms[0]!.objects).toEqual([]);
+    expect(persisted.rooms[0]!.materials).toEqual([]);
     expect(persisted.serviceAssignments).toHaveLength(1);
     expect(persisted.projectNotes).toEqual([]);
     expect(persisted.presentation).toEqual({});
@@ -50,7 +50,7 @@ describe("project persistence boundary", () => {
     const persisted = serializeProjectState(project);
     const parsed = parseAndMigrateProjectState(persisted);
 
-    expect(parsed.rooms[0].surfaces.map((surface) => surface.id)).toEqual([
+    expect(parsed.rooms[0]!.surfaces.map((surface) => surface.id)).toEqual([
       "room-1.wall-front",
       "room-1.wall-back",
       "room-1.wall-left",
@@ -77,18 +77,19 @@ describe("project persistence boundary", () => {
 
   it("rejects malformed persisted geometry", () => {
     const malformed = serializeProjectState(createDefaultProject());
-    malformed.rooms[0].geometry.widthM = 0;
+    malformed.rooms[0]!.geometry.widthM = 0;
 
     expectPersistenceError(() => parseAndMigrateProjectState(malformed), "INVALID_STATE");
   });
 
   it("accepts a generalized persisted document but refuses runtime shapes not yet supported", () => {
     const generalized = serializeProjectState(createDefaultProject());
+    const firstRoom = generalized.rooms[0]!;
     generalized.rooms.push({
-      ...generalized.rooms[0],
+      ...firstRoom,
       id: "room-2",
       name: "Втора стая",
-      surfaces: generalized.rooms[0].surfaces.map((surface) => ({
+      surfaces: firstRoom.surfaces.map((surface) => ({
         ...surface,
         id: surface.id.replace("room-1", "room-2"),
       })),
@@ -105,10 +106,10 @@ describe("project persistence boundary", () => {
     const project = createDefaultProject();
     const persisted = serializeProjectState(project);
 
-    persisted.rooms[0].surfaces[0].label = "Changed only in persisted copy";
-    persisted.serviceAssignments[0].targetEntityIds.length = 0;
+    persisted.rooms[0]!.surfaces[0]!.label = "Changed only in persisted copy";
+    persisted.serviceAssignments[0]!.targetEntityIds.length = 0;
 
-    expect(project.room.surfaces[0].label).toBe("Предна стена");
+    expect(project.room.surfaces[0]!.label).toBe("Предна стена");
     expect(project.serviceAssignment.targetEntityIds).toHaveLength(4);
   });
 });
