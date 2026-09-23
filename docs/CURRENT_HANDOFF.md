@@ -215,7 +215,7 @@ Reviewed migration:
 Current checkpoint:
 - First Slice merged;
 - dedicated Supabase project exists;
-- Supabase schema is still untouched;
+- reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
 **P2.2c migration apply is complete. Next task: P2.2d database verification only.**
