@@ -1,0 +1,56 @@
+name: Publish Static Work Preview
+
+on:
+  push:
+    branches:
+      - "feat/vertical-slice-v1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: static-preview
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/work/package-lock.json
+
+      - name: Install dependencies
+        run: npm --prefix apps/work ci --no-audit --no-fund
+
+      - name: Build static preview
+        run: npm --prefix apps/work run build
+
+      - name: Publish dedicated preview branch
+        run: |
+          set -euo pipefail
+
+          rm -rf /tmp/ivanov-preview-dist
+          mkdir -p /tmp/ivanov-preview-dist
+          cp -R apps/work/dist/. /tmp/ivanov-preview-dist/
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout --orphan preview-vertical-slice-v1
+
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R /tmp/ivanov-preview-dist/. .
+          touch .nojekyll
+
+          git add -A
+          git commit -m "preview: publish vertical slice ${GITHUB_SHA}"
+          git push --force origin HEAD:preview-vertical-slice-v1

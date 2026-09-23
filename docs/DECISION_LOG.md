@@ -137,8 +137,15 @@ Traqnivanov/ivanov-tools остава read-only reference.
 
 Подробният договор е в `docs/WORK_CLIENT_MODE_CONTRACT.md`.
 
-### Оставащо Owner решение
-Дали изпратената клиентска оферта чете live working project или публикувана immutable/revision snapshot версия. Work Controller препоръчва публикувани revisions, но това още не е заключено.
+### Статус на старото отворено решение
+
+**SUPERSEDED / РЕШЕНО ПО-КЪСНО:** въпросът live working project срещу published snapshot вече е решен с по-късното Owner решение **„Published Revision е клиентският publishing модел“**.
+
+Активната истина е:
+
+**Working Project → Preview as Client → Publish Revision → protected Client Viewer**
+
+Клиентът не чете live working draft.
 
 ## 22.09.2026 — Client access може да бъде Link или Link + PIN
 
@@ -170,15 +177,11 @@ Client Viewer е read-only.
 
 ## 22.09.2026 — Текущият public repo е риск преди proprietary implementation
 
-Към момента `Traqnivanov/ivanov-remonti-3d` е PUBLIC.
+**HISTORICAL / SUPERSEDED BY THE LATER OWNER DECISION BELOW.**
 
-Това не е променено автоматично.
+Към момента на това обсъждане `Traqnivanov/ivanov-remonti-3d` е PUBLIC и рискът е отчетен.
 
-Преди да започне съществен proprietary implementation, Owner трябва изрично да реши:
-- repo да стане private; или
-- public docs и private implementation да се разделят.
-
-Причина: публичното repo противоречи на целта да не се улеснява копирането на реалната имплементация.
+По-късното активно Owner решение е repo да остане PUBLIC по време на development и да има задължителен Protection Gate преди production/final release.
 
 ## 22.09.2026 — Repo остава public по време на разработката
 
@@ -290,3 +293,163 @@ Published Revision запазва това, което клиентът реал
 Първият slice НЕ включва Supabase/Auth/Cloudflare/Link/PIN. Те идват след доказване на core механизма.
 
 Подробности: `docs/FIRST_VERTICAL_SLICE_V1.md`.
+
+## 22.09.2026 — Двата legacy калкулатора не се вграждат като готови HTML екрани
+
+**Work Controller architecture, по делегираната техническа преценка на Owner:**
+
+Съществуващите два калкулатора съдържат ценна сложна логика и тя се използва, но не чрез директно вграждане на старите HTML страници.
+
+Правило:
+
+**one project/domain truth → 3D + 2D m² technical schema + specialist calculators + quantities/materials + Smart Offer**
+
+- m²/SVG чертането остава специализиран 2D Work инструмент;
+- 3D остава отделен истински 3D изглед;
+- и двата четат едни и същи room/surface/opening данни;
+- формулите се extract-ват в pure TypeScript modules;
+- сложният ГК calculator става specialist module и се зарежда само когато е нужен;
+- Client Viewer не получава Work calculators;
+- няма iframe, legacy DOM dependency, Firebase/localStorage dependency или duplicate room state.
+
+Подробности: `docs/LEGACY_CALCULATOR_INTEGRATION_ARCHITECTURE.md`.
+
+
+## 22.09.2026 — Owner correction — интегрираме само „Калкулатор М²“
+
+**Owner correction:** от двата legacy калкулатора в Ivanov Tools текущо ни трябва само инструментът с видимо име **„Калкулатор М²“**.
+
+Проверено съответствие:
+
+**Калкулатор М² → `kalkulator-combined.html`**
+
+Следователно:
+- `kalkulator-combined.html` е единственият текущ legacy calculator integration source;
+- `calculator.html` не се интегрира;
+- `room.html` не се интегрира;
+- старото решение, формулирано като интеграция на „двата калкулатора“, е заменено.
+
+M² се свързва с новата програма чрез shared project/domain state, а не чрез iframe или директно вграждане на стария HTML.
+
+
+## 22.09.2026 — First-view viewer проблемът се коригира без промяна на product core
+
+**Owner feedback / active implementation rule:** първият 3D кадър трябва да е реално центриран и с полезен мащаб на истинското устройство, а Reset да връща към същия полезен изглед.
+
+Това е Viewer Session / presentation проблем, не причина да се променят:
+- domain geometry;
+- quantity;
+- price;
+- Work/Client capability contract.
+
+Последователност на корекциите:
+- adaptive room/viewport framing;
+- след реален Owner screenshot — DPI/CSS canvas correction за Windows/high-DPI поведение.
+
+Правило за напред:
+**визуална корекция не се приема само по CI или headless screenshot; реалният Owner/device feedback има приоритет при видим UX дефект.**
+
+Последният pre-DPI вариант беше изрично отхвърлен като все още изместен вдясно. Latest DPI-corrected build трябва да получи отделен Owner visual verdict преди merge.
+
+## 22.09.2026 — Не прескачаме към следваща видима функция само защото prototype-ът е незавършен
+
+**Owner-confirmed process direction:** след доказване на един vertical slice не се избира произволно следващата видима екстра.
+
+Преди нов subsystem:
+**затваряне на текущия checkpoint → audit → explicit merge/continue decision → следващ одобрен slice.**
+
+Текущият планиран ред след First Vertical Slice е:
+1. **Slice 2 — Persistence** — Supabase persistence, schema/version migration, Work Auth, Save/Open;
+2. **Slice 3 — Publishing** — Published Revision, minimized client payload, Link / Link + PIN, separate Client Viewer;
+3. **Slice 4 — Complete room offer** — multiple services, openings, operation-specific quantity rules, fuller client workflow.
+
+Този ред не е необратима догма. Може да бъде сменен само при:
+**audit → по-добро доказано решение → impact/risk review → Owner decision.**
+
+Следователно не се започват самоволно врати/прозорци, материали, Supabase или друга голяма система, докато текущият PR/checkpoint не е затворен според правилата.
+
+## 22.09.2026 — PR #3 няма implicit merge approval
+
+**Owner/process rule:** PR #3 остава DRAFT, докато няма изрично Owner разрешение за merge.
+
+Не означават merge approval:
+- „ок“ за продължаване;
+- green CI;
+- technical PASS;
+- одобрение на отделна визуална корекция;
+- documentation sync.
+
+Преди merge Owner трябва да е видял релевантния интерактивен build и да даде изрично решение.
+
+
+## 22.09.2026 — Mobile е първият QA и UX приоритет
+
+**Owner decision:** за visible UI/3D и особено за Client experience **mobile е приоритетът**.
+
+Задължителен процес:
+1. mobile layout/viewport се проверява първо;
+2. touch interaction се проверява, когато има interaction;
+3. проверяват се readability, tap targets, scrolling, clipping и horizontal overflow;
+4. 3D viewer се проверява за framing, scale и usable controls на тесен mobile viewport;
+5. проверява се засегнатият Work и/или Client mode;
+6. след това се проверява desktop/tablet consistency.
+
+Правило:
+**UI/3D промяна не се счита за окончателно готова, визуално приета или merge-ready само защото desktop CI/screenshot е добър.**
+
+CI/headless mobile emulation е полезен gate, но за видими критични UX решения реален browser/device review или Owner screenshot има по-висока тежест, когато е наличен.
+
+Mobile priority не означава desktop neglect. И двете трябва да работят, но при конфликт на пространство и сложност първо се защитава mobile clarity и основният workflow.
+
+Това правило не се прилага към чисто backend/domain/documentation промени без видим UI ефект.
+
+
+## 23.09.2026 — Mobile QA трябва да доказва реалния CSS viewport и реалния navigation state
+
+**Owner real-device evidence corrected the QA process.**
+
+Предишен automated mobile PASS се оказа false positive:
+- emulator profile беше зададен като narrow phone;
+- effective CSS layout в теста беше значително по-широк;
+- Owner phone screenshot показа clipped/overlapping controls, които headless test не беше уловил;
+- direct Client test не покриваше отделното състояние **Work → Preview as Client**.
+
+Активно правило:
+1. mobile test трябва да измери и assert-не реалната CSS layout ширина;
+2. проверява се document horizontal overflow;
+3. проверяват се bounds на **всеки видим бутон/контрол**;
+4. 3D controls не могат да покриват protected canvas safe area;
+5. Work, Work → Preview as Client и direct Client са отделни QA states, когато съществуват;
+6. Owner/device screenshot има по-висока тежест от headless PASS при видим конфликт;
+7. при такъв конфликт gate се отваря отново и старият PASS се маркира като невалиден за този visual issue.
+
+Latest corrected implementation checkpoint:
+`5d5e5f04c238b7fd2b73c0feb4a23e13b57b11fe`
+
+Latest verified static preview:
+`6beb1cf18adffc2515a490df286f154f0d380a5d`
+
+Статус:
+- hardened 360 px automated QA — PASS;
+- Work Controller mobile screenshot review — PASS;
+- desktop Opera regression review — PASS;
+- **Owner real-device recheck — ACCEPTED FOR FIRST SLICE CHECKPOINT**;
+- PR #3 remains DRAFT / no merge approval.
+
+
+## 23.09.2026 — Owner прие latest mobile build за First Vertical Slice checkpoint
+
+След hardened 360 px QA и реална повторна проверка на телефон Owner даде **„Ок“** в контекст, в който предварително беше уточнено, че това означава:
+
+**Owner приема текущото mobile изживяване за First Vertical Slice checkpoint.**
+
+Това заключва само mobile visual gate за този checkpoint.
+
+Не означава:
+- финален mobile polish;
+- готов продукт;
+- одобрение на следващи slices;
+- merge разрешение за PR #3.
+
+Следващата стъпка е:
+**final merge-gate audit → отделно explicit Owner merge decision.**

@@ -44,9 +44,10 @@ North Star механизъм:
 11. `docs/SERVICE_OPERATION_REGISTRY.md`
 12. `docs/BENCHMARK_RESEARCH.md`
 13. `docs/TOOLS_REUSE_AUDIT.md`
-14. `docs/DELIVERY_STRATEGY.md`
-15. `docs/FIRST_VERTICAL_SLICE_V1.md` — когато текущата работа е първата имплементация
-16. конкретният handoff/task за текущата работа
+14. `docs/LEGACY_CALCULATOR_INTEGRATION_ARCHITECTURE.md`
+15. `docs/DELIVERY_STRATEGY.md`
+16. `docs/FIRST_VERTICAL_SLICE_V1.md` — когато текущата работа е първата имплементация
+17. конкретният handoff/task за текущата работа
 
 Нова важна продуктова идея не остава само в чат. След Owner approval се записва в подходящия документ.
 
@@ -279,12 +280,35 @@ AI/photoreal render може да подобрява визията, но ням
 - основната задача може да се изпълни без скрити знания;
 - няма дребен/нечетим текст;
 - няма объркващи или дублирани контроли;
-- mouse/touch поведението е предвидимо.
+- mouse/touch поведението е предвидимо;
+- **mobile е първият UX приоритет за visible UI/Client experience**;
+- важните действия трябва да са използваеми без hover и без desktop-only assumptions.
 
 ### Visual
 - няма cartoon/placeholder усещане във финален режим;
 - материалите, мащабът, светлината и сенките са проверени;
-- важните обекти се четат ясно.
+- важните обекти се четат ясно;
+- UI/3D промяна се проверява първо в mobile viewport и след това на desktop/tablet;
+- няма хоризонтално изтичане, clipped controls, нечетим текст или 3D композиция, която работи само на широк екран.
+
+### Mobile QA gate — задължителен за UI/3D
+За всяка видима UI/3D промяна преди окончателно приемане, merge или представяне като „готово“:
+1. mobile viewport test;
+2. тестът **изрично доказва реалната CSS layout ширина**, а не приема, че emulator/device profile е приложен правилно;
+3. проверяват се horizontal overflow и **границите на всеки видим бутон/контрол**, не само общият container;
+4. touch interaction check, когато има interaction;
+5. Work Mode mobile check, ако промяната засяга Work;
+6. Client Mode mobile check, ако промяната засяга Client;
+7. ако има реален преход Work → Preview as Client, той се тества като отделно mobile състояние — direct Client URL не го замества;
+8. desktop check за consistency;
+9. реален browser/device review, когато е наличен; CI/headless screenshot сам по себе си не е достатъчен за финален visual verdict.
+
+Ако реален Owner/device screenshot противоречи на headless PASS, **реалното устройство печели** и QA gate се счита за отворен, докато причината не бъде изяснена.
+
+**Mobile е приоритет, но desktop не се пренебрегва.**
+При конфликт на пространство/сложност първо се пазят mobile clarity, readability и основният workflow, после се адаптира desktop.
+
+Този gate не се изисква за чисто backend/domain/documentation промяна без видим UI ефект.
 
 ### Technical
 - няма console errors;
@@ -305,6 +329,7 @@ AI/photoreal render може да подобрява визията, но ням
 - кодът е завършен за одобрения scope;
 - функционално е тестван;
 - визуално е проверен;
+- при UI/3D: mobile QA gate е минат и desktop consistency е проверена;
 - няма известен висок риск;
 - документацията е обновена, ако има ново правило/решение;
 - има точен commit/branch;
@@ -444,3 +469,125 @@ Current approved infrastructure:
 Client delivery uses **Published Revisions**, not the live Work draft.
 
 Infrastructure decisions remain subject to the Living Product rule, but may not be changed silently. Any provider/data-model change requires architecture impact/risk review.
+
+## 26. Legacy calculator integration boundary
+
+Legacy Ivanov calculators are knowledge/reference sources, not runtime application dependencies.
+
+Do not:
+- iframe/embed the old HTML tools;
+- make 3D depend on legacy DOM;
+- keep separate duplicate room state for calculators;
+- import old Firebase/localStorage workflows.
+
+Correct direction:
+
+**shared domain project → independent 3D / 2D technical / calculation / offer consumers**.
+
+Complex service calculators are modular and loaded only when needed.
+
+
+## 27. Adaptive Work Sizing — задължително за всички чатове
+
+Целта не е задачите да бъдат винаги „малки“. Целта е **максимален полезен напредък без загуба на контрол, качество или проследимост**.
+
+### Основна единица за работа
+
+Една задача/работен блок = **един логически свързан и проверим резултат**.
+
+Размерът се определя адаптивно според:
+- риск;
+- продуктова неяснота;
+- колко подсистеми се засягат;
+- колко лесно се връща промяната;
+- колко лесно се тества;
+- дали промените споделят една и съща цел и QA gate.
+
+### A. Micro-bundle — групирай дребните промени
+
+Свързани нискорискови корекции се правят заедно, когато:
+- са в една и съща повърхност/функция;
+- имат една и съща цел;
+- не променят архитектура, данни, quantity/price logic, права или security;
+- могат да бъдат проверени с един общ тест/visual QA.
+
+Примери:
+- няколко очевидни client-facing wording корекции в една Info карта;
+- няколко дребни spacing/label/contrast поправки в един екран;
+- няколко еднотипни accessibility/visual cleanup корекции.
+
+**Забранено е да се спира за отчет след всяка едноредова или козметична промяна, ако има още очевидни свързани нискорискови корекции, които могат безопасно да минат през същия QA.**
+
+### B. Standard task — една смислена функционална промяна
+
+Когато промяната засяга поведение, interaction или един модул, но е ясна и ограничена:
+- изпълнява се като един самостоятелен блок;
+- следва typecheck/tests/build;
+- UI/3D промяна задължително минава visual QA;
+- visual QA за UI/3D задължително включва **mobile-first check + desktop consistency check**.
+
+Примери:
+- wall selection ↔ offer row linkage;
+- една cutaway логика;
+- един M² geometry bridge;
+- една capability boundary между Work и Client.
+
+### C. Split task — разделяй големите/рисковите промени
+
+Задачата задължително се разделя на по-малки checkpoints, когато има поне едно от следните:
+- продуктова неяснота или повече от едно разумно UX решение;
+- промяна на архитектура/state model;
+- quantity/price logic;
+- auth/security/client access;
+- persistence/publishing/revisions;
+- cross-repo или infrastructure write;
+- няколко независими подсистеми наведнъж;
+- голям diff, който трудно се локализира при дефект;
+- невъзможност резултатът да се провери надеждно с един QA pass.
+
+При такъв случай:
+**audit → най-малък безопасен vertical slice → test/QA → checkpoint → следващ slice.**
+
+### Кога се прави отчет / checkpoint
+
+Не се отчита механично след всеки commit.
+
+Спира се и се докладва, когато:
+- е завършен смислен проверим резултат;
+- има Owner decision;
+- е достигната граница между два различни риска/подсистеми;
+- тест/CI/visual QA открие проблем;
+- възникне продуктова неяснота;
+- следващата стъпка е значително по-рискова от текущата.
+
+Дребни commits могат да бъдат няколко в един работен блок. Commit размерът и размерът на отчета не са едно и също.
+
+### Контрол срещу прекалено големи задачи
+
+Work Controller трябва да намали обхвата **преди** задачата да стане трудна за проследяване.
+
+Сигнали, че блокът е прекалено голям:
+- започват да се решават странични проблеми;
+- QA изисква много независими сценарии;
+- причината за евентуален regression вече не е очевидна;
+- има повече от една продуктова цел;
+- implementation започва да диктува продуктово решение;
+- задачата изисква дълго чакане/много последователни CI цикли само за да се разбере основният проблем.
+
+### Контрол срещу прекалено малки задачи
+
+Work Controller трябва да увеличи обхвата, когато:
+- следващите корекции са очевидни и от същия тип;
+- всички са в същия компонент/contract;
+- рискът е нисък;
+- един общ QA може надеждно да ги потвърди.
+
+### Финално правило
+
+**Размерът на задачата се избира по риск и логическа цялост, не по фиксиран брой файлове, commits или минути.**
+
+Правилният ритъм е:
+
+**разумен работен блок → проверка → смислен checkpoint → следващ адаптивно избран блок.**
+
+Това правило е задължително за Work Controller, OBK и всеки нов чат, който продължава проекта.

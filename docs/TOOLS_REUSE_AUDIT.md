@@ -305,3 +305,100 @@ During migration we compare the new pure-function result against:
 3. a known test fixture.
 
 Only when all three agree within the accepted rounding rule is the formula marked approved.
+
+
+## 14. Схеми и чертане от m² калкулатора
+
+Owner изрично потвърди, че полезните функции на съществуващия m² калкулатор не трябва да се губят.
+
+Одитът на `kalkulator-combined.html` показва, че освен формули той вече има полезна работна логика за:
+
+- SVG схема на правоъгълно помещение;
+- показване на С1 / С2 / С3 / С4 и m² по стена;
+- размерни линии;
+- таван / под / обем / обиколка;
+- прозорци и врати като отвори;
+- автоматично изваждане на площ на отвори;
+- ниши / издатини с плюс/минус корекция;
+- ръчно net m² override;
+- избор на конкретни стени;
+- гипсокартонена схема по стена;
+- разпределение на листи;
+- парчета / остатъци / резерв;
+- количества за боя, шпакловка, лепило, бетон/замазка и ГК материали.
+
+`calculator.html` и `room.html` добавят още:
+- surface-based избор;
+- ГК предстени/прегради/тавани;
+- профили, окачвачи, винтове, дюбели, ленти, вата;
+- материални спецификации;
+- ръчни quantity overrides;
+- project/quote workflow идеи.
+
+### Integration rule
+
+Тези функции не се копират като един стар HTML файл и не стават runtime dependency.
+
+Разделяме ги на три категории:
+
+#### A. Domain / calculation logic
+Пренасяме след audit + tests:
+- room/wall areas;
+- openings;
+- niches/additions;
+- perimeter/volume;
+- material quantity formulas;
+- drywall sheet/profile rules;
+- manual override contract.
+
+#### B. Work technical visualization
+Може да се пренесе като нов TypeScript/SVG/Canvas/3D helper:
+- 2D room schema;
+- m² per wall;
+- dimension annotations;
+- drywall board layout;
+- material/layout diagrams.
+
+Това е **Work Mode помощник**, не заместител на истинския 3D модел.
+
+#### C. Client presentation
+Към клиента показваме само това, което помага да разбере офертата.
+Не излагаме вътрешни технически схеми/материални heuristics по подразбиране.
+
+### Important design principle
+
+Новият продукт не трябва да избира между „стария калкулатор“ и „новия 3D“.
+
+Правилният модел е:
+
+**една geometry truth → 3D + 2D technical schema + quantities + materials + offer**
+
+Тоест размерите се въвеждат веднъж, а:
+- 3D стаята;
+- 2D схемата;
+- m²;
+- количествата;
+- Smart Offer
+
+четат от едни и същи domain данни.
+
+Това премахва двойното въвеждане и е по-силно от директно вграждане на стария калкулатор.
+
+
+## 15. Owner correction — current integration source is only Калкулатор М²
+
+The earlier broad audit inspected several Ivanov Tools pages, but the **current implementation scope is narrower**.
+
+For the Smart Offer integration, the only legacy calculator currently selected is:
+
+**Калкулатор М² → `kalkulator-combined.html`**
+
+The Ivanov Tools home page confirms that the visible **„Калкулатор М²“** card opens `kalkulator-combined.html`.
+
+Current rule:
+- use `kalkulator-combined.html` as the M² logic/workflow source;
+- do not integrate `calculator.html`;
+- do not integrate `room.html`;
+- keep those files untouched unless a later explicit Owner decision expands scope.
+
+Any earlier wording suggesting that both calculators are planned for integration is superseded by this correction.
