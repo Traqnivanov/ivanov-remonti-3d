@@ -3,7 +3,7 @@
 -- Do not apply to Supabase until the complete migration review is accepted.
 
 create table public.work_users (
-  user_id uuid primary key references auth.users(id) on delete cascade,
+  user_id uuid primary key references auth.users(id) on delete restrict,
   display_name text not null,
   role text not null,
   active boolean not null default true,
