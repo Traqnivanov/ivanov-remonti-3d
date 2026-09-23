@@ -4,6 +4,7 @@ import { createDefaultProject } from "./domain";
 import {
   ProjectRepositoryError,
   prepareNewProjectDraft,
+  prepareSaveProject,
 } from "./project-repository";
 import { serializeProjectState } from "./persistence";
 import { createSupabaseProjectReadRepository } from "./supabase-project-repository";
@@ -62,6 +63,68 @@ function createClientForList(
   return {
     client: { from } as unknown as SupabaseClient,
     spies: { from, select, order },
+  };
+}
+
+function createClientForSave(options: {
+  updateResult: {
+    data: { id: string; work_version: number; updated_at: string } | null;
+    error: unknown;
+  };
+  versionResult?: {
+    data: { id: string; work_version: number } | null;
+    error: unknown;
+  };
+}) {
+  const updateMaybeSingle = vi.fn().mockResolvedValue(options.updateResult);
+  const updateSelect = vi.fn().mockReturnValue({
+    maybeSingle: updateMaybeSingle,
+  });
+  const eqVersion = vi.fn().mockReturnValue({
+    select: updateSelect,
+  });
+  const eqOwner = vi.fn().mockReturnValue({
+    eq: eqVersion,
+  });
+  const eqId = vi.fn().mockReturnValue({
+    eq: eqOwner,
+  });
+  const update = vi.fn().mockReturnValue({
+    eq: eqId,
+  });
+
+  const versionMaybeSingle = vi.fn().mockResolvedValue(
+    options.versionResult ?? {
+      data: null,
+      error: null,
+    },
+  );
+  const versionEq = vi.fn().mockReturnValue({
+    maybeSingle: versionMaybeSingle,
+  });
+  const versionSelect = vi.fn().mockReturnValue({
+    eq: versionEq,
+  });
+
+  const from = vi
+    .fn()
+    .mockImplementationOnce(() => ({ update }))
+    .mockImplementationOnce(() => ({ select: versionSelect }));
+
+  return {
+    client: { from } as unknown as SupabaseClient,
+    spies: {
+      from,
+      update,
+      eqId,
+      eqOwner,
+      eqVersion,
+      updateSelect,
+      updateMaybeSingle,
+      versionSelect,
+      versionEq,
+      versionMaybeSingle,
+    },
   };
 }
 
@@ -269,6 +332,164 @@ describe("Supabase project read repository", () => {
       () => repository.open("project-invalid"),
       "STORAGE_FAILURE",
     );
+  });
+
+  it("saves only the expected work version and increments it by one", async () => {
+    const project = createDefaultProject("project-save-1");
+    project.room.widthM = 5.1;
+
+    const { client, spies } = createClientForSave({
+      updateResult: {
+        data: {
+          id: "project-save-1",
+          work_version: 2,
+          updated_at: "2026-09-23T20:00:00.000Z",
+        },
+        error: null,
+      },
+    });
+    const repository = createSupabaseProjectReadRepository(
+      client,
+      "owner-1",
+    );
+
+    await expect(
+      repository.save(prepareSaveProject(project, 1)),
+    ).resolves.toEqual({
+      projectId: "project-save-1",
+      workVersion: 2,
+      updatedAt: "2026-09-23T20:00:00.000Z",
+    });
+
+    expect(spies.update).toHaveBeenCalledWith({
+      schema_version: 1,
+      work_version: 2,
+      work_state: serializeProjectState(project),
+    });
+    expect(spies.eqId).toHaveBeenCalledWith("id", "project-save-1");
+    expect(spies.eqOwner).toHaveBeenCalledWith(
+      "owner_user_id",
+      "owner-1",
+    );
+    expect(spies.eqVersion).toHaveBeenCalledWith("work_version", 1);
+    expect(spies.from).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns STALE_WRITE when the database has a newer work version", async () => {
+    const project = createDefaultProject("project-stale-1");
+    const { client } = createClientForSave({
+      updateResult: {
+        data: null,
+        error: null,
+      },
+      versionResult: {
+        data: {
+          id: "project-stale-1",
+          work_version: 3,
+        },
+        error: null,
+      },
+    });
+    const repository = createSupabaseProjectReadRepository(
+      client,
+      "owner-1",
+    );
+
+    await expectRepositoryError(
+      () => repository.save(prepareSaveProject(project, 2)),
+      "STALE_WRITE",
+    );
+  });
+
+  it("returns NOT_FOUND when the project is missing or hidden by RLS", async () => {
+    const project = createDefaultProject("missing-project");
+    const { client } = createClientForSave({
+      updateResult: {
+        data: null,
+        error: null,
+      },
+      versionResult: {
+        data: null,
+        error: null,
+      },
+    });
+    const repository = createSupabaseProjectReadRepository(
+      client,
+      "owner-1",
+    );
+
+    await expectRepositoryError(
+      () => repository.save(prepareSaveProject(project, 1)),
+      "NOT_FOUND",
+    );
+  });
+
+  it("does not silently accept an unexpected no-row save at the same version", async () => {
+    const project = createDefaultProject("project-save-odd");
+    const { client } = createClientForSave({
+      updateResult: {
+        data: null,
+        error: null,
+      },
+      versionResult: {
+        data: {
+          id: "project-save-odd",
+          work_version: 1,
+        },
+        error: null,
+      },
+    });
+    const repository = createSupabaseProjectReadRepository(
+      client,
+      "owner-1",
+    );
+
+    await expectRepositoryError(
+      () => repository.save(prepareSaveProject(project, 1)),
+      "STORAGE_FAILURE",
+    );
+  });
+
+  it("maps save update failures to storage failures without a version probe", async () => {
+    const project = createDefaultProject("project-save-error");
+    const { client, spies } = createClientForSave({
+      updateResult: {
+        data: null,
+        error: new Error("database unavailable"),
+      },
+    });
+    const repository = createSupabaseProjectReadRepository(
+      client,
+      "owner-1",
+    );
+
+    await expectRepositoryError(
+      () => repository.save(prepareSaveProject(project, 1)),
+      "STORAGE_FAILURE",
+    );
+
+    expect(spies.from).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a mismatched save id before any Supabase call", async () => {
+    const from = vi.fn();
+    const client = { from } as unknown as SupabaseClient;
+    const repository = createSupabaseProjectReadRepository(
+      client,
+      "owner-1",
+    );
+
+    await expectRepositoryError(
+      () =>
+        repository.save({
+          projectId: "row-id",
+          expectedWorkVersion: 1,
+          project: createDefaultProject("different-id"),
+        }),
+      "INVALID_INPUT",
+    );
+
+    expect(from).not.toHaveBeenCalled();
   });
 
   it("rejects a blank owner identity before any Supabase call", () => {
