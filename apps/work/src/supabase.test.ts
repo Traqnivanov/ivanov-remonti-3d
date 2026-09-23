@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  IVANOV_REMONти_SUPABASE_URL,
+  IVANOV_REMONTI_SUPABASE_URL,
   createWorkSupabaseClient,
   readWorkSupabaseConfig,
 } from "./supabase";
@@ -11,11 +11,11 @@ describe("Work Supabase client configuration", () => {
   it("accepts only the dedicated Ivanov Remonti project URL", () => {
     expect(
       readWorkSupabaseConfig({
-        VITE_SUPABASE_URL: IVANOV_REMONти_SUPABASE_URL,
+        VITE_SUPABASE_URL: IVANOV_REMONTI_SUPABASE_URL,
         VITE_SUPABASE_PUBLISHABLE_KEY: PUBLISHABLE_KEY,
       }),
     ).toEqual({
-      url: IVANOV_REMONти_SUPABASE_URL,
+      url: IVANOV_REMONTI_SUPABASE_URL,
       publishableKey: PUBLISHABLE_KEY,
     });
   });
@@ -32,7 +32,7 @@ describe("Work Supabase client configuration", () => {
   it("rejects non-publishable credentials", () => {
     expect(() =>
       readWorkSupabaseConfig({
-        VITE_SUPABASE_URL: IVANOV_REMONти_SUPABASE_URL,
+        VITE_SUPABASE_URL: IVANOV_REMONTI_SUPABASE_URL,
         VITE_SUPABASE_PUBLISHABLE_KEY: "service-role-or-secret",
       }),
     ).toThrow(/publishable key/);
@@ -40,7 +40,7 @@ describe("Work Supabase client configuration", () => {
 
   it("creates the official Supabase client from validated config", () => {
     const client = createWorkSupabaseClient({
-      url: IVANOV_REMONти_SUPABASE_URL,
+      url: IVANOV_REMONTI_SUPABASE_URL,
       publishableKey: PUBLISHABLE_KEY,
     });
 
