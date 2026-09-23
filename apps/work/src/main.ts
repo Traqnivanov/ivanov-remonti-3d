@@ -16,9 +16,54 @@ import {
   selectOfferService,
   showWholeResult,
 } from "./smart-offer-interaction";
+import { createWorkSupabaseClient } from "./supabase";
+import { resolveWorkAccess } from "./work-auth";
+import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
 
+const directClientEntry =
+  new URLSearchParams(window.location.search).get("preview") === "1";
+const DEV_QA_AUTH_KEY = "ivanov-remonti:qa-authorized";
+
+void bootstrapWorkEntry();
+
+async function bootstrapWorkEntry(): Promise<void> {
+  if (directClientEntry || hasDevQaWorkAccess()) {
+    startSmartOfferApp();
+    return;
+  }
+
+  const app = document.querySelector<HTMLDivElement>("#app");
+  if (!app) throw new Error("Missing #app");
+
+  try {
+    const client = createWorkSupabaseClient();
+    const access = await resolveWorkAccess(client);
+
+    if (access.status === "authorized") {
+      startSmartOfferApp();
+      return;
+    }
+
+    renderWorkLogin({
+      mount: app,
+      client,
+      access,
+      onAuthorized: startSmartOfferApp,
+    });
+  } catch (error) {
+    renderWorkAuthUnavailable(app, error);
+  }
+}
+
+function hasDevQaWorkAccess(): boolean {
+  return (
+    import.meta.env.DEV &&
+    window.sessionStorage.getItem(DEV_QA_AUTH_KEY) === "1"
+  );
+}
+
+function startSmartOfferApp(): void {
 const project = createDefaultProject();
-const directClientEntry = new URLSearchParams(window.location.search).get("preview") === "1";
 const appEntry: AppEntry = directClientEntry ? "direct-client" : "work";
 let previewMode = directClientEntry;
 let offerInteraction = createInitialOfferInteraction();
@@ -360,4 +405,6 @@ function mustGet<T extends HTMLElement = HTMLElement>(id: string): T {
   const element = document.getElementById(id);
   if (!element) throw new Error(`Missing #${id}`);
   return element as T;
+}
+
 }
