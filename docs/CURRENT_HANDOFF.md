@@ -1,4 +1,8 @@
-# CURRENT HANDOFF — CHIEF WORK CONTROLLER — IVANOV REMONTI SMART OFFER
+# HISTORICAL HANDOFF — SUPERSEDED — IVANOV REMONTI SMART OFFER
+
+> **DO NOT USE THIS FILE AS CURRENT STATE.**  
+> Canonical startup is now: `START_HERE.md` → `PROJECT_STATE.md` → Current Work Issue.  
+> This file is preserved only so no prior context/evidence is lost during the continuity migration.
 
 **Date:** 23.09.2026  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
