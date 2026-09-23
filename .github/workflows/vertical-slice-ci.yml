@@ -46,6 +46,8 @@ jobs:
         run: |
           set -euo pipefail
 
+          VITE_SUPABASE_URL=https://qjfpbxucrxrtpygusnuv.supabase.co \
+          VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ci_visual_only \
           npm run dev -- --host 127.0.0.1 --port 4173 > /tmp/vertical-slice-vite.log 2>&1 &
           SERVER_PID=$!
           CHROME_PID=""
@@ -90,7 +92,6 @@ jobs:
           wait "$CHROME_PID" 2>/dev/null || true
           CHROME_PID=""
 
-          google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,1000 --screenshot=/tmp/vertical-slice-work.png http://127.0.0.1:4173
           google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,1000 --screenshot=/tmp/vertical-slice-client.png "http://127.0.0.1:4173/?preview=1"
 
       - name: Upload visual QA screenshot
@@ -103,4 +104,6 @@ jobs:
             /tmp/vertical-slice-mobile-work.png
             /tmp/vertical-slice-mobile-owner-preview.png
             /tmp/vertical-slice-mobile-client.png
+            /tmp/persistence-login-desktop.png
+            /tmp/persistence-login-mobile.png
           if-no-files-found: error
