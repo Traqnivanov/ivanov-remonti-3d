@@ -218,13 +218,15 @@ Current checkpoint:
 - Supabase schema is still untouched;
 - Persistence audit/contract is documented.
 
-**P2.1 is complete and CI-proven. Next task: P2.2 only.**
+**P2.2a schema draft is complete. Next task: P2.2b security audit only.**
 
-Before any Supabase migration:
-1. prepare P2.2 migration as a separate reviewed diff;
-2. Controller reviews schema, grants and RLS;
-3. only then apply the reviewed migration to Supabase;
-4. verify the resulting schema/security before moving to P2.3.
+Current gate:
+1. schema draft exists in repo;
+2. Supabase remains untouched;
+3. next perform grants/RLS security review and complete the migration;
+4. do not apply until that review is clean;
+5. after review, P2.2c applies the migration;
+6. P2.2d verifies resulting schema/security before P2.3.
 
 Do not manually create tables in Dashboard.
 
