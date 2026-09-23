@@ -123,9 +123,14 @@ Temporary `repoqa` / `saveqa` routes and modules were removed after verification
 
 P2.5 implementation has **NOT started**.
 
-Before implementation, required sequence:
+Completed before implementation:
+- short UI/interaction audit — PASS;
+- one concrete interaction proposal — RECORDED IN ISSUE #5;
+- visible Criteria Check — RECORDED IN ISSUE #5.
 
-**short UI/interaction audit → concrete proposal → visible Criteria Check → Owner approval → implementation**
+Current gate:
+
+**OWNER APPROVAL REQUIRED before implementation.**
 
 P2.5 scope is only:
 - Create project;
@@ -225,8 +230,9 @@ A new chat must verify the current latest branch/PR/CI state rather than treatin
 
 ## 9. NEXT EXACT STEP
 
-**P2.5 — perform the short visible-integration audit, produce one concrete Create/Open/Save interaction proposal, and record the full Criteria Check as PASS / PARTIAL-RISK / NOT APPLICABLE.**
+**Owner reviews the P2.5 interaction proposal recorded in Current Work Issue #5 and gives explicit APPROVE / REJECT / CHANGE decision.**
 
-Then stop for **explicit Owner approval**.
+Proposed direction:
+**Work-only Project Bar + Projects dialog + manual Save + explicit dirty/version/error/stale states + safe unsaved-change guard.**
 
-**Do not implement P2.5 UI before that approval.**
+**Do not implement P2.5 UI before explicit Owner approval.**
