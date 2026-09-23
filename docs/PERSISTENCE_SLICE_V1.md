@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.4c SAVE CODE PASS / P2.4c-LIVE OPTIMISTIC CONCURRENCY VERIFICATION NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.4c SAVE + STALE-WRITE LIVE PASS / P2.4d REPOSITORY VERIFICATION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -756,3 +756,39 @@ The bounded QA project remains at `work_version = 1`.
 
 Next micro-task: **P2.4c-live — one real save from version 1 → 2, then intentionally retry from stale version 1 and prove `STALE_WRITE`.**
 No UI.
+
+
+## 25. P2.4c live checkpoint — Save + stale-write rejection
+
+P2.4c is complete — PASS.
+
+Verified with the real authorized Owner session against the existing bounded QA project:
+- project opened at `work_version = 1`;
+- one real save succeeded and returned `work_version = 2`;
+- persisted canonical room name became `Дневна — QA Save v2`;
+- a second save intentionally reused stale expected version `1`;
+- the stale retry was rejected with `STALE_WRITE`;
+- the stale retry did not overwrite the successful version-2 state;
+- a final open returned `work_version = 2` and the successful canonical state.
+
+Direct database verification after the live QA confirmed:
+- project row remains exactly at `work_version = 2`;
+- persisted room name is `Дневна — QA Save v2`.
+
+The temporary `?saveqa=1` route, QA module and QA-only styles were removed immediately after verification.
+
+Post-cleanup CI #204 is SUCCESS:
+- typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser smoke PASS.
+
+No visible Save UI was added.
+
+Next task: **P2.4d — final repository verification only**.
+This is a consolidation/read-only checkpoint before P2.5:
+- verify Create/List/Open/Save adapter completeness;
+- verify current live row/version/state;
+- verify no temporary QA route remains;
+- verify RLS/security posture remains intact;
+- no new product writes unless a concrete defect is found.
