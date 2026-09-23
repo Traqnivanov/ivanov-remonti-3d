@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.3b AUTHORIZATION BOUNDARY COMPLETE / SIGN-IN METHOD DECISION NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.3c1 EMAIL/PASSWORD SIGN-IN LOGIC COMPLETE / P2.3c2 LOGIN UI NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -485,3 +485,41 @@ Before visible Auth implementation, Owner must approve the sign-in experience. R
 Do not guess this UX choice.
 
 After the sign-in method is approved, implement only the minimal private Work sign-in entry; keep public signup disabled as a product flow.
+
+
+## 18. P2.3c1 checkpoint — email/password sign-in logic
+
+Owner selected **email + password** for the private Work sign-in.
+
+P2.3c1 is complete.
+
+Implemented:
+- `signInWorkUser(client, credentials)`;
+- email is trimmed before authentication;
+- empty email/password are rejected before a Supabase call;
+- Supabase Auth uses `signInWithPassword`;
+- failed credentials/auth errors become a typed `WorkSignInError`;
+- a nominal sign-in without a real user/session is rejected;
+- after successful Auth, access is resolved through the already-proven P2.3b Work authorization boundary;
+- successful Auth without an active `work_users` row remains `unauthorized`, not authorized by session alone;
+- no `signUp` browser flow exists.
+
+Tests cover:
+- successful authorized sign-in;
+- authenticated but unauthorized Work user;
+- missing email;
+- missing password;
+- Supabase sign-in failure;
+- incomplete sign-in response.
+
+Verification:
+- strict typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser smoke PASS;
+- PR CI #163 SUCCESS.
+
+No visible login UI was added.
+No project Save/Open work was started.
+
+Next task: **P2.3c2 — minimal private Work login UI + visual QA only**.
