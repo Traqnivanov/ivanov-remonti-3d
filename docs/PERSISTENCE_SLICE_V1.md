@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.4a REPOSITORY CONTRACT PASS / P2.4b LIVE CREATE-LIST-OPEN NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.4b CREATE/LIST/OPEN LIVE PASS / P2.4c SAVE + OPTIMISTIC CONCURRENCY NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -680,3 +680,34 @@ No live project row has been created yet.
 
 Next micro-task: **P2.4b-live — one bounded real Create → List → Open verification using the already authorized Owner session.**
 This must not add product Create/Open UI and must not implement Save.
+
+
+## 23. P2.4b live checkpoint — Create/List/Open
+
+P2.4b is complete — PASS.
+
+Verified with the real authorized Owner session and the live Supabase project:
+- one bounded QA project was created;
+- the same project appeared in `list()`;
+- the same project was opened through `open()`;
+- row id and persisted `work_state.projectId` round-tripped consistently;
+- owner id matched the authenticated Owner;
+- schema version = 1;
+- work version = 1.
+
+Live QA project:
+- title: `QA — P2.4b Create List Open`;
+- status: `draft`;
+- work version: `1`.
+
+The temporary `?repoqa=1` entry and its QA-only module/styles were removed immediately after the live check.
+Post-cleanup CI #191 is SUCCESS:
+- typecheck PASS;
+- tests PASS;
+- build PASS;
+- browser smoke PASS.
+
+No visible product Create/Open UI was added.
+No Save implementation exists yet.
+
+Next task: **P2.4c — Save + optimistic `work_version` + stale-write conflict only**.
