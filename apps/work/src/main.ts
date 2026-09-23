@@ -19,11 +19,9 @@ import {
 import { createWorkSupabaseClient } from "./supabase";
 import { resolveWorkAccess } from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
-import { runSaveConcurrencyLiveQa } from "./save-concurrency-live-qa";
 
-const query = new URLSearchParams(window.location.search);
-const directClientEntry = query.get("preview") === "1";
-const saveQaEntry = query.get("saveqa") === "1";
+const directClientEntry =
+  new URLSearchParams(window.location.search).get("preview") === "1";
 const DEV_QA_AUTH_KEY = "ivanov-remonti:qa-authorized";
 
 void bootstrapWorkEntry();
@@ -42,15 +40,6 @@ async function bootstrapWorkEntry(): Promise<void> {
     const access = await resolveWorkAccess(client);
 
     if (access.status === "authorized") {
-      if (saveQaEntry) {
-        await runSaveConcurrencyLiveQa(
-          app,
-          client,
-          access.workUser.userId,
-        );
-        return;
-      }
-
       startSmartOfferApp();
       return;
     }
