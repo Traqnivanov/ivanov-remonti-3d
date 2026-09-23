@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.3c1 EMAIL/PASSWORD SIGN-IN LOGIC COMPLETE / P2.3c2 LOGIN UI NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.3c2 LOGIN UI + VISUAL QA PASS / P2.3d LIVE AUTH VERIFICATION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -523,3 +523,41 @@ No visible login UI was added.
 No project Save/Open work was started.
 
 Next task: **P2.3c2 — minimal private Work login UI + visual QA only**.
+
+
+## 19. P2.3c2 checkpoint — private Work login UI
+
+P2.3c2 is complete — PASS.
+
+Implemented:
+- minimal private Work login screen;
+- email + password fields with correct browser autocomplete hints;
+- no public registration action or language;
+- submit is wired to the proven P2.3c1 sign-in logic;
+- successful Auth still passes through the P2.3b active `work_users` authorization boundary;
+- unauthorized accounts receive a clear access-denied state;
+- configuration/bootstrap failure has a separate visible error state;
+- direct Client Preview continues to bypass Work Auth as the current read-only First Slice proof;
+- Work authoring is gated before the Work UI is rendered.
+
+QA:
+- mobile login layout checked at effective 360 CSS px;
+- no horizontal overflow;
+- inputs/button are not clipped and meet the 44 px minimum control height;
+- desktop login inspected at 1440×900;
+- Work, Owner Preview and direct Client regression smoke remain PASS;
+- Controller visually inspected desktop login, mobile login, Work and Client screenshots;
+- PR CI #171 SUCCESS.
+
+CI uses a **development-only** QA authorization hook to preserve full Work regression coverage without committing a real credential. The hook is guarded by `import.meta.env.DEV`; it is not a production authorization path.
+
+The real Supabase publishable key remains outside the repository.
+
+### Next gate — P2.3d
+
+Before P2.3 can close, perform a real live Auth verification:
+1. provision the first Supabase Auth Work user;
+2. add the matching active `work_users` allow-list row;
+3. run one real email/password sign-in against the dedicated Supabase project;
+4. verify authorized access and unauthorized/signed-out boundaries;
+5. keep P2.4 Save/Open out of this task.
