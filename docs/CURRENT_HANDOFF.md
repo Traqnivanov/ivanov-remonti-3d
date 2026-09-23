@@ -218,17 +218,18 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.3c1 email/password sign-in logic is PASS. Next task: P2.3c2 minimal private login UI + visual QA only.**
+**P2.3c2 private email/password login UI + visual QA is PASS. Next task: P2.3d live Auth provisioning/verification only.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
-2. P2.3a client configuration and P2.3b authorization boundary are complete;
+2. P2.3a client configuration, P2.3b authorization boundary and P2.3c1 sign-in logic are complete;
 3. Owner selected email + password;
-4. P2.3c1 sign-in logic is complete and CI-proven;
-5. next P2.3c2 implements only the minimal private login screen and wires it to the existing Auth boundaries;
-6. P2.3c2 requires mobile-first + desktop visual QA because it changes visible UI;
-7. no public signup is added;
-8. do not start P2.4 project Save/Open repository in the same task.
+4. P2.3c2 private login UI is complete, CI-proven and visually inspected on mobile + desktop;
+5. no public signup exists;
+6. next P2.3d performs real live Auth provisioning + one real sign-in verification against the dedicated Supabase project;
+7. first Work Auth user must exist before its `work_users` allow-list row can be added;
+8. connector access does not provide an Auth-admin create-user action, so user provisioning may require one bounded Dashboard step;
+9. do not start P2.4 project Save/Open repository in the same task.
 
 Do not manually create tables in Dashboard.
 
