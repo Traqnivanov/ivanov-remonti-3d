@@ -131,6 +131,9 @@ export function deserializeProjectState(raw: unknown): ProjectState {
 
   const room = persisted.rooms[0];
   const assignment = persisted.serviceAssignments[0];
+  if (!room || !assignment) {
+    unsupported("Current Work runtime persistence shape is incomplete.");
+  }
 
   if (room.id !== "room-1") unsupported("Current Work runtime expects room-1.");
   if (room.openings.length || room.objects.length || room.materials.length) {
