@@ -1,8 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-export const IVANOV_REMONти_SUPABASE_PROJECT_REF = "qjfpbxucrxrtpygusnuv";
-export const IVANOV_REMONти_SUPABASE_URL =
-  `https://${IVANOV_REMONти_SUPABASE_PROJECT_REF}.supabase.co`;
+export const IVANOV_REMONTI_SUPABASE_PROJECT_REF = "qjfpbxucrxrtpygusnuv";
+export const IVANOV_REMONTI_SUPABASE_URL =
+  `https://${IVANOV_REMONTI_SUPABASE_PROJECT_REF}.supabase.co`;
 
 export type WorkSupabaseConfig = {
   url: string;
@@ -36,10 +36,10 @@ export function readWorkSupabaseConfig(
 
   if (
     parsedUrl.protocol !== "https:" ||
-    parsedUrl.origin !== IVANOV_REMONти_SUPABASE_URL
+    parsedUrl.origin !== IVANOV_REMONTI_SUPABASE_URL
   ) {
     throw new Error(
-      `VITE_SUPABASE_URL must target the Ivanov Remonti Supabase project (${IVANOV_REMONти_SUPABASE_PROJECT_REF}).`,
+      `VITE_SUPABASE_URL must target the Ivanov Remonti Supabase project (${IVANOV_REMONTI_SUPABASE_PROJECT_REF}).`,
     );
   }
 
