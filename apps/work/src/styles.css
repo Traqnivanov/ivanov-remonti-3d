@@ -605,3 +605,27 @@ input[type="number"] {
     min-height: 46px;
   }
 }
+
+
+.repo-qa-result {
+  min-height: 132px;
+  margin: 0;
+  padding: 14px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  border: 1px solid #2f435e;
+  border-radius: 10px;
+  background: #07101b;
+  color: #cbd6e5;
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.repo-qa-result[data-state="pass"] {
+  border-color: rgba(88, 190, 134, .48);
+  color: #bfe6cf;
+}
+
+.repo-qa-result[data-state="fail"] {
+  border-color: rgba(220, 103, 103, .55);
+  color: #f0b0b0;
+}
