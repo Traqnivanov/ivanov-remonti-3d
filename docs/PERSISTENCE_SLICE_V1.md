@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.2b SECURITY REVIEW COMPLETE / P2.2c APPLY MIGRATION NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.2c MIGRATION APPLIED / P2.2d DATABASE VERIFICATION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -368,8 +368,17 @@ P2.2b is complete:
 - project UUID creation contract is consistent with the JSONB `projectId` constraint;
 - migration remains unapplied.
 
-Next task is **P2.2c — apply this reviewed migration only**.
+P2.2c is complete:
+- the reviewed `persistence_foundation` migration was applied to Supabase project `qjfpbxucrxrtpygusnuv`;
+- Supabase returned `success: true`;
+- no Auth/UI/Save/Open work was added in the same task.
 
-After apply, P2.2d must verify real tables, constraints, grants, RLS policies and migration history before P2.3.
+Next task is **P2.2d — database verification only**:
+- verify real tables and columns;
+- verify constraints and indexes;
+- verify grants;
+- verify RLS and policy definitions;
+- verify migration history;
+- do not start P2.3 until this passes.
 
 No direct “click-create tables and fix later” workflow.
