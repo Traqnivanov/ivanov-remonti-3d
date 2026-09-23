@@ -218,7 +218,7 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.4a repository contract + mocked unit tests is PASS. Next task: P2.4b Create/List/Open Supabase adapter only.**
+**P2.4b Create/List/Open adapter code + mocked tests is PASS. Next micro-task: one bounded live Create→List→Open verification only.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
@@ -226,10 +226,11 @@ Current gate:
 3. P2.4a repository contract is complete and CI-proven;
 4. repository contract is independent from Supabase implementation details;
 5. no live project rows were created in P2.4a;
-6. next task is **P2.4b only — Supabase adapter for Create/List/Open**;
-7. P2.4b may create one bounded live test project only after adapter tests pass;
-8. do not implement Save or stale-write handling until P2.4c;
-9. do not add visible Create/Open/Save UI before P2.5.
+6. P2.4b adapter code/tests are PASS;
+7. next micro-task is one bounded live Create→List→Open verification using the authorized Owner session;
+8. no product Create/Open UI is added for this QA step;
+9. do not implement Save or stale-write handling until P2.4c;
+10. do not add visible Create/Open/Save UI before P2.5.
 
 Do not manually create tables in Dashboard.
 
