@@ -218,15 +218,15 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.2d database verification is PASS. Next task: P2.3 Auth boundary, split into small tasks.**
+**P2.3a Supabase client configuration is PASS. Next task: P2.3b authenticated + authorized Work-user boundary only.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
-2. live DB has expected schema, constraints, indexes, grants, RLS and policies;
-3. Security Advisor has zero findings;
-4. no schema change was made during verification;
-5. next is P2.3 only;
-6. split P2.3 into small checkpoints — client configuration first, Auth/authorization boundary second, visible Auth UI separately if/when required;
+2. P2.3a browser client configuration is complete and CI-proven;
+3. browser config is locked to the dedicated Ivanov Remonti project and publishable-key credentials only;
+4. no real publishable key or privileged credential is committed;
+5. next P2.3b implements only authenticated session + active `work_users` authorization boundary;
+6. visible sign-in method/UI remains a separate decision/task and must not be guessed;
 7. do not start P2.4 project Save/Open repository in the same task.
 
 Do not manually create tables in Dashboard.
