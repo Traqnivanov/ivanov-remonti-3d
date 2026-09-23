@@ -62,8 +62,8 @@ Current project:
 - ref: `qjfpbxucrxrtpygusnuv`;
 - status at creation/audit: `ACTIVE_HEALTHY`;
 - Data API enabled;
-- automatic exposure of new tables disabled;
-- schema/RLS/grants will be created only by reviewed migrations.
+- schema/RLS/grants will be created only by reviewed migrations;
+- migration must explicitly normalize/revoke default `anon`/`authenticated` table grants and then grant only the minimum required privileges, rather than relying on Dashboard defaults.
 
 Database password, secret keys and privileged credentials never enter GitHub, docs or browser bundles.
 
@@ -197,7 +197,9 @@ Authorization is database-enforced, not just hidden UI.
 
 ## 9. RLS / grants contract
 
-Automatic exposure was disabled when the project was created. Keep access explicit.
+Do not rely on Dashboard/default privilege behavior. Keep access explicit in the migration.
+
+Before table-specific grants, explicitly revoke unintended default access from `anon` and `authenticated`, then grant only the operations required below.
 
 For `work_users`:
 - RLS enabled;
