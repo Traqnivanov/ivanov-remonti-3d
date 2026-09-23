@@ -219,10 +219,7 @@ function validateSurface(raw: unknown, roomIndex: number, surfaceIndex: number):
 function validateAssignment(raw: unknown, index: number): PersistedServiceAssignmentV1 {
   const path = `serviceAssignments[${index}]`;
   const assignment = expectRecord(raw, path);
-  const mode = expectNonEmptyString(assignment.presentationMode, `${path}.presentationMode`);
-  if (!["highlight", "material", "geometry", "xray", "object"].includes(mode)) {
-    invalid(`${path}.presentationMode is invalid.`);
-  }
+  const mode = expectPresentationMode(assignment.presentationMode, `${path}.presentationMode`);
 
   const priceBookItemId =
     assignment.priceBookItemId === undefined
@@ -358,6 +355,22 @@ function expectPositiveNumber(value: unknown, path: string): number {
 
 function expectBoolean(value: unknown, path: string): boolean {
   if (typeof value !== "boolean") invalid(`${path} must be a boolean.`);
+  return value;
+}
+
+function expectPresentationMode(
+  value: unknown,
+  path: string,
+): PersistedServiceAssignmentV1["presentationMode"] {
+  if (
+    value !== "highlight" &&
+    value !== "material" &&
+    value !== "geometry" &&
+    value !== "xray" &&
+    value !== "object"
+  ) {
+    invalid(`${path} is invalid.`);
+  }
   return value;
 }
 
