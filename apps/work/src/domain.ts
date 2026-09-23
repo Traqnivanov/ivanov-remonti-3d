@@ -41,7 +41,7 @@ export type ServiceAssignment = {
 
 export type ProjectState = {
   schemaVersion: 1;
-  projectId: "prototype-room-1";
+  projectId: string;
   room: Room;
   serviceAssignment: ServiceAssignment;
 };
@@ -53,10 +53,10 @@ export const wallIds: WallId[] = [
   "room-1.wall-right",
 ];
 
-export function createDefaultProject(): ProjectState {
+export function createDefaultProject(projectId = "prototype-room-1"): ProjectState {
   return {
     schemaVersion: 1,
-    projectId: "prototype-room-1",
+    projectId,
     room: {
       id: "room-1",
       name: "Дневна — прототип",
