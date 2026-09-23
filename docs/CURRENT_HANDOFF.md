@@ -218,15 +218,16 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.2c migration apply is complete. Next task: P2.2d database verification only.**
+**P2.2d database verification is PASS. Next task: P2.3 Auth boundary, split into small tasks.**
 
 Current gate:
-1. reviewed persistence migration has been applied successfully;
-2. no Auth/UI/repository work was added;
-3. next P2.2d verifies the real database only;
-4. verify tables, constraints, indexes, grants, RLS policies and migration history;
-5. do not make schema changes during verification unless a concrete defect is found and separately reviewed;
-6. only after P2.2d passes may work move to P2.3.
+1. P2.2 database foundation is complete and verified PASS;
+2. live DB has expected schema, constraints, indexes, grants, RLS and policies;
+3. Security Advisor has zero findings;
+4. no schema change was made during verification;
+5. next is P2.3 only;
+6. split P2.3 into small checkpoints — client configuration first, Auth/authorization boundary second, visible Auth UI separately if/when required;
+7. do not start P2.4 project Save/Open repository in the same task.
 
 Do not manually create tables in Dashboard.
 
