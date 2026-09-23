@@ -218,21 +218,19 @@ Current checkpoint:
 - reviewed persistence migration has been applied to Supabase;
 - Persistence audit/contract is documented.
 
-**P2.3c2 private email/password login UI + visual QA is PASS. P2.3d live Auth verification is in progress.**
+**P2.3 Auth is complete and live-verified. Next task: P2.4a repository contract + mocked unit tests only.**
 
 Current gate:
 1. P2.2 database foundation is complete and verified PASS;
-2. P2.3a client configuration, P2.3b authorization boundary and P2.3c1 sign-in logic are complete;
-3. Owner selected email + password;
-4. P2.3c2 private login UI is complete, CI-proven and visually inspected on mobile + desktop;
-5. no public signup exists;
-6. next P2.3d performs real live Auth provisioning + one real sign-in verification against the dedicated Supabase project;
-7. first Work Auth user must exist before its `work_users` allow-list row can be added;
-8. first Auth user is created and active owner allow-list row exists;
-9. Repository variable `SUPABASE_PUBLISHABLE_KEY` is configured for the persistence preview workflow;
-10. next verify preview publish + one real email/password login;
-11. connector access does not provide an Auth-admin create-user action, so user provisioning required one bounded Dashboard step;
-9. do not start P2.4 project Save/Open repository in the same task.
+2. P2.3 client configuration, authorization boundary, email/password sign-in logic and login UI are complete;
+3. first real Work Auth user exists and has exactly one active owner allow-list row;
+4. persistence preview publishes successfully with the browser-safe Supabase variable;
+5. Owner completed a real email/password sign-in and entered Work successfully;
+6. signed-out behavior was exercised live; unauthorized behavior remains covered by tests + RLS/allow-list enforcement;
+7. password recovery redirect still points to localhost and is deferred until recovery becomes a user-facing feature;
+8. next task is **P2.4a only — project repository contract + mocked unit tests**;
+9. do not perform live project writes in P2.4a;
+10. do not add visible Create/Open/Save UI before P2.5.
 
 Do not manually create tables in Dashboard.
 
