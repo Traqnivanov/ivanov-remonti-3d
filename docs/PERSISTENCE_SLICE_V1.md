@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.4c SAVE + STALE-WRITE LIVE PASS / P2.4d REPOSITORY VERIFICATION NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — P2.4 PROJECT REPOSITORY COMPLETE / P2.5 MINIMAL VISIBLE INTEGRATION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -792,3 +792,69 @@ This is a consolidation/read-only checkpoint before P2.5:
 - verify no temporary QA route remains;
 - verify RLS/security posture remains intact;
 - no new product writes unless a concrete defect is found.
+
+
+## 26. P2.4d checkpoint — final repository verification
+
+P2.4d is complete — PASS.
+
+Read-only consolidation verified:
+
+### Repository implementation
+- Supabase adapter contains all four required operations:
+  - Create;
+  - List;
+  - Open;
+  - Save.
+- Save includes the explicit optimistic predicate `work_version = expectedWorkVersion`.
+- `STALE_WRITE` handling remains present.
+- repository callers remain behind the Supabase-independent repository contract.
+
+### Live persisted truth
+The bounded QA project is still valid:
+- row id matches persisted `work_state.projectId`;
+- row schema version = 1;
+- persisted schema version = 1;
+- `work_version = 2`;
+- room id = `room-1`;
+- room name = `Дневна — QA Save v2`;
+- geometry remains 4.2 × 4.8 × 2.6 m;
+- Fine Putty assignment id and service code remain stable.
+
+### Security re-verification
+- RLS is enabled on `projects` and `work_users`;
+- expected four policies remain installed;
+- `anon` has no SELECT/INSERT/UPDATE access to Work projects;
+- `authenticated` has:
+  - SELECT only on `work_users`;
+  - SELECT/INSERT/UPDATE on `projects`;
+  - no project DELETE;
+- active Owner allow-list row remains present.
+
+Supabase Security Advisor currently reports one non-blocking Auth warning:
+- leaked-password protection disabled.
+This does not affect P2.4 repository correctness or RLS. It is deferred to P2.6 security acceptance; on the current Free plan this capability may not be available.
+
+### Cleanup / browser verification
+- no `repoqa` or `saveqa` source entry remains;
+- no temporary live-QA source file remains;
+- latest published preview bundle contains neither temporary QA route/copy;
+- browser bundle contains the correct project ref and no `service_role` credential;
+- current CI #206 SUCCESS;
+- current static preview #96 SUCCESS.
+
+P2.4 Project Repository is now complete.
+
+### Next gate — P2.5
+
+Next task is **P2.5 — minimal visible Work integration**.
+
+Before implementation, perform a short UI/interaction audit and proposal because this introduces visible product behavior:
+- Create project;
+- Open existing project;
+- Save current project;
+- clear version/save status;
+- preserve Client Preview as read-only;
+- no unrelated redesign.
+
+Do not begin P2.6 acceptance until P2.5 visible integration is complete and visually reviewed.
