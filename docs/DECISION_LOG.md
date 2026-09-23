@@ -453,3 +453,31 @@ Latest verified static preview:
 
 Следващата стъпка е:
 **final merge-gate audit → отделно explicit Owner merge decision.**
+
+
+## 23.09.2026 — First Slice merged; Slice 2 Persistence започва на отделна основа
+
+Owner даде изрично **“Merge PR #3”**.
+
+PR #3 — `First Vertical Slice v1: Smart Offer core loop` — е merged в `main`.
+
+Merge commit:
+`cda27d78faf28565b7faef2f4917aa14c5d8a2d4`
+
+След merge Owner потвърди да продължим по одобрения ред към Slice 2 — Persistence.
+
+Създаден е отделен Supabase контекст за продукта:
+- Organization: **Ivanov Remonti**
+- Project: **ivanov-remonti-3d**
+- Project ref: `qjfpbxucrxrtpygusnuv`
+- Region: `eu-west-1`
+
+При audit старта проектът е ACTIVE_HEALTHY, без `public` таблици и без migrations.
+
+Активният Slice 2 contract е:
+`docs/PERSISTENCE_SLICE_V1.md`
+
+Задължителен ред:
+**P2.1 persistence domain boundary → P2.2 reviewed DB migration/RLS → P2.3 Auth → P2.4 repository Save/Open → P2.5 minimal UI → P2.6 acceptance.**
+
+Не се създават таблици ръчно и не се прескача директно към Publishing, врати/прозорци или други видими функции.
