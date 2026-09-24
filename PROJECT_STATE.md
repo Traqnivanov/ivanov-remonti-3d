@@ -106,12 +106,15 @@ Current verified security posture:
 Bounded QA project:
 - remains intentionally available for persistence verification;
 - status: draft;
-- `work_version = 2`;
+- `work_version = 3`;
 - persisted project ID matches DB row ID;
 - room remains `room-1`;
 - saved room name: `Дневна — QA Save v2`;
-- geometry: 4.2 × 4.8 × 2.6 m;
-- Fine Putty assignment identity remains stable.
+- geometry: 4.2 × 4.8 × 2.7 m;
+- Fine Putty assignment identity remains stable;
+- real authenticated P2.5c Work Save `v2 → v3`: PASS;
+- direct Supabase verification confirmed canonical height `2.7`;
+- persisted `presentation = {}` and no Viewer Session State leaked into Project State.
 
 Temporary `repoqa` / `saveqa` routes and modules were removed after verification.
 
@@ -134,8 +137,9 @@ Owner decision:
 Implementation progress:
 - **P2.5a — Project Session foundation: PASS**
 - **P2.5b — Project Bar + Projects dialog / Create/Open: PASS**
-- **P2.5c — Save + dirty/error/conflict recovery: CODE + AUTOMATED QA + CONTROLLER VISUAL REVIEW PASS**
-- **P2.5c live verification: PENDING — one real authenticated Save v2 → v3, then direct Supabase verification**
+- **P2.5c — Save + dirty/error/conflict recovery: PASS**
+- **P2.5c live authenticated Save v2 → v3 + direct Supabase verification: PASS**
+- **P2.5d — final P2.5 acceptance: IN PROGRESS**
 
 P2.5 scope is only:
 - Create project;
@@ -230,9 +234,13 @@ P2.5 verification:
 - latest branch head after a no-code checkpoint: `ad19a8c15d966f5b54c822a8077fe23121100b80`;
 - CI #256: SUCCESS;
 - static preview #147: SUCCESS;
-- real authenticated P2.5c Save through the visible Work UI: **NOT YET VERIFIED**.
+- real authenticated P2.5c Save through the visible Work UI: **PASS**;
+- direct Supabase verification after the live Save: **PASS**;
+- live QA project is now at `work_version = 3`;
+- persisted geometry is `4.2 × 4.8 × 2.7 m`;
+- no Viewer Session State was persisted.
 
-Live QA project is still at `work_version = 2`, so the bounded v2 → v3 Save test has not happened yet.
+P2.5d final acceptance is now the active gate.
 
 A new chat must verify the current latest branch/PR/CI state rather than treating these run numbers as eternal state.
 
@@ -240,11 +248,13 @@ A new chat must verify the current latest branch/PR/CI state rather than treatin
 
 ## 9. NEXT EXACT STEP
 
-**P2.5c-live — run one bounded real authenticated Save through the published Work UI against the existing QA project. Expected transition: `work_version 2 → 3`.**
+**P2.5d — complete final P2.5 acceptance.**
 
-Then verify directly in Supabase that:
-- `work_version = 3`;
-- the intended canonical Work change persisted;
-- no viewer/session-only state was persisted.
+Required:
+- verify current branch HEAD / PR / CI after the live-PASS state record;
+- confirm full P2.5 technical regression gate remains green;
+- perform final mobile-first visual acceptance for the complete persistence flow;
+- confirm desktop consistency;
+- record any visual/product defect immediately before closure.
 
-Do not start P2.5d final acceptance before this live verification passes.
+Do not begin P2.6 or merge PR #4 until P2.5d passes.
