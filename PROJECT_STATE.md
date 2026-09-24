@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #undefined — **[CURRENT WORK] P2.6 — Slice 2 acceptance**
+**Current Work Issue:** #6 — **[CURRENT WORK] P2.6 — Slice 2 acceptance**
 
 This file describes **where the project is now**.  
 It is not a history log. Git and historical documents preserve the past.
@@ -143,7 +143,7 @@ P2.5 final evidence:
 - desktop remains unaffected.
 
 Current temporary work record:
-- GitHub Issue **#undefined**.
+- GitHub Issue **#6**.
 
 P2.6 is acceptance/audit only. It does not authorize new product behavior.
 ---
@@ -206,7 +206,7 @@ These are known and must not be forgotten. P2.6 must explicitly classify whether
 Continuity system:
 - canonical `START_HERE.md`: active;
 - canonical `PROJECT_STATE.md`: active;
-- single Current Work Issue: **#undefined**;
+- single Current Work Issue: **#6**;
 - historical/superseded documents remain non-authoritative.
 
 P2.5 final status: **PASS / CLOSED**.
