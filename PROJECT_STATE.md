@@ -63,7 +63,8 @@ History: PR #4 / closed Issue #6.
 Current checkpoint:
 - **P3.1a — multi-service domain/runtime foundation: PASS**
 - **P3.1b — floor quantity + DEV pricing: PASS**
-- **P3.1c — Smart Offer interaction: ACTIVE**
+- **P3.1c — Smart Offer interaction: PASS**
+- **P3.1d — floor visual result + persistence acceptance: ACTIVE**
 
 Owner-approved P3.1 direction:
 - expand the proven Smart Offer mechanism through a real floor-finish vertical slice;
@@ -173,16 +174,14 @@ Safety rule for P3.1b:
 
 ## 7. NEXT EXACT STEP
 
-**P3.1c — Smart Offer interaction.**
+**P3.1d — floor visual result + persistence acceptance.**
 
 Implement only:
-1. offer interaction state that identifies the selected service assignment;
-2. second visible Laminate offer row for P3.1 default/proof projects;
-3. Offer → Model for Fine Putty and Laminate;
-4. Model → Offer for linked wall/floor;
-5. dynamic quantity/DEV price/Info for the focused service;
-6. preserve old Fine Putty-only project behavior;
-7. preserve Client read-only capability and Viewer Session separation;
-8. update automated browser QA and run mobile-first visual review.
+1. a bounded, lightweight Laminate floor presentation in the 3D viewer;
+2. show it for Laminate focus and whole-result mode, without changing geometry/quantity truth;
+3. preserve Fine Putty highlight behavior;
+4. automated visual/regression checks;
+5. prove persistence round-trip technically;
+6. then run one real authenticated Create/Save/reload/Open proof for a new P3.1 QA project without modifying the existing Fine Putty-only project.
 
-Do not add floor material rendering yet. That belongs to P3.1d.
+No uploaded custom materials, palettes, openings, furniture or other complete-room expansion in P3.1d.
