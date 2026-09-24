@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** none
+**Current Work Issue:** #11 — **[CURRENT WORK] P3.2 — Door + Window Openings**
 
 This file answers only: **where is the project now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -15,9 +15,9 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - Stable product baseline: `main` after merged Slice 2 + continuity consolidation.
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
-- Active branch: **none**
-- Active PR: **none**
-- Active Current Work: **none**
+- Active branch: `feat/p3-2-openings-net-wall-quantity`
+- Active PR: **#12 — DRAFT / OPEN**
+- Active Current Work: **Issue #11 — P3.2**
 - PR #10: **MERGED / CLOSED**
 - P3.1 merge commit: `0631821405b7013554963c80b0d8481da9ace579`
 - PR #8: **MERGED / CLOSED**
@@ -60,7 +60,12 @@ History: PR #4 / closed Issue #6.
 
 ### Current product implementation
 
-**P3.1 — Floor Finish vertical slice — MERGED / CLOSED**
+**P3.2 — Door + Window Openings — ACTIVE**
+
+Current checkpoint:
+- **P3.2a — Opening domain + persistence foundation**
+
+P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
 Current checkpoint:
 - **P3.1a — multi-service domain/runtime foundation: PASS**
@@ -157,41 +162,48 @@ These do not block planning of the next slice, but must not be forgotten:
 
 ## 6. Current Work
 
-**None.**
+**Issue #11 — P3.2 Door + Window Openings**
 
-P3.1 — Floor Finish vertical slice is complete after merged PR #10.
+Active branch:
+- `feat/p3-2-openings-net-wall-quantity`
 
-Closed result:
-- multi-service runtime foundation: PASS;
-- Fine Putty regression baseline: PASS;
-- Laminate floor assignment + exact floor quantity: PASS;
-- separate EUR DEV pricing fixture: PASS;
-- Offer → Model / Model → Offer: PASS;
-- client Info + focused quantity/price: PASS;
-- corrected Laminate visual proof: PASS;
-- real authenticated Save/reload/Open: PASS;
-- backward compatibility with old Fine Putty-only project: PASS;
-- Viewer Session separation: PASS;
-- final branch CI #277: SUCCESS;
-- final static preview #157: SUCCESS;
-- merge commit: `0631821405b7013554963c80b0d8481da9ace579`.
+Active PR:
+- **#12 — DRAFT / OPEN**
 
-Detailed history remains in PR #10 / Issue #9 / Git.
+Current checkpoint:
+- **P3.2a — Opening domain + persistence foundation**
+
+P3.2a implementation checkpoint:
+- runtime Room now has canonical `openings[]`;
+- persisted schema stays v1;
+- old `openings: []` projects remain valid;
+- runtime accepts validated openings;
+- no opening is injected into existing/default projects;
+- opening validation covers host wall, bounds, unique IDs and overlap;
+- internal coordinate convention:
+  - `offsetM` = host-wall start edge → opening left edge;
+  - `sillM` = floor → opening lower edge; omitted = 0;
+- product-code checkpoint: `ccbd9704cbffe6ff051ddf8c168685385df3a482`.
+
+No visible geometry, quantity-rule change or Work UI exists in P3.2a.
+
+---
+
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**No active implementation task.**
+**Verify P3.2a only.**
 
-The broader approved direction remains **one complete room**.
+Required:
+1. run typecheck/tests/build/browser smoke on PR #12;
+2. confirm existing Fine Putty + Laminate UI has no regression;
+3. confirm old empty-opening persisted state remains valid;
+4. confirm valid door/window openings round-trip with stable IDs;
+5. confirm invalid/out-of-bounds/overlapping openings are rejected;
+6. inspect PR diff for scope leakage.
 
-Before the next implementation block:
-1. Work Controller audits the remaining complete-room gaps against the newly merged P3.1 baseline;
-2. identify the smallest logically complete next block;
-3. make one concrete proposal;
-4. run Criteria Check;
-5. obtain explicit Owner approval where required;
-6. only then create the next Current Work Issue and implementation branch.
+Only after P3.2a PASS may Work Controller authorize **P3.2b — Opening geometry proof**.
 
-Do not jump directly into broad services/assets/AI expansion and do not implement from historical assumptions.
+Do not begin P3.2b early.
