@@ -109,7 +109,7 @@ Read in this order:
 
 1. `START_HERE.md`
 2. `PROJECT_STATE.md`
-3. the Current Work Issue linked from `PROJECT_STATE.md`
+3. the Current Work Issue linked from `PROJECT_STATE.md`, **if one exists**
 4. verify the actual Git branch / HEAD / PR state
 5. read only the dependency documents required for the current task
 
@@ -148,7 +148,7 @@ Closed Issue/PR/Git history stores those details.
 
 ## 5. Current Work Issue rule
 
-Exactly one GitHub Issue is designated **[CURRENT WORK]**.
+When active work exists, exactly one GitHub Issue is designated **[CURRENT WORK]**. When no work block is active, there should be no active Current Work Issue.
 
 The Issue is not the product source of truth. It stores temporary execution state:
 - CURRENT TASK;
