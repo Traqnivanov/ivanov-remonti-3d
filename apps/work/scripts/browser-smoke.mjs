@@ -327,6 +327,52 @@ async function smokeViewerInput(session) {
 
   if (!rect) throw new Error("3D canvas is missing");
 
+  const pointerTarget = await evaluate(
+    session,
+    `(() => {
+      const canvas = document.querySelector("#viewer canvas");
+      const r = canvas.getBoundingClientRect();
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      const hit = document.elementFromPoint(x, y);
+      return {
+        x,
+        y,
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        scrollY: window.scrollY,
+        canvasTop: r.top,
+        canvasBottom: r.bottom,
+        canvasWidth: r.width,
+        canvasHeight: r.height,
+        hitTag: hit?.tagName ?? null,
+        hitId: hit?.id ?? null,
+        hitClass: hit?.className ?? null,
+      };
+    })()`,
+  );
+
+  console.log("Desktop viewer pointer target: " + JSON.stringify(pointerTarget));
+
+  if (
+    pointerTarget.x < 0 ||
+    pointerTarget.x > pointerTarget.innerWidth ||
+    pointerTarget.y < 0 ||
+    pointerTarget.y > pointerTarget.innerHeight
+  ) {
+    throw new Error(
+      "Work: viewer interaction point is outside the viewport: " +
+        JSON.stringify(pointerTarget),
+    );
+  }
+
+  if (pointerTarget.hitTag !== "CANVAS") {
+    throw new Error(
+      "Work: viewer interaction point is covered by another element: " +
+        JSON.stringify(pointerTarget),
+    );
+  }
+
   await session.call("Input.dispatchMouseEvent", {
     type: "mousePressed", x: rect.x, y: rect.y, button: "left", buttons: 1, clickCount: 1,
   });
