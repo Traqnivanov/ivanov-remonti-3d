@@ -3,6 +3,8 @@
 **Scope:** read-only analysis of `Traqnivanov/ivanov-tools`.  
 **Safety:** no files in `ivanov-tools` were modified.
 
+> **Current Owner-corrected scope:** only `kalkulator-combined.html` (“Калкулатор M²”) is selected for current Smart Offer integration/reference. `calculator.html` and `room.html` remain out of scope unless a later explicit Owner decision changes this. See §15.
+
 ## 1. Decision
 
 Existing Ivanov Remonti tools are valuable as a **verified knowledge source for formulas and workflows**, but the 3D Visualizer must NOT depend on their HTML pages at runtime.

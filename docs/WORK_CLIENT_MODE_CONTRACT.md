@@ -450,29 +450,27 @@ A separate Work/Edit screen or workspace will be designed for Ivanov Remonti.
 
 ---
 
-## 14. Recommended publishing model — NOT YET OWNER-LOCKED
+## 14. Publishing model — OWNER-APPROVED CURRENT RULE
 
-There is one important future decision that should not be silently assumed:
+The earlier live-project vs published-snapshot question is resolved.
 
-### Option A — client always reads the live project
-Any Work Mode change appears immediately to the client.
+**Owner-approved rule:** the client does **not** read the mutable Working Project. Client delivery uses an explicit **Published Revision / Snapshot**.
 
-### Option B — client receives a published offer revision/snapshot
-Ivanov Remonti edits the working project, then explicitly publishes a revision to the client.
+Model:
 
-**Work Controller recommendation:** Option B is safer for professional offers because an already sent price/scope should not change accidentally while the project is being edited.
+**Working Project → Preview → Publish Revision 1 → Client sees Revision 1**
 
-Possible model:
+Later edits do not silently change that already published offer:
 
-**Working Project → Publish Offer Revision 1 → Client sees Revision 1**
+**Working Project changes → Preview → Publish Revision 2 → Client sees the newly published revision according to the approved access workflow**
 
-Later edits:
+This preserves professional quote/scope stability and provides an audit/history basis.
 
-**Working Project changes → Publish Revision 2 → Client sees Revision 2**
+Still intentionally unresolved:
+- whether one stable client link advances to the newest published revision;
+- or whether each revision receives a revision-specific link.
 
-This also provides a basis for audit/history.
-
-This recommendation remains pending explicit Owner approval before it becomes a locked product rule.
+That UX decision must not be assumed silently.
 
 ---
 

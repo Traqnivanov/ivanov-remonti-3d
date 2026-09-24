@@ -1,6 +1,17 @@
 import "./styles.css";
 import type { SurfaceId, WallId } from "./domain";
 import { createDefaultProject, wallIds } from "./domain";
+import type { ProjectRepository } from "./project-repository";
+import {
+  applyProjectSaveFailure,
+  applyProjectSaveSuccess,
+  beginProjectSave,
+  createProjectSession,
+  loadProjectStartup,
+  markProjectDirty,
+  shouldWarnBeforeProjectSwitch,
+  type ProjectSession,
+} from "./project-session";
 import {
   calculateFinePuttyQuantity,
   calculateLineTotalEur,
@@ -16,19 +27,186 @@ import {
   selectOfferService,
   showWholeResult,
 } from "./smart-offer-interaction";
+import { createWorkSupabaseClient } from "./supabase";
+import { createSupabaseProjectReadRepository } from "./supabase-project-repository";
+import { resolveWorkAccess } from "./work-auth";
+import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
+import {
+  confirmDiscardUnsavedChanges,
+  openProjectsDialog,
+  renderProjectBar,
+  renderProjectGate,
+  renderProjectGateError,
+} from "./work-project-ui";
 
-const project = createDefaultProject();
-const directClientEntry = new URLSearchParams(window.location.search).get("preview") === "1";
-const appEntry: AppEntry = directClientEntry ? "direct-client" : "work";
-let previewMode = directClientEntry;
+const directClientEntry =
+  new URLSearchParams(window.location.search).get("preview") === "1";
+const DEV_QA_AUTH_KEY = "ivanov-remonti:qa-authorized";
+
+let activeViewer: RoomViewer | null = null;
+
+void bootstrapWorkEntry();
+
+async function bootstrapWorkEntry(): Promise<void> {
+  if (directClientEntry) {
+    startSmartOfferApp({
+      appEntry: "direct-client",
+      project: createDefaultProject(),
+      session: null,
+      repository: null,
+    });
+    return;
+  }
+
+  if (hasDevQaWorkAccess()) {
+    const session = createDevQaProjectSession();
+    startSmartOfferApp({
+      appEntry: "work",
+      project: session.project,
+      session,
+      repository: null,
+    });
+    return;
+  }
+
+  const app = document.querySelector<HTMLDivElement>("#app");
+  if (!app) throw new Error("Missing #app");
+
+  try {
+    const client = createWorkSupabaseClient();
+    const access = await resolveWorkAccess(client);
+
+    if (access.status === "authorized") {
+      await startAuthorizedWork(
+        app,
+        client,
+        access.workUser.userId,
+      );
+      return;
+    }
+
+    renderWorkLogin({
+      mount: app,
+      client,
+      access,
+      onAuthorized: () => {
+        void bootstrapWorkEntry();
+      },
+    });
+  } catch (error) {
+    renderWorkAuthUnavailable(app, error);
+  }
+}
+
+async function startAuthorizedWork(
+  app: HTMLDivElement,
+  client: ReturnType<typeof createWorkSupabaseClient>,
+  ownerUserId: string,
+): Promise<void> {
+  const repository = createSupabaseProjectReadRepository(
+    client,
+    ownerUserId,
+  );
+
+  renderProjectGate(app);
+
+  try {
+    const startup = await loadProjectStartup(repository);
+
+    if (startup.kind === "ready") {
+      startSmartOfferApp({
+        appEntry: "work",
+        project: startup.session.project,
+        session: startup.session,
+        repository,
+      });
+      return;
+    }
+
+    renderProjectGate(
+      app,
+      startup.kind === "new-project"
+        ? "Създайте първия Work проект."
+        : "Изберете Work проект.",
+    );
+
+    await openProjectsDialog({
+      mount: app,
+      repository,
+      currentSession: null,
+      initialProjects:
+        startup.kind === "choose-project"
+          ? startup.projects
+          : [],
+      startInCreate: startup.kind === "new-project",
+      requireSelection: true,
+      onProjectReady: (session) => {
+        startSmartOfferApp({
+          appEntry: "work",
+          project: session.project,
+          session,
+          repository,
+        });
+      },
+    });
+  } catch (error) {
+    console.error("Work project bootstrap failed", error);
+    renderProjectGateError(app, () => {
+      void startAuthorizedWork(app, client, ownerUserId);
+    });
+  }
+}
+
+function hasDevQaWorkAccess(): boolean {
+  return (
+    import.meta.env.DEV &&
+    window.sessionStorage.getItem(DEV_QA_AUTH_KEY) === "1"
+  );
+}
+
+function createDevQaProjectSession(): ProjectSession {
+  const project = createDefaultProject("qa-prototype-room-1");
+
+  return createProjectSession({
+    id: project.projectId,
+    title: "QA прототип",
+    status: "draft",
+    schemaVersion: 1,
+    workVersion: 1,
+    updatedAt: "2026-09-24T00:00:00.000Z",
+    ownerUserId: "qa-owner",
+    createdAt: "2026-09-24T00:00:00.000Z",
+    project,
+  });
+}
+
+type StartSmartOfferAppOptions = {
+  appEntry: AppEntry;
+  project: ReturnType<typeof createDefaultProject>;
+  session: ProjectSession | null;
+  repository: ProjectRepository | null;
+};
+
+function startSmartOfferApp(
+  options: StartSmartOfferAppOptions,
+): void {
+activeViewer?.dispose();
+activeViewer = null;
+
+const project = options.project;
+const appEntry = options.appEntry;
+let projectSession = options.session;
+const projectRepository = options.repository;
+let previewMode = appEntry === "direct-client";
 let offerInteraction = createInitialOfferInteraction();
 let autoCutaway = true;
 
-const app = document.querySelector<HTMLDivElement>("#app");
-if (!app) throw new Error("Missing #app");
+const appNode = document.querySelector<HTMLDivElement>("#app");
+if (!appNode) throw new Error("Missing #app");
+const app: HTMLDivElement = appNode;
 
 app.innerHTML = `
-  <div class="app-shell" id="shell">
+  <div class="app-shell${appEntry === "work" && projectSession ? " has-project-bar" : ""}" id="shell">
     <header class="topbar">
       <div class="brand">
         <strong>IVANOV REMONTI · SMART OFFER</strong>
@@ -40,6 +218,25 @@ app.innerHTML = `
       </div>
       <button id="exitPreviewBtn" class="preview-exit">Назад към Work</button>
     </header>
+
+    ${
+      appEntry === "work" && projectSession
+        ? `
+    <div class="project-bar work-only" id="projectBar">
+      <div class="project-bar-current">
+        <span class="project-bar-label">Текущ проект</span>
+        <strong id="projectBarTitle"></strong>
+        <span id="projectBarStatus" class="project-bar-status" aria-live="polite"></span>
+      </div>
+      <div class="project-bar-actions">
+        <button id="projectsButton" type="button">Проекти</button>
+        <button id="saveProjectButton" type="button">Запази</button>
+        <button id="reloadProjectButton" type="button" hidden>Зареди последната версия</button>
+      </div>
+    </div>
+        `
+        : ""
+    }
 
     <main class="workspace">
       <aside class="panel left">
@@ -135,6 +332,11 @@ const viewer = new RoomViewer({
     renderOffer();
   },
 });
+activeViewer = viewer;
+
+if (appEntry === "work" && projectSession) {
+  syncProjectBar();
+}
 
 const widthInput = mustGet<HTMLInputElement>("widthInput");
 const lengthInput = mustGet<HTMLInputElement>("lengthInput");
@@ -200,6 +402,117 @@ function wireControls(): void {
   });
 }
 
+function syncProjectBar(): void {
+  if (appEntry !== "work" || !projectSession) return;
+
+  renderProjectBar(app, projectSession, {
+    persistenceEnabled: projectRepository !== null,
+    onProjects: () => {
+      void openProjectChooser();
+    },
+    onSave: () => {
+      void saveCurrentProject();
+    },
+    onReloadLatest: () => {
+      void reloadLatestProject();
+    },
+  });
+}
+
+async function openProjectChooser(): Promise<void> {
+  if (!projectRepository || !projectSession) return;
+
+  await openProjectsDialog({
+    mount: app,
+    repository: projectRepository,
+    currentSession: projectSession,
+    requireSelection: false,
+    beforeProjectChange: confirmDiscardIfNeeded,
+    onProjectReady: (nextSession) => {
+      startSmartOfferApp({
+        appEntry: "work",
+        project: nextSession.project,
+        session: nextSession,
+        repository: projectRepository,
+      });
+    },
+  });
+}
+
+async function confirmDiscardIfNeeded(): Promise<boolean> {
+  if (
+    !projectSession ||
+    !shouldWarnBeforeProjectSwitch(projectSession)
+  ) {
+    return true;
+  }
+
+  return confirmDiscardUnsavedChanges(app);
+}
+
+function markCurrentProjectDirty(): void {
+  if (appEntry !== "work" || !projectSession) return;
+
+  projectSession = markProjectDirty(projectSession);
+  syncProjectBar();
+}
+
+async function saveCurrentProject(): Promise<void> {
+  if (!projectRepository || !projectSession) return;
+
+  let saveStarted = false;
+
+  try {
+    const begun = beginProjectSave(projectSession);
+    projectSession = begun.session;
+    saveStarted = true;
+    syncProjectBar();
+
+    const result = await projectRepository.save(begun.input);
+    projectSession = applyProjectSaveSuccess(projectSession, result);
+  } catch (error) {
+    if (
+      saveStarted &&
+      projectSession &&
+      projectSession.saveState === "saving"
+    ) {
+      projectSession = applyProjectSaveFailure(projectSession, error);
+    } else {
+      console.error("Project save could not start", error);
+    }
+  }
+
+  syncProjectBar();
+}
+
+async function reloadLatestProject(): Promise<void> {
+  if (!projectRepository || !projectSession) return;
+
+  const confirmed = await confirmDiscardUnsavedChanges(app);
+  if (!confirmed) return;
+
+  try {
+    const opened = await projectRepository.open(
+      projectSession.projectId,
+    );
+    const nextSession = createProjectSession(opened);
+
+    startSmartOfferApp({
+      appEntry: "work",
+      project: nextSession.project,
+      session: nextSession,
+      repository: projectRepository,
+    });
+  } catch (error) {
+    console.error("Reload latest project failed", error);
+    projectSession = {
+      ...projectSession,
+      lastError: "Reload latest project failed.",
+    };
+    syncProjectBar();
+  }
+}
+
 function setPreviewMode(enabled: boolean): void {
   if (!enabled && !currentCapabilities().canReturnToWork) return;
 
@@ -227,6 +540,11 @@ function updateDimensions(): void {
   const length = safeDimension(lengthInput.value, project.room.lengthM);
   const height = safeDimension(heightInput.value, project.room.heightM);
 
+  const changed =
+    width !== project.room.widthM ||
+    length !== project.room.lengthM ||
+    height !== project.room.heightM;
+
   project.room.widthM = width;
   project.room.lengthM = length;
   project.room.heightM = height;
@@ -234,6 +552,10 @@ function updateDimensions(): void {
   widthInput.value = String(width);
   lengthInput.value = String(length);
   heightInput.value = String(height);
+
+  if (changed) {
+    markCurrentProjectDirty();
+  }
 
   renderM2Schema(mustGet("m2Schema"), project);
   viewer.setProject(project);
@@ -265,10 +587,27 @@ function renderWallTargets(): void {
         return;
       }
 
-      const targets = new Set(project.serviceAssignment.targetEntityIds);
+      const previousTargets =
+        project.serviceAssignment.targetEntityIds;
+      const targets = new Set(previousTargets);
       if (checkbox.checked) targets.add(id);
       else targets.delete(id);
-      project.serviceAssignment.targetEntityIds = wallIds.filter((wallId) => targets.has(wallId));
+
+      const nextTargets = wallIds.filter((wallId) =>
+        targets.has(wallId),
+      );
+      const changed =
+        nextTargets.length !== previousTargets.length ||
+        nextTargets.some(
+          (wallId, index) => wallId !== previousTargets[index],
+        );
+
+      project.serviceAssignment.targetEntityIds = nextTargets;
+
+      if (changed) {
+        markCurrentProjectDirty();
+      }
+
       offerInteraction = selectOfferService();
       syncViewerFocus();
       renderOffer();
@@ -360,4 +699,6 @@ function mustGet<T extends HTMLElement = HTMLElement>(id: string): T {
   const element = document.getElementById(id);
   if (!element) throw new Error(`Missing #${id}`);
   return element as T;
+}
+
 }

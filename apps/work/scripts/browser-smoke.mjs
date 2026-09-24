@@ -123,6 +123,84 @@ async function waitForApp(session, url) {
   throw new Error("App did not become ready: " + url);
 }
 
+async function waitForLogin(session, url) {
+  await session.call("Page.navigate", { url });
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    try {
+      const ready = await evaluate(
+        session,
+        'document.readyState === "complete" && Boolean(document.querySelector("#workLoginForm"))',
+      );
+      if (ready) {
+        await delay(180);
+        return;
+      }
+    } catch {
+      // Navigation can replace the execution context between polls.
+    }
+    await delay(100);
+  }
+
+  throw new Error("Work login did not become ready: " + url);
+}
+
+async function authorizeQaWork(session) {
+  await waitForLogin(session, baseUrl);
+  await evaluate(
+    session,
+    'sessionStorage.setItem("ivanov-remonti:qa-authorized", "1")',
+  );
+  await waitForApp(session, baseUrl);
+}
+
+async function assertLoginLayout(session, label) {
+  const metrics = await evaluate(
+    session,
+    `(() => {
+      const card = document.querySelector(".work-login-card");
+      const form = document.querySelector("#workLoginForm");
+      const email = document.querySelector("#workLoginEmail");
+      const password = document.querySelector("#workLoginPassword");
+      const submit = document.querySelector("#workLoginSubmit");
+      if (!card || !form || !email || !password || !submit) return null;
+      const cardRect = card.getBoundingClientRect();
+      const controls = [email, password, submit].map((el) => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, height: r.height };
+      });
+      return {
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        cardLeft: cardRect.left,
+        cardRight: cardRect.right,
+        cardWidth: cardRect.width,
+        controls,
+        signupText: document.body.textContent.toLowerCase().includes("регистрация"),
+      };
+    })()`,
+  );
+
+  if (!metrics) throw new Error(label + ": login metrics are unavailable");
+  if (metrics.scrollWidth > metrics.innerWidth + 1) {
+    throw new Error(label + ": login has horizontal overflow");
+  }
+  if (metrics.cardLeft < -1 || metrics.cardRight > metrics.innerWidth + 1) {
+    throw new Error(label + ": login card is clipped");
+  }
+  if (metrics.signupText) {
+    throw new Error(label + ": public registration language leaked into private Work login");
+  }
+  for (const control of metrics.controls) {
+    if (control.left < -1 || control.right > metrics.innerWidth + 1) {
+      throw new Error(label + ": login control is clipped");
+    }
+    if (control.height < 44) {
+      throw new Error(label + ": login control is smaller than 44px");
+    }
+  }
+}
+
 async function assertEval(session, expression, message) {
   const ok = await evaluate(session, expression);
   if (!ok) throw new Error(message);
@@ -139,6 +217,208 @@ async function capturePage(session) {
 async function saveScreenshot(session, path) {
   const data = await capturePage(session);
   await writeFile(path, Buffer.from(data, "base64"));
+}
+
+async function openProjectDialogQa(session, { openCreate = false } = {}) {
+  await evaluate(
+    session,
+    `(async () => {
+      const ui = await import("/src/work-project-ui.ts");
+      const projects = [
+        {
+          id: "qa-project-2",
+          title: "Апартамент Иванови",
+          status: "active",
+          schemaVersion: 1,
+          workVersion: 4,
+          updatedAt: "2026-09-24T18:30:00.000Z",
+        },
+        {
+          id: "qa-project-1",
+          title: "Къща — дневна",
+          status: "draft",
+          schemaVersion: 1,
+          workVersion: 2,
+          updatedAt: "2026-09-24T17:15:00.000Z",
+        },
+      ];
+      const repository = {
+        create: async () => { throw new Error("QA create must not execute"); },
+        list: async () => projects,
+        open: async () => { throw new Error("QA open must not execute"); },
+        save: async () => { throw new Error("QA save must not execute"); },
+      };
+      await ui.openProjectsDialog({
+        mount: document.querySelector("#app"),
+        repository,
+        currentSession: null,
+        initialProjects: projects,
+        requireSelection: false,
+        onProjectReady: () => {},
+      });
+    })()`,
+  );
+  await delay(160);
+
+  await assertEval(
+    session,
+    'Boolean(document.querySelector("#projectsDialog")?.open)',
+    "Projects dialog did not open",
+  );
+
+  if (openCreate) {
+    await evaluate(session, 'document.querySelector("#newProjectButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      '!document.querySelector("#newProjectForm").hidden',
+      "New Project form did not open",
+    );
+  }
+}
+
+async function assertProjectDialogLayout(session, label) {
+  const metrics = await evaluate(
+    session,
+    `(() => {
+      const dialog = document.querySelector("#projectsDialog");
+      const card = dialog?.querySelector(".projects-dialog-card");
+      if (!dialog || !card) return null;
+      const d = dialog.getBoundingClientRect();
+      const c = card.getBoundingClientRect();
+      const controls = [...dialog.querySelectorAll("button, input")]
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          return style.display !== "none" && style.visibility !== "hidden";
+        })
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return { left: r.left, right: r.right, height: r.height };
+        });
+      return {
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        dialogLeft: d.left,
+        dialogRight: d.right,
+        dialogWidth: d.width,
+        cardLeft: c.left,
+        cardRight: c.right,
+        controls,
+      };
+    })()`,
+  );
+
+  if (!metrics) throw new Error(label + ": dialog metrics unavailable");
+  if (metrics.scrollWidth > metrics.innerWidth + 1) {
+    throw new Error(label + ": dialog causes horizontal overflow");
+  }
+  if (metrics.dialogLeft < -1 || metrics.dialogRight > metrics.innerWidth + 1) {
+    throw new Error(label + ": dialog is clipped by viewport");
+  }
+  if (metrics.cardLeft < metrics.dialogLeft - 1 || metrics.cardRight > metrics.dialogRight + 1) {
+    throw new Error(label + ": dialog card escapes dialog bounds");
+  }
+  for (const control of metrics.controls) {
+    if (control.left < -1 || control.right > metrics.innerWidth + 1) {
+      throw new Error(label + ": visible dialog control is clipped");
+    }
+    if (metrics.innerWidth <= 360 && control.height < 44) {
+      throw new Error(label + ": mobile dialog control is smaller than 44px");
+    }
+  }
+}
+
+async function renderProjectBarStateQa(session, saveState) {
+  await evaluate(
+    session,
+    `(async () => {
+      const ui = await import("/src/work-project-ui.ts");
+      const domain = await import("/src/domain.ts");
+      const saveState = ${JSON.stringify(saveState)};
+      const project = domain.createDefaultProject("qa-p25c-project");
+      const base = {
+        projectId: project.projectId,
+        title: "QA прототип",
+        project,
+        workVersion: 2,
+        updatedAt: "2026-09-24T19:30:00.000Z",
+        editRevision: saveState === "clean" ? 0 : 1,
+        savedEditRevision: 0,
+        savingEditRevision: saveState === "saving" ? 1 : null,
+        lastError: saveState === "conflict" ? "Project changed on the server." : null,
+        saveState,
+      };
+      ui.renderProjectBar(document.querySelector("#app"), base, {
+        persistenceEnabled: true,
+        onProjects: () => {},
+        onSave: () => {},
+        onReloadLatest: () => {},
+      });
+    })()`,
+  );
+  await delay(80);
+}
+
+async function openDiscardDialogQa(session) {
+  await evaluate(
+    session,
+    `(async () => {
+      const ui = await import("/src/work-project-ui.ts");
+      window.__p25cDiscardResult = "pending";
+      ui.confirmDiscardUnsavedChanges(document.querySelector("#app"))
+        .then((result) => { window.__p25cDiscardResult = result; });
+    })()`,
+  );
+  await delay(120);
+
+  await assertEval(
+    session,
+    'Boolean(document.querySelector("#discardChangesDialog")?.open)',
+    "Discard changes dialog did not open",
+  );
+}
+
+async function assertDiscardDialogLayout(session, label) {
+  const metrics = await evaluate(
+    session,
+    `(() => {
+      const dialog = document.querySelector("#discardChangesDialog");
+      if (!dialog) return null;
+      const r = dialog.getBoundingClientRect();
+      const controls = [...dialog.querySelectorAll("button")]
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          return style.display !== "none" && style.visibility !== "hidden";
+        })
+        .map((el) => {
+          const b = el.getBoundingClientRect();
+          return { left: b.left, right: b.right, height: b.height };
+        });
+      return {
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        left: r.left,
+        right: r.right,
+        controls,
+      };
+    })()`,
+  );
+
+  if (!metrics) throw new Error(label + ": discard dialog metrics unavailable");
+  if (metrics.scrollWidth > metrics.innerWidth + 1) {
+    throw new Error(label + ": discard dialog causes horizontal overflow");
+  }
+  if (metrics.left < -1 || metrics.right > metrics.innerWidth + 1) {
+    throw new Error(label + ": discard dialog is clipped");
+  }
+  for (const control of metrics.controls) {
+    if (control.left < -1 || control.right > metrics.innerWidth + 1) {
+      throw new Error(label + ": discard action is clipped");
+    }
+    if (metrics.innerWidth <= 360 && control.height < 44) {
+      throw new Error(label + ": discard mobile action is smaller than 44px");
+    }
+  }
 }
 
 async function assertMobileLayout(session, label) {
@@ -244,10 +524,67 @@ function assertScreenshotChanged(before, after, message) {
 async function smokeViewerInput(session) {
   const rect = await evaluate(
     session,
-    '(() => { const canvas = document.querySelector("#viewer canvas"); if (!canvas) return null; const r = canvas.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()',
+    `(() => {
+      const canvas = document.querySelector("#viewer canvas");
+      if (!canvas) return null;
+      const r = canvas.getBoundingClientRect();
+      const visibleTop = Math.max(0, r.top);
+      const visibleBottom = Math.min(window.innerHeight, r.bottom);
+      if (visibleBottom - visibleTop < 80) return null;
+      return {
+        x: r.left + r.width / 2,
+        y: visibleTop + (visibleBottom - visibleTop) * 0.55,
+      };
+    })()`,
   );
 
-  if (!rect) throw new Error("3D canvas is missing");
+  if (!rect) throw new Error("3D canvas has no usable visible interaction area");
+
+  const pointerTarget = await evaluate(
+    session,
+    `(() => {
+      const canvas = document.querySelector("#viewer canvas");
+      const r = canvas.getBoundingClientRect();
+      const x = ${rect.x};
+      const y = ${rect.y};
+      const hit = document.elementFromPoint(x, y);
+      return {
+        x,
+        y,
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        scrollY: window.scrollY,
+        canvasTop: r.top,
+        canvasBottom: r.bottom,
+        canvasWidth: r.width,
+        canvasHeight: r.height,
+        hitTag: hit?.tagName ?? null,
+        hitId: hit?.id ?? null,
+        hitClass: hit?.className ?? null,
+      };
+    })()`,
+  );
+
+  console.log("Desktop viewer pointer target: " + JSON.stringify(pointerTarget));
+
+  if (
+    pointerTarget.x < 0 ||
+    pointerTarget.x > pointerTarget.innerWidth ||
+    pointerTarget.y < 0 ||
+    pointerTarget.y > pointerTarget.innerHeight
+  ) {
+    throw new Error(
+      "Work: viewer interaction point is outside the viewport: " +
+        JSON.stringify(pointerTarget),
+    );
+  }
+
+  if (pointerTarget.hitTag !== "CANVAS") {
+    throw new Error(
+      "Work: viewer interaction point is covered by another element: " +
+        JSON.stringify(pointerTarget),
+    );
+  }
 
   await session.call("Input.dispatchMouseEvent", {
     type: "mousePressed", x: rect.x, y: rect.y, button: "left", buttons: 1, clickCount: 1,
@@ -303,6 +640,11 @@ async function clickLinkedWallThroughCanvas(session) {
   await delay(180);
   await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
   await delay(300);
+  await evaluate(
+    session,
+    'document.querySelector(".viewer-wrap").scrollIntoView({ block: "center", behavior: "instant" })',
+  );
+  await delay(140);
   await evaluate(session, 'document.querySelector("#showResultBtn").click()');
 
   const canvas = await evaluate(
@@ -347,13 +689,54 @@ function throwBrowserErrors(session) {
   }
 }
 
+async function runLoginSmoke() {
+  const desktop = await createSession();
+  try {
+    await waitForLogin(desktop, baseUrl);
+    await assertLoginLayout(desktop, "Desktop login");
+    await assertEval(
+      desktop,
+      'document.querySelector("#workLoginEmail").getAttribute("autocomplete") === "username"',
+      "Desktop login: email autocomplete is not configured",
+    );
+    await assertEval(
+      desktop,
+      'document.querySelector("#workLoginPassword").getAttribute("autocomplete") === "current-password"',
+      "Desktop login: password autocomplete is not configured",
+    );
+    await saveScreenshot(desktop, "/tmp/persistence-login-desktop.png");
+    throwBrowserErrors(desktop);
+  } finally {
+    desktop.close();
+  }
+
+  const mobile = await createSession({ mobile: true });
+  try {
+    await waitForLogin(mobile, baseUrl);
+    await assertLoginLayout(mobile, "Mobile login");
+    await saveScreenshot(mobile, "/tmp/persistence-login-mobile.png");
+    throwBrowserErrors(mobile);
+  } finally {
+    mobile.close();
+  }
+}
+
 async function runWorkSmoke() {
   const session = await createSession();
   try {
-    await waitForApp(session, baseUrl);
+    await authorizeQaWork(session);
+    await saveScreenshot(session, "/tmp/vertical-slice-work.png");
+
+    await openProjectDialogQa(session, { openCreate: true });
+    await assertProjectDialogLayout(session, "Desktop Projects dialog");
+    await saveScreenshot(session, "/tmp/p25b-projects-dialog-desktop.png");
+    await evaluate(session, 'document.querySelector("#projectsDialog").close(); document.querySelector("#projectsDialog").remove()');
+    await delay(80);
 
     await assertEval(session, 'document.querySelector("#viewer canvas") instanceof HTMLCanvasElement', "Work: true 3D canvas is missing");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display !== "none"', "Work: authoring panel should be visible");
+    await assertEval(session, 'Boolean(document.querySelector("#projectBar")) && getComputedStyle(document.querySelector("#projectBar")).display !== "none"', "Work: project bar should be visible");
+    await assertEval(session, 'document.querySelector("#projectBarStatus").textContent.includes("Запазено") && document.querySelector("#projectBarStatus").textContent.includes("v1")', "Work: clean project status is missing");
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
 
     const beforeViewerInput = await capturePage(session);
@@ -363,6 +746,21 @@ async function runWorkSmoke() {
       beforeViewerInput,
       afterViewerInput,
       "Work: orbit/zoom input did not change the rendered view",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Запазено")',
+      "Work: viewer-only interaction incorrectly dirtied project state",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#widthInput"); input.value = "4.3"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Има промени") && document.querySelector("#projectBarStatus").textContent.includes("v1")',
+      "Work: authoring change did not mark project dirty",
     );
 
     await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
@@ -435,7 +833,13 @@ async function runWorkSmoke() {
     await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Work: Preview as Client did not activate");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Work preview: authoring panel leaked into Client mode");
+    await assertEval(session, 'getComputedStyle(document.querySelector("#projectBar")).display === "none"', "Work preview: project persistence controls leaked into Client mode");
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display !== "none"', "Work preview: owner return control is missing");
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Има промени")',
+      "Work preview: dirty project state was lost while persistence controls were hidden",
+    );
 
     await evaluate(session, 'document.querySelector("#exitPreviewBtn").click()');
     await assertEval(session, '!document.querySelector("#shell").classList.contains("preview-mode")', "Work: could not return from Client Preview");
@@ -449,9 +853,46 @@ async function runWorkSmoke() {
 async function runMobileWorkSmoke() {
   const session = await createSession({ mobile: true });
   try {
-    await waitForApp(session, baseUrl);
+    await authorizeQaWork(session);
     await assertMobileLayout(session, "Work");
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
+
+    await renderProjectBarStateQa(session, "dirty");
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Има промени") && !document.querySelector("#saveProjectButton").disabled',
+      "Mobile P2.5c: dirty state is not visible/saveable",
+    );
+    await saveScreenshot(session, "/tmp/p25c-mobile-dirty.png");
+
+    await renderProjectBarStateQa(session, "conflict");
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Конфликт") && document.querySelector("#saveProjectButton").hidden && !document.querySelector("#reloadProjectButton").hidden',
+      "Mobile P2.5c: conflict recovery action is not visible",
+    );
+    await saveScreenshot(session, "/tmp/p25c-mobile-conflict.png");
+
+    await openDiscardDialogQa(session);
+    await assertDiscardDialogLayout(session, "Mobile discard changes");
+    await saveScreenshot(session, "/tmp/p25c-mobile-discard.png");
+    await evaluate(session, 'document.querySelector("#discardCancelButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'window.__p25cDiscardResult === false && !document.querySelector("#discardChangesDialog")',
+      "Mobile P2.5c: discard cancel did not preserve the current project",
+    );
+
+    await waitForApp(session, baseUrl);
+    await assertMobileLayout(session, "Work restored");
+
+    await openProjectDialogQa(session, { openCreate: true });
+    await assertProjectDialogLayout(session, "Mobile Projects dialog");
+    await saveScreenshot(session, "/tmp/p25b-projects-dialog-mobile.png");
+    await evaluate(session, 'document.querySelector("#projectsDialog").close(); document.querySelector("#projectsDialog").remove()');
+    await delay(80);
+
     await smokeViewerTouch(session);
 
     await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
@@ -508,6 +949,7 @@ async function runDirectClientSmoke() {
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Client: preview mode is not active");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Client: authoring panel is visible");
     await assertEval(session, 'getComputedStyle(document.querySelector(".mode-switch")).display === "none"', "Client: Work/Preview mode switch is visible");
+    await assertEval(session, '!document.querySelector("#projectBar")', "Client: Work project bar is present");
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display === "none"', "Client: owner-only return control is visible");
     await assertEval(session, 'document.querySelector("#lineTotalText").textContent.includes("ТЕСТОВА ЦЕНА")', "Client: prototype price is not clearly marked as test price");
 
@@ -535,8 +977,9 @@ async function runDirectClientSmoke() {
   }
 }
 
+await runLoginSmoke();
 await runWorkSmoke();
 await runDirectClientSmoke();
 await runMobileWorkSmoke();
 await runMobileClientSmoke();
-console.log("Browser smoke passed: desktop Work + desktop Client + mobile Work + mobile Owner Preview + mobile Client");
+console.log("Browser smoke passed: private login + desktop Work + desktop Client + mobile Work + mobile Owner Preview + mobile Client");

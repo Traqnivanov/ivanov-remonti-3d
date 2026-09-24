@@ -3,7 +3,7 @@ name: Publish Static Work Preview
 on:
   push:
     branches:
-      - "feat/vertical-slice-v1"
+      - "feat/persistence-slice-v1"
   workflow_dispatch:
 
 permissions:
@@ -32,7 +32,16 @@ jobs:
         run: npm --prefix apps/work ci --no-audit --no-fund
 
       - name: Build static preview
-        run: npm --prefix apps/work run build
+        env:
+          VITE_SUPABASE_URL: https://qjfpbxucrxrtpygusnuv.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VITE_SUPABASE_PUBLISHABLE_KEY:-}" ]; then
+            echo "Missing repository variable SUPABASE_PUBLISHABLE_KEY"
+            exit 1
+          fi
+          npm --prefix apps/work run build
 
       - name: Publish dedicated preview branch
         run: |
@@ -45,7 +54,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git checkout --orphan preview-vertical-slice-v1
+          git checkout --orphan preview-persistence-slice-v1
 
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -R /tmp/ivanov-preview-dist/. .
@@ -53,4 +62,4 @@ jobs:
 
           git add -A
           git commit -m "preview: publish vertical slice ${GITHUB_SHA}"
-          git push --force origin HEAD:preview-vertical-slice-v1
+          git push --force origin HEAD:preview-persistence-slice-v1

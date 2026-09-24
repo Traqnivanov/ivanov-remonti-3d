@@ -1,6 +1,8 @@
 # DECISION LOG
 
-Този файл съдържа важните Owner решения, които бъдещ чат трябва да знае, за да не възстановява стара или погрешно разбрана посока.
+Този файл пази важните Owner решения хронологично, за да не се възстановява стара или погрешно разбрана посока.
+
+> **Важно:** това е decision history, не current-state tracker. По-късно датирано Owner решение може да supersede по-старо. За текущото състояние започни от `START_HERE.md` → `PROJECT_STATE.md`, а тук чети релевантните решения.
 
 ## 22.09.2026 — Smart Offer е основният продукт
 
@@ -453,3 +455,103 @@ Latest verified static preview:
 
 Следващата стъпка е:
 **final merge-gate audit → отделно explicit Owner merge decision.**
+
+
+## 23.09.2026 — First Slice merged; Slice 2 Persistence започва на отделна основа
+
+Owner даде изрично **“Merge PR #3”**.
+
+PR #3 — `First Vertical Slice v1: Smart Offer core loop` — е merged в `main`.
+
+Merge commit:
+`cda27d78faf28565b7faef2f4917aa14c5d8a2d4`
+
+След merge Owner потвърди да продължим по одобрения ред към Slice 2 — Persistence.
+
+Създаден е отделен Supabase контекст за продукта:
+- Organization: **Ivanov Remonti**
+- Project: **ivanov-remonti-3d**
+- Project ref: `qjfpbxucrxrtpygusnuv`
+- Region: `eu-west-1`
+
+При audit старта проектът е ACTIVE_HEALTHY, без `public` таблици и без migrations.
+
+Активният Slice 2 contract е:
+`docs/PERSISTENCE_SLICE_V1.md`
+
+Задължителен ред:
+**P2.1 persistence domain boundary → P2.2 reviewed DB migration/RLS → P2.3 Auth → P2.4 repository Save/Open → P2.5 minimal UI → P2.6 acceptance.**
+
+Не се създават таблици ръчно и не се прескача директно към Publishing, врати/прозорци или други видими функции.
+
+
+## 23.09.2026 — Owner избра Work sign-in: имейл + парола
+
+След P2.3b Owner избра вариант **1 — имейл + парола** за частния Work вход.
+
+Активното решение е:
+- Work App използва Supabase Auth email + password sign-in;
+- няма публична регистрация като продуктова функция;
+- magic link / OTP не е текущият вход;
+- sign-in implementation се разделя на малки checkpoints;
+- първо P2.3c1 sign-in logic + tests;
+- после отделно P2.3c2 minimal visible login UI + visual QA;
+- P2.4 Save/Open не се смесва с Auth задачите.
+
+
+## 23.09.2026 — Owner одобри canonical continuity system за всички следващи чатове
+
+Owner одобри специално за `ivanov-remonti-3d` професионална continuity система, при условие че **не се губи нито едно важно решение, условие, критерий, риск или одобрена посока**.
+
+Активното правило е:
+
+- `START_HERE.md` = постоянният вход и operating rules;
+- `PROJECT_STATE.md` = единственото официално текущо състояние;
+- точно един GitHub Issue с префикс **[CURRENT WORK]** = временната текуща работа;
+- Git / PR = историята;
+- Master/contracts остават трайната продуктова/архитектурна база и се четат според dependency map, а не всичките при всеки старт.
+
+Задължителен boot за нов чат:
+
+**START_HERE → PROJECT_STATE → Current Work Issue → verify branch/HEAD/PR → task-relevant dependency docs**
+
+Нов чат преди работа потвърждава:
+- къде сме;
+- кое е официално;
+- кое е временно;
+- кое е непроверено;
+- NEXT EXACT STEP.
+
+При конфликт:
+
+**STOP — NO GUESSING.**
+
+За съществена промяна:
+
+**audit → concrete proposal → visible Criteria Check → Owner approval → implementation → technical verification → exact preview → visual verification → record result → NEXT**
+
+Criteria Check използва **PASS / PARTIAL-RISK / NOT APPLICABLE** и покрива приложимото:
+- human benefit;
+- 3-second clarity;
+- primary action;
+- Smart Offer North Star;
+- Work/Client safety;
+- mobile/readability/touch/focus/accessibility;
+- Project State vs Viewer Session State;
+- quantity/price truth;
+- privacy/RLS/security/data;
+- performance;
+- side effects;
+- recovery/error/stale states;
+- need for new product decision.
+
+Visible UI/3D не се приема само по code/CI. Ако не е гледано реално: **НЕ Е ВИЗУАЛНО ПРОВЕРЕНО**. Ако не е тествано: **НЕ Е ПРОВЕРЕНО**.
+
+Continuity migration е консервативна:
+- старите handoff/checkpoint материали първо се маркират historical/superseded, а не се трият;
+- активните решения и criteria се пренасят преди какъвто и да е cleanup;
+- history остава достъпна чрез Git.
+
+Основният acceptance test е:
+
+**ако текущият чат изчезне, нов чат трябва да може от repo + Current Work Issue да продължи правилно без Owner да разказва проекта отначало.**

@@ -1,8 +1,9 @@
 # SMART OFFER — SCREEN 01 PRODUCT BLUEPRINT
 
-**Status:** PROPOSAL FOR OWNER REVIEW — NOT LOCKED UI  
+**Status:** HISTORICAL PROPOSAL / NOT CURRENT IMPLEMENTATION INSTRUCTION  
+**Current-state authority:** `PROJECT_STATE.md`  
 **Basis:** Smart Offer Product Contract + Brand & Content Audit v1  
-**Purpose:** define the first **Client / View Mode** Smart Offer screen before any application implementation.
+**Purpose:** preserve the pre-implementation Client/View blueprint and its reasoning. Use it as research/history only unless the current task explicitly reopens it.
 
 ## 1. Screen goal
 
