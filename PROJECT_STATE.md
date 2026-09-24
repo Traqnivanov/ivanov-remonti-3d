@@ -121,7 +121,7 @@ Temporary `repoqa` / `saveqa` routes and modules were removed after verification
 
 **P2.5 — Minimal visible persistence integration**
 
-P2.5 implementation has **NOT started**.
+P2.5 implementation is **IN PROGRESS**.
 
 Completed before implementation:
 - short UI/interaction audit — PASS;
