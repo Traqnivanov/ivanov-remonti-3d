@@ -1,6 +1,7 @@
 import {
   getFinePuttyAssignment,
   getLaminateFlooringAssignment,
+  type ClientInfo,
   type ProjectState,
   type SurfaceId,
 } from "./domain";
@@ -21,6 +22,15 @@ export type PriceBookItem = {
   unit: "m2";
   unitPriceEur: number;
   devOnly: true;
+};
+
+export type OfferLineCalculation = {
+  assignmentId: string;
+  label: string;
+  quantity: QuantityResult;
+  price: PriceBookItem;
+  totalEur: number;
+  clientInfo: ClientInfo;
 };
 
 export const devFinePuttyPriceBookItem: PriceBookItem = {
@@ -87,4 +97,45 @@ export function calculateLineTotalEur(
   price: PriceBookItem,
 ): number {
   return quantity.value * price.unitPriceEur;
+}
+
+export function calculateSupportedOfferLine(
+  project: ProjectState,
+  assignmentId: string,
+): OfferLineCalculation | null {
+  const assignment = project.serviceAssignments.find(
+    (item) => item.id === assignmentId,
+  );
+
+  if (!assignment || !assignment.included || !assignment.clientInfo) return null;
+
+  let quantity: QuantityResult;
+  let price: PriceBookItem;
+
+  if (assignment.id === "assignment-fine-putty-1") {
+    quantity = calculateFinePuttyQuantity(project);
+    price = devFinePuttyPriceBookItem;
+  } else if (assignment.id === "assignment-laminate-flooring-1") {
+    quantity = calculateLaminateFlooringQuantity(project);
+    price = devLaminateFlooringPriceBookItem;
+  } else {
+    return null;
+  }
+
+  return {
+    assignmentId: assignment.id,
+    label: assignment.label,
+    quantity,
+    price,
+    totalEur: calculateLineTotalEur(quantity, price),
+    clientInfo: assignment.clientInfo,
+  };
+}
+
+export function calculateSupportedOfferLines(
+  project: ProjectState,
+): OfferLineCalculation[] {
+  return project.serviceAssignments
+    .map((assignment) => calculateSupportedOfferLine(project, assignment.id))
+    .filter((line): line is OfferLineCalculation => line !== null);
 }

@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { calculateFinePuttyQuantity, calculateLaminateFlooringQuantity, calculateLineTotalEur, devLaminateFlooringPriceBookItem, devPriceBookItem } from "./calculation";
-import { createDefaultProject, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
+import {
+  calculateFinePuttyQuantity,
+  calculateLaminateFlooringQuantity,
+  calculateLineTotalEur,
+  calculateSupportedOfferLine,
+  calculateSupportedOfferLines,
+  devLaminateFlooringPriceBookItem,
+  devPriceBookItem,
+} from "./calculation";
+import {
+  createDefaultProject,
+  getFinePuttyAssignment,
+  getLaminateFlooringAssignment,
+} from "./domain";
 
 describe("fine putty quantity", () => {
   it("calculates selected wall area from domain geometry", () => {
@@ -35,7 +47,6 @@ describe("fine putty quantity", () => {
     );
   });
 });
-
 
 describe("laminate flooring quantity", () => {
   it("calculates the exact floor area from canonical room geometry", () => {
@@ -90,5 +101,40 @@ describe("laminate flooring quantity", () => {
       quantity.value * devLaminateFlooringPriceBookItem.unitPriceEur,
       8,
     );
+  });
+});
+
+describe("supported offer line bridge", () => {
+  it("returns one calculated line for each supported included assignment", () => {
+    const project = createDefaultProject();
+    const lines = calculateSupportedOfferLines(project);
+
+    expect(lines.map((line) => line.assignmentId)).toEqual([
+      "assignment-fine-putty-1",
+      "assignment-laminate-flooring-1",
+    ]);
+    expect(lines[0]!.quantity.value).toBeCloseTo(
+      calculateFinePuttyQuantity(project).value,
+      8,
+    );
+    expect(lines[1]!.quantity.value).toBeCloseTo(
+      calculateLaminateFlooringQuantity(project).value,
+      8,
+    );
+  });
+
+  it("does not invent a line for an unsupported assignment", () => {
+    const project = createDefaultProject();
+    project.serviceAssignments.push({
+      id: "assignment-unknown",
+      serviceCode: "unknown",
+      label: "Unknown",
+      targetEntityIds: ["room-1.ceiling"],
+      included: true,
+      quantityRuleId: "unknown-rule",
+      presentationMode: "highlight",
+    });
+
+    expect(calculateSupportedOfferLine(project, "assignment-unknown")).toBeNull();
   });
 });

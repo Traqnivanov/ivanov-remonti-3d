@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  FINE_PUTTY_ASSIGNMENT_ID,
   createInitialOfferInteraction,
+  getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
   selectModelEntity,
   selectOfferService,
@@ -8,98 +10,141 @@ import {
 } from "./smart-offer-interaction";
 import {
   calculateFinePuttyQuantity,
+  calculateLaminateFlooringQuantity,
   calculateLineTotalEur,
+  devLaminateFlooringPriceBookItem,
   devPriceBookItem,
 } from "./calculation";
-import { createDefaultProject, getFinePuttyAssignment } from "./domain";
+import {
+  createDefaultProject,
+  getFinePuttyAssignment,
+  getLaminateFlooringAssignment,
+} from "./domain";
+
+const LAMINATE_ASSIGNMENT_ID = "assignment-laminate-flooring-1";
 
 describe("Smart Offer core interaction loop", () => {
-  it("Offer → Model highlights the exact assigned walls", () => {
+  it("Offer → Model highlights the exact Fine Putty walls", () => {
     const project = createDefaultProject();
-    const interaction = selectOfferService();
+    const interaction = selectOfferService(FINE_PUTTY_ASSIGNMENT_ID);
 
-    expect(interaction.selectedService).toBe(true);
+    expect(interaction.selectedServiceId).toBe(FINE_PUTTY_ASSIGNMENT_ID);
     expect(interaction.selectedEntity).toBeNull();
     expect(getHighlightedEntityIds(project, interaction)).toEqual(
       getFinePuttyAssignment(project).targetEntityIds,
     );
   });
 
-  it("Model → Offer keeps Fine Putty selected for a linked wall", () => {
+  it("Offer → Model highlights only the floor for Laminate", () => {
     const project = createDefaultProject();
-    const interaction = selectModelEntity(project, "room-1.wall-left");
+    const interaction = selectOfferService(LAMINATE_ASSIGNMENT_ID);
 
-    expect(interaction.selectedService).toBe(true);
-    expect(interaction.selectedEntity).toBe("room-1.wall-left");
-    expect(getHighlightedEntityIds(project, interaction)).toEqual([
-      "room-1.wall-left",
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      LAMINATE_ASSIGNMENT_ID,
     ]);
-  });
-
-  it("does not claim Fine Putty is linked to unrelated geometry", () => {
-    const project = createDefaultProject();
-    const interaction = selectModelEntity(project, "room-1.floor");
-
-    expect(interaction.selectedService).toBe(false);
-    expect(interaction.selectedEntity).toBe("room-1.floor");
     expect(getHighlightedEntityIds(project, interaction)).toEqual([
       "room-1.floor",
     ]);
   });
 
+  it("Model → Offer resolves Fine Putty for a linked wall", () => {
+    const project = createDefaultProject();
+    const interaction = selectModelEntity(project, "room-1.wall-left");
+
+    expect(interaction.selectedServiceId).toBe(FINE_PUTTY_ASSIGNMENT_ID);
+    expect(interaction.selectedEntity).toBe("room-1.wall-left");
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      FINE_PUTTY_ASSIGNMENT_ID,
+    ]);
+  });
+
+  it("Model → Offer resolves Laminate for the floor", () => {
+    const project = createDefaultProject();
+    const interaction = selectModelEntity(project, "room-1.floor");
+
+    expect(interaction.selectedServiceId).toBe(LAMINATE_ASSIGNMENT_ID);
+    expect(interaction.selectedEntity).toBe("room-1.floor");
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      LAMINATE_ASSIGNMENT_ID,
+    ]);
+  });
+
+  it("does not invent a linked offer position for an unrelated surface", () => {
+    const project = createDefaultProject();
+    const interaction = selectModelEntity(project, "room-1.ceiling");
+
+    expect(interaction.selectedServiceId).toBeNull();
+    expect(interaction.selectedEntity).toBe("room-1.ceiling");
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([]);
+    expect(getHighlightedEntityIds(project, interaction)).toEqual([
+      "room-1.ceiling",
+    ]);
+  });
+
+  it("does not silently choose one service if multiple assignments target the same entity", () => {
+    const project = createDefaultProject();
+    project.serviceAssignments.push({
+      id: "assignment-second-floor-service",
+      serviceCode: "second-floor-service",
+      label: "Second floor service",
+      targetEntityIds: ["room-1.floor"],
+      included: true,
+      quantityRuleId: "test-rule",
+      presentationMode: "highlight",
+    });
+
+    const interaction = selectModelEntity(project, "room-1.floor");
+
+    expect(interaction.selectedServiceId).toBeNull();
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      LAMINATE_ASSIGNMENT_ID,
+      "assignment-second-floor-service",
+    ]);
+  });
+
   it("exits focus mode without mutating project quantity or price", () => {
     const project = createDefaultProject();
-    const beforeQuantity = calculateFinePuttyQuantity(project);
-    const beforeTotal = calculateLineTotalEur(beforeQuantity, devPriceBookItem);
+    const fineQuantity = calculateFinePuttyQuantity(project);
+    const fineTotal = calculateLineTotalEur(fineQuantity, devPriceBookItem);
+    const floorQuantity = calculateLaminateFlooringQuantity(project);
+    const floorTotal = calculateLineTotalEur(
+      floorQuantity,
+      devLaminateFlooringPriceBookItem,
+    );
 
     const interaction = showWholeResult();
 
-    const afterQuantity = calculateFinePuttyQuantity(project);
-    const afterTotal = calculateLineTotalEur(afterQuantity, devPriceBookItem);
-
     expect(interaction).toEqual({
-      selectedService: false,
+      selectedServiceId: null,
       selectedEntity: null,
     });
     expect(getHighlightedEntityIds(project, interaction)).toEqual([]);
-    expect(afterQuantity).toEqual(beforeQuantity);
-    expect(afterTotal).toBe(beforeTotal);
+    expect(calculateFinePuttyQuantity(project)).toEqual(fineQuantity);
+    expect(calculateLineTotalEur(fineQuantity, devPriceBookItem)).toBe(fineTotal);
+    expect(calculateLaminateFlooringQuantity(project)).toEqual(floorQuantity);
+    expect(
+      calculateLineTotalEur(
+        floorQuantity,
+        devLaminateFlooringPriceBookItem,
+      ),
+    ).toBe(floorTotal);
   });
 
   it("starts with Fine Putty focused without changing project data", () => {
     const project = createDefaultProject();
-    const beforeTargets = [...getFinePuttyAssignment(project).targetEntityIds];
+    const fineBefore = [...getFinePuttyAssignment(project).targetEntityIds];
+    const floorBefore = [...getLaminateFlooringAssignment(project).targetEntityIds];
 
     const interaction = createInitialOfferInteraction();
 
     expect(interaction).toEqual({
-      selectedService: true,
+      selectedServiceId: FINE_PUTTY_ASSIGNMENT_ID,
       selectedEntity: null,
     });
-    expect(getHighlightedEntityIds(project, interaction)).toEqual(beforeTargets);
-    expect(getFinePuttyAssignment(project).targetEntityIds).toEqual(beforeTargets);
-  });
-
-  it("keeps quantity and price invariant across presentation-only selections", () => {
-    const project = createDefaultProject();
-    const quantity = calculateFinePuttyQuantity(project);
-    const total = calculateLineTotalEur(quantity, devPriceBookItem);
-
-    const interactions = [
-      selectOfferService(),
-      selectModelEntity(project, "room-1.wall-front"),
-      selectModelEntity(project, "room-1.floor"),
-      showWholeResult(),
-    ];
-
-    for (const interaction of interactions) {
-      getHighlightedEntityIds(project, interaction);
-
-      const currentQuantity = calculateFinePuttyQuantity(project);
-      const currentTotal = calculateLineTotalEur(currentQuantity, devPriceBookItem);
-
-      expect(currentQuantity).toEqual(quantity);
-      expect(currentTotal).toBe(total);
-    }
+    expect(getHighlightedEntityIds(project, interaction)).toEqual(fineBefore);
+    expect(getFinePuttyAssignment(project).targetEntityIds).toEqual(fineBefore);
+    expect(getLaminateFlooringAssignment(project).targetEntityIds).toEqual(
+      floorBefore,
+    );
   });
 });

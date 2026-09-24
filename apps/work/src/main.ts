@@ -13,15 +13,17 @@ import {
   type ProjectSession,
 } from "./project-session";
 import {
-  calculateFinePuttyQuantity,
-  calculateLineTotalEur,
-  devPriceBookItem,
+  calculateSupportedOfferLine,
+  calculateSupportedOfferLines,
+  type OfferLineCalculation,
 } from "./calculation";
 import { RoomViewer } from "./viewer";
 import { renderM2Schema } from "./m2-schema";
 import { getModeCapabilities, type AppEntry } from "./capabilities";
 import {
+  FINE_PUTTY_ASSIGNMENT_ID,
   createInitialOfferInteraction,
+  getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
   selectModelEntity,
   selectOfferService,
@@ -294,23 +296,17 @@ app.innerHTML = `
       <aside class="panel right">
         <h2>Smart Offer</h2>
 
-        <button id="serviceRow" class="offer-row selected">
-          <strong>Фина шпакловка <span class="info-glyph" aria-label="Информация">i</span></strong>
-          <div class="offer-meta">
-            <span id="quantityText">—</span>
-            <span id="lineTotalText" class="offer-total">—</span>
-          </div>
-        </button>
+        <div id="offerRows"></div>
 
-        <section class="section">
+        <section class="section" id="offerDetailsSection">
           <div class="section-title">Оферта</div>
           <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
           <div class="kpi"><span id="unitPriceLabel">Ед. цена · DEV</span><strong id="unitPriceKpi">—</strong></div>
           <div class="kpi"><span id="totalLabel">Сума · DEV</span><strong id="totalKpi">—</strong></div>
         </section>
 
-        <div class="info-card">
-          <h3><span class="info-glyph" aria-hidden="true">i</span> Фина шпакловка</h3>
+        <div class="info-card" id="offerInfoCard">
+          <h3><span class="info-glyph" aria-hidden="true">i</span> <span id="infoTitle"></span></h3>
           <b>Какво е</b><p id="infoWhat"></p>
           <b>Защо се прави</b><p id="infoWhy"></p>
           <b>Какво получавате</b><p id="infoResult"></p>
@@ -389,8 +385,16 @@ function wireControls(): void {
     });
   });
 
-  mustGet("serviceRow").addEventListener("click", () => {
-    offerInteraction = selectOfferService();
+  mustGet("offerRows").addEventListener("click", (event) => {
+    const target = event.target;
+    const button =
+      target instanceof Element
+        ? (target.closest("button[data-service-id]") as HTMLButtonElement | null)
+        : null;
+    const serviceId = button?.dataset.serviceId;
+    if (!serviceId) return;
+
+    offerInteraction = selectOfferService(serviceId);
     syncViewerFocus();
     renderOffer();
   });
@@ -608,7 +612,7 @@ function renderWallTargets(): void {
         markCurrentProjectDirty();
       }
 
-      offerInteraction = selectOfferService();
+      offerInteraction = selectOfferService(FINE_PUTTY_ASSIGNMENT_ID);
       syncViewerFocus();
       renderOffer();
     });
@@ -632,35 +636,128 @@ function syncViewerFocus(): void {
     chip.innerHTML = `<span class="focus-chip">Избрано: ${escapeHtml(
       label ?? offerInteraction.selectedEntity,
     )}</span>`;
-  } else if (offerInteraction.selectedService) {
-    chip.innerHTML = '<span class="focus-chip">Фокус: Фина шпакловка</span>';
-  } else {
-    chip.replaceChildren();
+    return;
   }
+
+  if (offerInteraction.selectedServiceId) {
+    const assignment = project.serviceAssignments.find(
+      (item) => item.id === offerInteraction.selectedServiceId,
+    );
+    if (assignment) {
+      chip.innerHTML = `<span class="focus-chip">Фокус: ${escapeHtml(
+        assignment.label,
+      )}</span>`;
+      return;
+    }
+  }
+
+  chip.replaceChildren();
 }
 
 function renderOffer(): void {
-  const quantity = calculateFinePuttyQuantity(project);
-  const total = calculateLineTotalEur(quantity, devPriceBookItem);
+  const lines = calculateSupportedOfferLines(project);
+  const focusedIds = new Set(
+    getFocusedServiceAssignmentIds(project, offerInteraction),
+  );
+  const rowHost = mustGet("offerRows");
+  rowHost.replaceChildren();
 
-  mustGet("quantityText").textContent = `${formatNumber(quantity.value)} m²`;
-  mustGet("lineTotalText").textContent = previewMode
-    ? `${formatMoney(total)} € · ТЕСТОВА ЦЕНА`
-    : `${formatMoney(total)} € DEV`;
-  mustGet("quantityKpi").textContent = `${formatNumber(quantity.value)} m²`;
-  mustGet("unitPriceLabel").textContent = previewMode ? "Ед. цена · тестова" : "Ед. цена · DEV";
-  mustGet("totalLabel").textContent = previewMode ? "Сума · тестова" : "Сума · DEV";
-  mustGet("unitPriceKpi").textContent = `${formatMoney(devPriceBookItem.unitPriceEur)} €/m²`;
-  mustGet("totalKpi").textContent = `${formatMoney(total)} €`;
+  lines.forEach((line) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "offer-row";
+    button.dataset.serviceId = line.assignmentId;
+    button.classList.toggle("selected", focusedIds.has(line.assignmentId));
 
-  const row = mustGet("serviceRow");
-  row.classList.toggle("selected", offerInteraction.selectedService);
+    if (line.assignmentId === FINE_PUTTY_ASSIGNMENT_ID) {
+      button.id = "serviceRow";
+    } else if (line.assignmentId === "assignment-laminate-flooring-1") {
+      button.id = "serviceRowLaminate";
+    }
 
-  const info = getFinePuttyAssignment(project).clientInfo;
-  mustGet("infoWhat").textContent = info.what;
-  mustGet("infoWhy").textContent = info.why;
-  mustGet("infoResult").textContent = info.result;
-  mustGet("infoIncludes").textContent = info.includes;
+    const title = document.createElement("strong");
+    title.append(document.createTextNode(`${line.label} `));
+    const infoGlyph = document.createElement("span");
+    infoGlyph.className = "info-glyph";
+    infoGlyph.setAttribute("aria-label", "Информация");
+    infoGlyph.textContent = "i";
+    title.append(infoGlyph);
+
+    const meta = document.createElement("div");
+    meta.className = "offer-meta";
+
+    const quantity = document.createElement("span");
+    quantity.textContent = `${formatNumber(line.quantity.value)} m²`;
+    const total = document.createElement("span");
+    total.className = "offer-total";
+    total.textContent = previewMode
+      ? `${formatMoney(line.totalEur)} € · ТЕСТОВА ЦЕНА`
+      : `${formatMoney(line.totalEur)} € DEV`;
+
+    if (line.assignmentId === FINE_PUTTY_ASSIGNMENT_ID) {
+      quantity.id = "quantityText";
+      total.id = "lineTotalText";
+    } else if (line.assignmentId === "assignment-laminate-flooring-1") {
+      quantity.id = "quantityTextLaminate";
+      total.id = "lineTotalTextLaminate";
+    }
+
+    meta.append(quantity, total);
+    button.append(title, meta);
+    rowHost.append(button);
+  });
+
+  const detailLine = resolveOfferDetailLine(lines);
+  const details = mustGet<HTMLElement>("offerDetailsSection");
+  const infoCard = mustGet<HTMLElement>("offerInfoCard");
+
+  if (!detailLine) {
+    details.hidden = true;
+    infoCard.hidden = true;
+    return;
+  }
+
+  details.hidden = false;
+  infoCard.hidden = false;
+
+  mustGet("quantityKpi").textContent =
+    `${formatNumber(detailLine.quantity.value)} m²`;
+  mustGet("unitPriceLabel").textContent = previewMode
+    ? "Ед. цена · тестова"
+    : "Ед. цена · DEV";
+  mustGet("totalLabel").textContent = previewMode
+    ? "Сума · тестова"
+    : "Сума · DEV";
+  mustGet("unitPriceKpi").textContent =
+    `${formatMoney(detailLine.price.unitPriceEur)} €/m²`;
+  mustGet("totalKpi").textContent = `${formatMoney(detailLine.totalEur)} €`;
+
+  mustGet("infoTitle").textContent = detailLine.label;
+  mustGet("infoWhat").textContent = detailLine.clientInfo.what;
+  mustGet("infoWhy").textContent = detailLine.clientInfo.why;
+  mustGet("infoResult").textContent = detailLine.clientInfo.result;
+  mustGet("infoIncludes").textContent = detailLine.clientInfo.includes;
+}
+
+function resolveOfferDetailLine(
+  lines: OfferLineCalculation[],
+): OfferLineCalculation | null {
+  if (offerInteraction.selectedServiceId) {
+    return (
+      calculateSupportedOfferLine(
+        project,
+        offerInteraction.selectedServiceId,
+      ) ?? null
+    );
+  }
+
+  if (offerInteraction.selectedEntity) {
+    const focusedIds = getFocusedServiceAssignmentIds(project, offerInteraction);
+    if (focusedIds.length !== 1) return null;
+    return calculateSupportedOfferLine(project, focusedIds[0]!) ?? null;
+  }
+
+  return lines[0] ?? null;
 }
 
 function currentCapabilities() {

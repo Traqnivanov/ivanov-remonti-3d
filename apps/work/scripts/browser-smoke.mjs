@@ -738,6 +738,22 @@ async function runWorkSmoke() {
     await assertEval(session, 'Boolean(document.querySelector("#projectBar")) && getComputedStyle(document.querySelector("#projectBar")).display !== "none"', "Work: project bar should be visible");
     await assertEval(session, 'document.querySelector("#projectBarStatus").textContent.includes("Запазено") && document.querySelector("#projectBarStatus").textContent.includes("v1")', "Work: clean project status is missing");
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
+    await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#quantityTextLaminate").textContent.includes("m²")', "Work P3.1c: Laminate offer row is missing");
+
+    const finePuttyFocusedView = await capturePage(session);
+    await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
+    await delay(120);
+    await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && !document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Laminate row did not become the focused offer position");
+    await assertEval(session, 'document.querySelector("#selectionChip").textContent.includes("Ламинат")', "Work P3.1c: Laminate focus is not visible");
+    await assertEval(session, 'document.querySelector("#quantityKpi").textContent.includes("20,16") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Work P3.1c: Laminate quantity/Info is not synchronized");
+    const laminateFocusedView = await capturePage(session);
+    assertScreenshotChanged(
+      finePuttyFocusedView,
+      laminateFocusedView,
+      "Work P3.1c: Offer → Model Laminate focus did not change the model presentation",
+    );
+    await evaluate(session, 'document.querySelector("#serviceRow").click()');
+    await assertEval(session, 'document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Fine Putty focus could not be restored");
 
     const beforeViewerInput = await capturePage(session);
     await smokeViewerInput(session);
@@ -855,6 +871,11 @@ async function runMobileWorkSmoke() {
   try {
     await authorizeQaWork(session);
     await assertMobileLayout(session, "Work");
+    await assertEval(
+      session,
+      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#serviceRowLaminate").getBoundingClientRect().height >= 44',
+      "Mobile Work P3.1c: Laminate row is missing or too small for touch",
+    );
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
 
     await renderProjectBarStateQa(session, "dirty");
@@ -932,6 +953,11 @@ async function runMobileClientSmoke() {
     await waitForApp(session, baseUrl + "/?preview=1");
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Mobile Client: preview mode is not active");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Mobile Client: authoring panel is visible");
+    await assertEval(
+      session,
+      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#serviceRowLaminate").getBoundingClientRect().height >= 44',
+      "Mobile Client P3.1c: Laminate row is missing or too small for touch",
+    );
     await assertMobileLayout(session, "Client");
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-client.png");
     await smokeViewerTouch(session);
@@ -952,6 +978,10 @@ async function runDirectClientSmoke() {
     await assertEval(session, '!document.querySelector("#projectBar")', "Client: Work project bar is present");
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display === "none"', "Client: owner-only return control is visible");
     await assertEval(session, 'document.querySelector("#lineTotalText").textContent.includes("ТЕСТОВА ЦЕНА")', "Client: prototype price is not clearly marked as test price");
+    await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate"))', "Client P3.1c: Laminate offer row is missing");
+    await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
+    await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Client P3.1c: Laminate interaction is not available in read-only Client view");
+    await evaluate(session, 'document.querySelector("#serviceRow").click()');
 
     const originalWidth = await evaluate(session, 'document.querySelector("#widthInput").value');
     await evaluate(session, '(() => { const input = document.querySelector("#widthInput"); input.value = "99"; input.dispatchEvent(new Event("change", { bubbles: true })); })()');

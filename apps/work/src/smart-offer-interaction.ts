@@ -1,20 +1,24 @@
-import { getFinePuttyAssignment, type ProjectState, type SurfaceId } from "./domain";
+import type { ProjectState, SurfaceId } from "./domain";
+
+export const FINE_PUTTY_ASSIGNMENT_ID = "assignment-fine-putty-1";
 
 export type OfferInteractionState = {
-  selectedService: boolean;
+  selectedServiceId: string | null;
   selectedEntity: SurfaceId | null;
 };
 
 export function createInitialOfferInteraction(): OfferInteractionState {
   return {
-    selectedService: true,
+    selectedServiceId: FINE_PUTTY_ASSIGNMENT_ID,
     selectedEntity: null,
   };
 }
 
-export function selectOfferService(): OfferInteractionState {
+export function selectOfferService(
+  serviceAssignmentId: string,
+): OfferInteractionState {
   return {
-    selectedService: true,
+    selectedServiceId: serviceAssignmentId,
     selectedEntity: null,
   };
 }
@@ -23,21 +27,51 @@ export function selectModelEntity(
   project: ProjectState,
   id: SurfaceId,
 ): OfferInteractionState {
-  const linked = getFinePuttyAssignment(project).targetEntityIds.some(
-    (targetId) => targetId === id,
+  const linkedAssignments = project.serviceAssignments.filter(
+    (assignment) =>
+      assignment.included && assignment.targetEntityIds.includes(id),
   );
 
   return {
-    selectedService: linked,
+    selectedServiceId:
+      linkedAssignments.length === 1 ? linkedAssignments[0]!.id : null,
     selectedEntity: id,
   };
 }
 
 export function showWholeResult(): OfferInteractionState {
   return {
-    selectedService: false,
+    selectedServiceId: null,
     selectedEntity: null,
   };
+}
+
+export function getFocusedServiceAssignmentIds(
+  project: ProjectState,
+  interaction: OfferInteractionState,
+): string[] {
+  if (interaction.selectedEntity) {
+    return project.serviceAssignments
+      .filter(
+        (assignment) =>
+          assignment.included &&
+          assignment.targetEntityIds.includes(interaction.selectedEntity!),
+      )
+      .map((assignment) => assignment.id);
+  }
+
+  if (
+    interaction.selectedServiceId &&
+    project.serviceAssignments.some(
+      (assignment) =>
+        assignment.included &&
+        assignment.id === interaction.selectedServiceId,
+    )
+  ) {
+    return [interaction.selectedServiceId];
+  }
+
+  return [];
 }
 
 export function getHighlightedEntityIds(
@@ -48,8 +82,12 @@ export function getHighlightedEntityIds(
     return [interaction.selectedEntity];
   }
 
-  if (interaction.selectedService) {
-    return [...getFinePuttyAssignment(project).targetEntityIds];
+  if (interaction.selectedServiceId) {
+    const assignment = project.serviceAssignments.find(
+      (item) =>
+        item.included && item.id === interaction.selectedServiceId,
+    );
+    return assignment ? [...assignment.targetEntityIds] : [];
   }
 
   return [];
