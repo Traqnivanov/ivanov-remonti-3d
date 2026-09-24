@@ -1,10 +1,13 @@
 import {
   getFinePuttyAssignment,
+  isWallId,
   surfaceIds,
+  type Opening,
   type ProjectState,
   type ServiceAssignment,
   type Surface,
   type SurfaceId,
+  type WallId,
 } from "./domain";
 
 export const CURRENT_PROJECT_SCHEMA_VERSION = 1 as const;
@@ -13,6 +16,16 @@ export type PersistedSurfaceV1 = {
   id: string;
   kind: "wall" | "floor" | "ceiling";
   label: string;
+};
+
+export type PersistedOpeningV1 = {
+  id: string;
+  kind: "door" | "window";
+  hostSurfaceId: string;
+  widthM: number;
+  heightM: number;
+  offsetM: number;
+  sillM?: number;
 };
 
 export type PersistedRoomV1 = {
@@ -24,7 +37,7 @@ export type PersistedRoomV1 = {
     heightM: number;
   };
   surfaces: PersistedSurfaceV1[];
-  openings: unknown[];
+  openings: PersistedOpeningV1[];
   objects: unknown[];
   materials: unknown[];
 };
@@ -82,7 +95,7 @@ export function serializeProjectState(project: ProjectState): PersistedProjectV1
           heightM: project.room.heightM,
         },
         surfaces: project.room.surfaces.map((surface) => ({ ...surface })),
-        openings: [],
+        openings: project.room.openings.map((opening) => ({ ...opening })),
         objects: [],
         materials: [],
       },
@@ -135,8 +148,8 @@ export function deserializeProjectState(raw: unknown): ProjectState {
   }
 
   if (room.id !== "room-1") unsupported("Current Work runtime expects room-1.");
-  if (room.openings.length || room.objects.length || room.materials.length) {
-    unsupported("Current Work runtime does not yet support persisted openings, objects or materials.");
+  if (room.objects.length || room.materials.length) {
+    unsupported("Current Work runtime does not yet support persisted objects or materials.");
   }
 
   const serviceAssignments = persisted.serviceAssignments.map(
@@ -154,6 +167,7 @@ export function deserializeProjectState(raw: unknown): ProjectState {
       lengthM: room.geometry.lengthM,
       heightM: room.geometry.heightM,
       surfaces: toRuntimeSurfaces(room.surfaces),
+      openings: toRuntimeOpenings(room.openings),
     },
     serviceAssignments,
   };
@@ -188,26 +202,36 @@ function validateV1(raw: Record<string, unknown>): PersistedProjectV1 {
 
 function validateRoom(raw: unknown, index: number): PersistedRoomV1 {
   const room = expectRecord(raw, `rooms[${index}]`);
-  const geometry = expectRecord(room.geometry, `rooms[${index}].geometry`);
+  const geometryRaw = expectRecord(room.geometry, `rooms[${index}].geometry`);
+  const geometry = {
+    widthM: expectPositiveNumber(
+      geometryRaw.widthM,
+      `rooms[${index}].geometry.widthM`,
+    ),
+    lengthM: expectPositiveNumber(
+      geometryRaw.lengthM,
+      `rooms[${index}].geometry.lengthM`,
+    ),
+    heightM: expectPositiveNumber(
+      geometryRaw.heightM,
+      `rooms[${index}].geometry.heightM`,
+    ),
+  };
+  const surfaces = expectArray(room.surfaces, `rooms[${index}].surfaces`).map(
+    (surface, surfaceIndex) => validateSurface(surface, index, surfaceIndex),
+  );
+  const openings = expectArray(room.openings, `rooms[${index}].openings`).map(
+    (opening, openingIndex) => validateOpening(opening, index, openingIndex),
+  );
+
+  validateOpeningPlacement(openings, surfaces, geometry, index);
 
   return {
     id: expectNonEmptyString(room.id, `rooms[${index}].id`),
     name: expectNonEmptyString(room.name, `rooms[${index}].name`),
-    geometry: {
-      widthM: expectPositiveNumber(geometry.widthM, `rooms[${index}].geometry.widthM`),
-      lengthM: expectPositiveNumber(
-        geometry.lengthM,
-        `rooms[${index}].geometry.lengthM`,
-      ),
-      heightM: expectPositiveNumber(
-        geometry.heightM,
-        `rooms[${index}].geometry.heightM`,
-      ),
-    },
-    surfaces: expectArray(room.surfaces, `rooms[${index}].surfaces`).map(
-      (surface, surfaceIndex) => validateSurface(surface, index, surfaceIndex),
-    ),
-    openings: [...expectArray(room.openings, `rooms[${index}].openings`)],
+    geometry,
+    surfaces,
+    openings,
     objects: [...expectArray(room.objects, `rooms[${index}].objects`)],
     materials: [...expectArray(room.materials, `rooms[${index}].materials`)],
   };
@@ -226,6 +250,122 @@ function validateSurface(raw: unknown, roomIndex: number, surfaceIndex: number):
     kind,
     label: expectNonEmptyString(surface.label, `${path}.label`),
   };
+}
+
+function validateOpening(
+  raw: unknown,
+  roomIndex: number,
+  openingIndex: number,
+): PersistedOpeningV1 {
+  const path = `rooms[${roomIndex}].openings[${openingIndex}]`;
+  const opening = expectRecord(raw, path);
+  const kind = expectNonEmptyString(opening.kind, `${path}.kind`);
+  if (kind !== "door" && kind !== "window") {
+    invalid(`${path}.kind must be door or window.`);
+  }
+
+  const sillM =
+    opening.sillM === undefined
+      ? undefined
+      : expectNonNegativeNumber(opening.sillM, `${path}.sillM`);
+
+  return {
+    id: expectNonEmptyString(opening.id, `${path}.id`),
+    kind,
+    hostSurfaceId: expectNonEmptyString(
+      opening.hostSurfaceId,
+      `${path}.hostSurfaceId`,
+    ),
+    widthM: expectPositiveNumber(opening.widthM, `${path}.widthM`),
+    heightM: expectPositiveNumber(opening.heightM, `${path}.heightM`),
+    offsetM: expectNonNegativeNumber(opening.offsetM, `${path}.offsetM`),
+    ...(sillM === undefined ? {} : { sillM }),
+  };
+}
+
+function validateOpeningPlacement(
+  openings: PersistedOpeningV1[],
+  surfaces: PersistedSurfaceV1[],
+  geometry: PersistedRoomV1["geometry"],
+  roomIndex: number,
+): void {
+  const ids = new Set<string>();
+  const surfaceById = new Map(surfaces.map((surface) => [surface.id, surface]));
+  const epsilon = 1e-9;
+
+  for (const opening of openings) {
+    if (ids.has(opening.id)) {
+      invalid(`rooms[${roomIndex}].openings contains duplicate id ${opening.id}.`);
+    }
+    ids.add(opening.id);
+
+    const host = surfaceById.get(opening.hostSurfaceId);
+    if (!host || host.kind !== "wall") {
+      invalid(
+        `Opening ${opening.id} must reference an existing wall hostSurfaceId.`,
+      );
+    }
+
+    const wallSpan = getPersistedWallSpanM(opening.hostSurfaceId, geometry);
+    if (wallSpan === null) {
+      invalid(
+        `Opening ${opening.id} references an unsupported wall orientation.`,
+      );
+    }
+
+    if (opening.offsetM + opening.widthM > wallSpan + epsilon) {
+      invalid(`Opening ${opening.id} exceeds its host wall width.`);
+    }
+
+    const sillM = opening.sillM ?? 0;
+    if (sillM + opening.heightM > geometry.heightM + epsilon) {
+      invalid(`Opening ${opening.id} exceeds the room height.`);
+    }
+  }
+
+  for (let i = 0; i < openings.length; i += 1) {
+    for (let j = i + 1; j < openings.length; j += 1) {
+      const a = openings[i]!;
+      const b = openings[j]!;
+      if (a.hostSurfaceId !== b.hostSurfaceId) continue;
+
+      const horizontalOverlap =
+        a.offsetM < b.offsetM + b.widthM - epsilon &&
+        b.offsetM < a.offsetM + a.widthM - epsilon;
+      const aSill = a.sillM ?? 0;
+      const bSill = b.sillM ?? 0;
+      const verticalOverlap =
+        aSill < bSill + b.heightM - epsilon &&
+        bSill < aSill + a.heightM - epsilon;
+
+      if (horizontalOverlap && verticalOverlap) {
+        invalid(
+          `Openings ${a.id} and ${b.id} overlap on ${a.hostSurfaceId}.`,
+        );
+      }
+    }
+  }
+}
+
+function getPersistedWallSpanM(
+  hostSurfaceId: string,
+  geometry: PersistedRoomV1["geometry"],
+): number | null {
+  if (
+    hostSurfaceId.endsWith(".wall-front") ||
+    hostSurfaceId.endsWith(".wall-back")
+  ) {
+    return geometry.widthM;
+  }
+
+  if (
+    hostSurfaceId.endsWith(".wall-left") ||
+    hostSurfaceId.endsWith(".wall-right")
+  ) {
+    return geometry.lengthM;
+  }
+
+  return null;
 }
 
 function validateAssignment(raw: unknown, index: number): PersistedServiceAssignmentV1 {
@@ -296,6 +436,24 @@ function toRuntimeSurfaces(surfaces: PersistedSurfaceV1[]): Surface[] {
   });
 }
 
+function toRuntimeOpenings(openings: PersistedOpeningV1[]): Opening[] {
+  return openings.map((opening) => {
+    if (!isWallId(opening.hostSurfaceId as SurfaceId)) {
+      unsupported(`Unsupported runtime opening host: ${opening.hostSurfaceId}.`);
+    }
+
+    return {
+      id: opening.id,
+      kind: opening.kind,
+      hostSurfaceId: opening.hostSurfaceId as WallId,
+      widthM: opening.widthM,
+      heightM: opening.heightM,
+      offsetM: opening.offsetM,
+      ...(opening.sillM === undefined ? {} : { sillM: opening.sillM }),
+    };
+  });
+}
+
 function toRuntimeServiceAssignment(
   assignment: PersistedServiceAssignmentV1,
 ): ServiceAssignment {
@@ -355,6 +513,13 @@ function expectNonEmptyString(value: unknown, path: string): string {
 function expectPositiveNumber(value: unknown, path: string): number {
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
     invalid(`${path} must be a positive finite number.`);
+  }
+  return value;
+}
+
+function expectNonNegativeNumber(value: unknown, path: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    invalid(`${path} must be a non-negative finite number.`);
   }
   return value;
 }

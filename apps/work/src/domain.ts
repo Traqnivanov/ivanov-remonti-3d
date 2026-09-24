@@ -13,6 +13,16 @@ export type Surface = {
   label: string;
 };
 
+export type Opening = {
+  id: string;
+  kind: "door" | "window";
+  hostSurfaceId: WallId;
+  widthM: number;
+  heightM: number;
+  offsetM: number;
+  sillM?: number;
+};
+
 export type Room = {
   id: "room-1";
   name: string;
@@ -20,6 +30,7 @@ export type Room = {
   lengthM: number;
   heightM: number;
   surfaces: Surface[];
+  openings: Opening[];
 };
 
 export type ClientInfo = {
@@ -189,6 +200,7 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
         { id: "room-1.floor", kind: "floor", label: "Под" },
         { id: "room-1.ceiling", kind: "ceiling", label: "Таван" },
       ],
+      openings: [],
     },
     serviceAssignments: [
       {

@@ -45,6 +45,45 @@ describe("project persistence boundary", () => {
     expect(restored).toEqual(project);
   });
 
+  it("round-trips canonical door and window openings with stable ids", () => {
+    const project = createDefaultProject("opening-round-trip");
+    project.room.openings = [
+      {
+        id: "room-1.door-1",
+        kind: "door",
+        hostSurfaceId: "room-1.wall-front",
+        widthM: 0.9,
+        heightM: 2.1,
+        offsetM: 0.35,
+      },
+      {
+        id: "room-1.window-1",
+        kind: "window",
+        hostSurfaceId: "room-1.wall-right",
+        widthM: 1.2,
+        heightM: 1.1,
+        offsetM: 1.4,
+        sillM: 0.9,
+      },
+    ];
+
+    const restored = deserializeProjectState(serializeProjectState(project));
+
+    expect(restored.room.openings).toEqual(project.room.openings);
+    expect(restored.room.openings.map((opening) => opening.id)).toEqual([
+      "room-1.door-1",
+      "room-1.window-1",
+    ]);
+  });
+
+  it("keeps old persisted projects with openings: [] valid without injecting openings", () => {
+    const persisted = serializeProjectState(createDefaultProject("old-empty-openings"));
+
+    const restored = deserializeProjectState(persisted);
+
+    expect(restored.room.openings).toEqual([]);
+  });
+
   it("keeps an existing Fine Putty-only persisted v1 project valid without injecting Laminate", () => {
     const persisted = serializeProjectState(createDefaultProject("existing-v1-project"));
     persisted.serviceAssignments = persisted.serviceAssignments.filter(
@@ -125,6 +164,136 @@ describe("project persistence boundary", () => {
     expectPersistenceError(() => parseAndMigrateProjectState(malformed), "INVALID_STATE");
   });
 
+  it("rejects an opening whose host is not an existing wall", () => {
+    const malformed = serializeProjectState(createDefaultProject());
+    malformed.rooms[0]!.openings.push({
+      id: "room-1.window-invalid-host",
+      kind: "window",
+      hostSurfaceId: "room-1.floor",
+      widthM: 1,
+      heightM: 1,
+      offsetM: 0.5,
+      sillM: 0.8,
+    });
+
+    expectPersistenceError(
+      () => parseAndMigrateProjectState(malformed),
+      "INVALID_STATE",
+    );
+  });
+
+  it("rejects an opening that exceeds its host wall horizontally", () => {
+    const malformed = serializeProjectState(createDefaultProject());
+    malformed.rooms[0]!.openings.push({
+      id: "room-1.door-too-wide",
+      kind: "door",
+      hostSurfaceId: "room-1.wall-front",
+      widthM: 1,
+      heightM: 2.1,
+      offsetM: 3.5,
+    });
+
+    expectPersistenceError(
+      () => parseAndMigrateProjectState(malformed),
+      "INVALID_STATE",
+    );
+  });
+
+  it("rejects an opening that exceeds room height", () => {
+    const malformed = serializeProjectState(createDefaultProject());
+    malformed.rooms[0]!.openings.push({
+      id: "room-1.window-too-high",
+      kind: "window",
+      hostSurfaceId: "room-1.wall-back",
+      widthM: 1,
+      heightM: 1.2,
+      offsetM: 0.5,
+      sillM: 1.5,
+    });
+
+    expectPersistenceError(
+      () => parseAndMigrateProjectState(malformed),
+      "INVALID_STATE",
+    );
+  });
+
+  it("rejects duplicate opening ids", () => {
+    const malformed = serializeProjectState(createDefaultProject());
+    const opening = {
+      id: "room-1.window-duplicate",
+      kind: "window" as const,
+      hostSurfaceId: "room-1.wall-back",
+      widthM: 1,
+      heightM: 1,
+      offsetM: 0.4,
+      sillM: 0.8,
+    };
+    malformed.rooms[0]!.openings.push(opening, {
+      ...opening,
+      hostSurfaceId: "room-1.wall-left",
+      offsetM: 1.8,
+    });
+
+    expectPersistenceError(
+      () => parseAndMigrateProjectState(malformed),
+      "INVALID_STATE",
+    );
+  });
+
+  it("rejects overlapping openings on the same wall", () => {
+    const malformed = serializeProjectState(createDefaultProject());
+    malformed.rooms[0]!.openings.push(
+      {
+        id: "room-1.window-overlap-a",
+        kind: "window",
+        hostSurfaceId: "room-1.wall-right",
+        widthM: 1.3,
+        heightM: 1.1,
+        offsetM: 0.6,
+        sillM: 0.8,
+      },
+      {
+        id: "room-1.window-overlap-b",
+        kind: "window",
+        hostSurfaceId: "room-1.wall-right",
+        widthM: 1,
+        heightM: 1,
+        offsetM: 1.2,
+        sillM: 0.9,
+      },
+    );
+
+    expectPersistenceError(
+      () => parseAndMigrateProjectState(malformed),
+      "INVALID_STATE",
+    );
+  });
+
+  it("accepts adjacent non-overlapping openings on the same wall", () => {
+    const persisted = serializeProjectState(createDefaultProject());
+    persisted.rooms[0]!.openings.push(
+      {
+        id: "room-1.door-adjacent",
+        kind: "door",
+        hostSurfaceId: "room-1.wall-front",
+        widthM: 0.9,
+        heightM: 2.1,
+        offsetM: 0.2,
+      },
+      {
+        id: "room-1.window-adjacent",
+        kind: "window",
+        hostSurfaceId: "room-1.wall-front",
+        widthM: 1,
+        heightM: 1,
+        offsetM: 1.1,
+        sillM: 0.9,
+      },
+    );
+
+    expect(() => deserializeProjectState(persisted)).not.toThrow();
+  });
+
   it("accepts a generalized persisted document but refuses runtime shapes not yet supported", () => {
     const generalized = serializeProjectState(createDefaultProject());
     const firstRoom = generalized.rooms[0]!;
@@ -147,12 +316,23 @@ describe("project persistence boundary", () => {
 
   it("returns detached persisted data instead of sharing mutable runtime arrays", () => {
     const project = createDefaultProject();
+    project.room.openings.push({
+      id: "room-1.window-detached",
+      kind: "window",
+      hostSurfaceId: "room-1.wall-left",
+      widthM: 1,
+      heightM: 1,
+      offsetM: 0.8,
+      sillM: 0.9,
+    });
     const persisted = serializeProjectState(project);
 
     persisted.rooms[0]!.surfaces[0]!.label = "Changed only in persisted copy";
+    persisted.rooms[0]!.openings[0]!.widthM = 2;
     persisted.serviceAssignments[0]!.targetEntityIds.length = 0;
 
     expect(project.room.surfaces[0]!.label).toBe("Предна стена");
+    expect(project.room.openings[0]!.widthM).toBe(1);
     expect(getFinePuttyAssignment(project).targetEntityIds).toHaveLength(4);
     expect(getLaminateFlooringAssignment(project).targetEntityIds).toEqual([
       "room-1.floor",
