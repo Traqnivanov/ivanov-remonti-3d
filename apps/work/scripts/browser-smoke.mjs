@@ -219,6 +219,115 @@ async function saveScreenshot(session, path) {
   await writeFile(path, Buffer.from(data, "base64"));
 }
 
+async function openProjectDialogQa(session, { openCreate = false } = {}) {
+  await evaluate(
+    session,
+    `(async () => {
+      const ui = await import("/src/work-project-ui.ts");
+      const projects = [
+        {
+          id: "qa-project-2",
+          title: "Апартамент Иванови",
+          status: "active",
+          schemaVersion: 1,
+          workVersion: 4,
+          updatedAt: "2026-09-24T18:30:00.000Z",
+        },
+        {
+          id: "qa-project-1",
+          title: "Къща — дневна",
+          status: "draft",
+          schemaVersion: 1,
+          workVersion: 2,
+          updatedAt: "2026-09-24T17:15:00.000Z",
+        },
+      ];
+      const repository = {
+        create: async () => { throw new Error("QA create must not execute"); },
+        list: async () => projects,
+        open: async () => { throw new Error("QA open must not execute"); },
+        save: async () => { throw new Error("QA save must not execute"); },
+      };
+      await ui.openProjectsDialog({
+        mount: document.querySelector("#app"),
+        repository,
+        currentSession: null,
+        initialProjects: projects,
+        requireSelection: false,
+        onProjectReady: () => {},
+      });
+    })()`,
+  );
+  await delay(160);
+
+  await assertEval(
+    session,
+    'Boolean(document.querySelector("#projectsDialog")?.open)',
+    "Projects dialog did not open",
+  );
+
+  if (openCreate) {
+    await evaluate(session, 'document.querySelector("#newProjectButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      '!document.querySelector("#newProjectForm").hidden',
+      "New Project form did not open",
+    );
+  }
+}
+
+async function assertProjectDialogLayout(session, label) {
+  const metrics = await evaluate(
+    session,
+    `(() => {
+      const dialog = document.querySelector("#projectsDialog");
+      const card = dialog?.querySelector(".projects-dialog-card");
+      if (!dialog || !card) return null;
+      const d = dialog.getBoundingClientRect();
+      const c = card.getBoundingClientRect();
+      const controls = [...dialog.querySelectorAll("button, input")]
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          return style.display !== "none" && style.visibility !== "hidden";
+        })
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return { left: r.left, right: r.right, height: r.height };
+        });
+      return {
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        dialogLeft: d.left,
+        dialogRight: d.right,
+        dialogWidth: d.width,
+        cardLeft: c.left,
+        cardRight: c.right,
+        controls,
+      };
+    })()`,
+  );
+
+  if (!metrics) throw new Error(label + ": dialog metrics unavailable");
+  if (metrics.scrollWidth > metrics.innerWidth + 1) {
+    throw new Error(label + ": dialog causes horizontal overflow");
+  }
+  if (metrics.dialogLeft < -1 || metrics.dialogRight > metrics.innerWidth + 1) {
+    throw new Error(label + ": dialog is clipped by viewport");
+  }
+  if (metrics.cardLeft < metrics.dialogLeft - 1 || metrics.cardRight > metrics.dialogRight + 1) {
+    throw new Error(label + ": dialog card escapes dialog bounds");
+  }
+  for (const control of metrics.controls) {
+    if (control.left < -1 || control.right > metrics.innerWidth + 1) {
+      throw new Error(label + ": visible dialog control is clipped");
+    }
+    if (metrics.innerWidth <= 360 && control.height < 44) {
+      throw new Error(label + ": mobile dialog control is smaller than 44px");
+    }
+  }
+}
+
 async function assertMobileLayout(session, label) {
   const metrics = await evaluate(
     session,
@@ -525,6 +634,12 @@ async function runWorkSmoke() {
     await authorizeQaWork(session);
     await saveScreenshot(session, "/tmp/vertical-slice-work.png");
 
+    await openProjectDialogQa(session, { openCreate: true });
+    await assertProjectDialogLayout(session, "Desktop Projects dialog");
+    await saveScreenshot(session, "/tmp/p25b-projects-dialog-desktop.png");
+    await evaluate(session, 'document.querySelector("#projectsDialog").close(); document.querySelector("#projectsDialog").remove()');
+    await delay(80);
+
     await assertEval(session, 'document.querySelector("#viewer canvas") instanceof HTMLCanvasElement', "Work: true 3D canvas is missing");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display !== "none"', "Work: authoring panel should be visible");
     await assertEval(session, 'Boolean(document.querySelector("#projectBar")) && getComputedStyle(document.querySelector("#projectBar")).display !== "none"', "Work: project bar should be visible");
@@ -628,6 +743,13 @@ async function runMobileWorkSmoke() {
     await authorizeQaWork(session);
     await assertMobileLayout(session, "Work");
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
+
+    await openProjectDialogQa(session, { openCreate: true });
+    await assertProjectDialogLayout(session, "Mobile Projects dialog");
+    await saveScreenshot(session, "/tmp/p25b-projects-dialog-mobile.png");
+    await evaluate(session, 'document.querySelector("#projectsDialog").close(); document.querySelector("#projectsDialog").remove()');
+    await delay(80);
+
     await smokeViewerTouch(session);
 
     await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
