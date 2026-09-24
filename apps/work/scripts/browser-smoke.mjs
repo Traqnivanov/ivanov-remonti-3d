@@ -334,6 +334,7 @@ async function renderProjectBarStateQa(session, saveState) {
     `(async () => {
       const ui = await import("/src/work-project-ui.ts");
       const domain = await import("/src/domain.ts");
+      const saveState = ${JSON.stringify(saveState)};
       const project = domain.createDefaultProject("qa-p25c-project");
       const base = {
         projectId: project.projectId,
