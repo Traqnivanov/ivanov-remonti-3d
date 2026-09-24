@@ -1,6 +1,12 @@
 import "./styles.css";
 import type { SurfaceId, WallId } from "./domain";
 import { createDefaultProject, wallIds } from "./domain";
+import type { ProjectRepository } from "./project-repository";
+import {
+  createProjectSession,
+  loadProjectStartup,
+  type ProjectSession,
+} from "./project-session";
 import {
   calculateFinePuttyQuantity,
   calculateLineTotalEur,
@@ -17,18 +23,42 @@ import {
   showWholeResult,
 } from "./smart-offer-interaction";
 import { createWorkSupabaseClient } from "./supabase";
+import { createSupabaseProjectReadRepository } from "./supabase-project-repository";
 import { resolveWorkAccess } from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
+import {
+  openProjectsDialog,
+  renderProjectBar,
+  renderProjectGate,
+  renderProjectGateError,
+} from "./work-project-ui";
 
 const directClientEntry =
   new URLSearchParams(window.location.search).get("preview") === "1";
 const DEV_QA_AUTH_KEY = "ivanov-remonti:qa-authorized";
 
+let activeViewer: RoomViewer | null = null;
+
 void bootstrapWorkEntry();
 
 async function bootstrapWorkEntry(): Promise<void> {
-  if (directClientEntry || hasDevQaWorkAccess()) {
-    startSmartOfferApp();
+  if (directClientEntry) {
+    startSmartOfferApp({
+      appEntry: "direct-client",
+      project: createDefaultProject(),
+      session: null,
+      repository: null,
+    });
+    return;
+  }
+
+  if (hasDevQaWorkAccess()) {
+    startSmartOfferApp({
+      appEntry: "work",
+      project: createDefaultProject("qa-prototype-room-1"),
+      session: createDevQaProjectSession(),
+      repository: null,
+    });
     return;
   }
 
@@ -40,7 +70,11 @@ async function bootstrapWorkEntry(): Promise<void> {
     const access = await resolveWorkAccess(client);
 
     if (access.status === "authorized") {
-      startSmartOfferApp();
+      await startAuthorizedWork(
+        app,
+        client,
+        access.workUser.userId,
+      );
       return;
     }
 
@@ -48,10 +82,71 @@ async function bootstrapWorkEntry(): Promise<void> {
       mount: app,
       client,
       access,
-      onAuthorized: startSmartOfferApp,
+      onAuthorized: () => {
+        void bootstrapWorkEntry();
+      },
     });
   } catch (error) {
     renderWorkAuthUnavailable(app, error);
+  }
+}
+
+async function startAuthorizedWork(
+  app: HTMLDivElement,
+  client: ReturnType<typeof createWorkSupabaseClient>,
+  ownerUserId: string,
+): Promise<void> {
+  const repository = createSupabaseProjectReadRepository(
+    client,
+    ownerUserId,
+  );
+
+  renderProjectGate(app);
+
+  try {
+    const startup = await loadProjectStartup(repository);
+
+    if (startup.kind === "ready") {
+      startSmartOfferApp({
+        appEntry: "work",
+        project: startup.session.project,
+        session: startup.session,
+        repository,
+      });
+      return;
+    }
+
+    renderProjectGate(
+      app,
+      startup.kind === "new-project"
+        ? "Създайте първия Work проект."
+        : "Изберете Work проект.",
+    );
+
+    await openProjectsDialog({
+      mount: app,
+      repository,
+      currentSession: null,
+      initialProjects:
+        startup.kind === "choose-project"
+          ? startup.projects
+          : [],
+      startInCreate: startup.kind === "new-project",
+      requireSelection: true,
+      onProjectReady: (session) => {
+        startSmartOfferApp({
+          appEntry: "work",
+          project: session.project,
+          session,
+          repository,
+        });
+      },
+    });
+  } catch (error) {
+    console.error("Work project bootstrap failed", error);
+    renderProjectGateError(app, () => {
+      void startAuthorizedWork(app, client, ownerUserId);
+    });
   }
 }
 
@@ -62,10 +157,40 @@ function hasDevQaWorkAccess(): boolean {
   );
 }
 
-function startSmartOfferApp(): void {
-const project = createDefaultProject();
-const appEntry: AppEntry = directClientEntry ? "direct-client" : "work";
-let previewMode = directClientEntry;
+function createDevQaProjectSession(): ProjectSession {
+  const project = createDefaultProject("qa-prototype-room-1");
+
+  return createProjectSession({
+    id: project.projectId,
+    title: "QA прототип",
+    status: "draft",
+    schemaVersion: 1,
+    workVersion: 1,
+    updatedAt: "2026-09-24T00:00:00.000Z",
+    ownerUserId: "qa-owner",
+    createdAt: "2026-09-24T00:00:00.000Z",
+    project,
+  });
+}
+
+type StartSmartOfferAppOptions = {
+  appEntry: AppEntry;
+  project: ReturnType<typeof createDefaultProject>;
+  session: ProjectSession | null;
+  repository: ProjectRepository | null;
+};
+
+function startSmartOfferApp(
+  options: StartSmartOfferAppOptions,
+): void {
+activeViewer?.dispose();
+activeViewer = null;
+
+const project = options.project;
+const appEntry = options.appEntry;
+const projectSession = options.session;
+const projectRepository = options.repository;
+let previewMode = appEntry === "direct-client";
 let offerInteraction = createInitialOfferInteraction();
 let autoCutaway = true;
 
@@ -85,6 +210,24 @@ app.innerHTML = `
       </div>
       <button id="exitPreviewBtn" class="preview-exit">Назад към Work</button>
     </header>
+
+    ${
+      appEntry === "work" && projectSession
+        ? `
+    <div class="project-bar work-only" id="projectBar">
+      <div class="project-bar-current">
+        <span class="project-bar-label">Текущ проект</span>
+        <strong id="projectBarTitle"></strong>
+        <span id="projectBarStatus" class="project-bar-status" aria-live="polite"></span>
+      </div>
+      <div class="project-bar-actions">
+        <button id="projectsButton" type="button">Проекти</button>
+        <button id="saveProjectButton" class="primary" type="button">Запази</button>
+      </div>
+    </div>
+        `
+        : ""
+    }
 
     <main class="workspace">
       <aside class="panel left">
@@ -180,6 +323,31 @@ const viewer = new RoomViewer({
     renderOffer();
   },
 });
+activeViewer = viewer;
+
+if (appEntry === "work" && projectSession) {
+  renderProjectBar(app, projectSession, {
+    projectsEnabled: projectRepository !== null,
+    onProjects: () => {
+      if (!projectRepository) return;
+
+      void openProjectsDialog({
+        mount: app,
+        repository: projectRepository,
+        currentSession: projectSession,
+        requireSelection: false,
+        onProjectReady: (nextSession) => {
+          startSmartOfferApp({
+            appEntry: "work",
+            project: nextSession.project,
+            session: nextSession,
+            repository: projectRepository,
+          });
+        },
+      });
+    },
+  });
+}
 
 const widthInput = mustGet<HTMLInputElement>("widthInput");
 const lengthInput = mustGet<HTMLInputElement>("lengthInput");
