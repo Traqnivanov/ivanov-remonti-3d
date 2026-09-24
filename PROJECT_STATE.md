@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #5 — **[CURRENT WORK] P2.5 — Minimal visible persistence integration**
+**Current Work Issue:** #undefined — **[CURRENT WORK] P2.6 — Slice 2 acceptance**
 
 This file describes **where the project is now**.  
 It is not a history log. Git and historical documents preserve the past.
@@ -16,7 +16,7 @@ It is not a history log. Git and historical documents preserve the past.
 - That main commit is the merged **First Vertical Slice** baseline.
 - Active working branch: `feat/persistence-slice-v1`
 - Active PR: **#4 — DRAFT / OPEN**
-- Latest verified product-code checkpoint: `8821b3ac837360c9475d7543dbfc49cf96a5b6bb`
+- Latest verified product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`
 - Continuity system: **ACTIVE / MIGRATION VERIFIED**.
 - Continuity migration was verified through branch head `c4b1b59b613647bfb832d2da2730fdffaa2caf3d` with Vertical Slice CI #222 SUCCESS and static preview #112 SUCCESS.
 - Every new chat must still verify the **actual current branch HEAD and PR state** before implementation; Git continues moving after this state record.
@@ -122,52 +122,37 @@ Temporary `repoqa` / `saveqa` routes and modules were removed after verification
 
 ## 4. Current gate
 
-**P2.5 — Minimal visible persistence integration**
+**P2.6 — Slice 2 acceptance**
 
-P2.5 implementation is **IN PROGRESS**.
+P2.5 visible persistence integration is **COMPLETE / PASS**.
 
-Completed before implementation:
-- short UI/interaction audit — PASS;
-- one concrete interaction proposal — RECORDED IN ISSUE #5;
-- visible Criteria Check — RECORDED IN ISSUE #5.
-
-Owner decision:
-**APPROVED.**
-
-Implementation progress:
-- **P2.5a — Project Session foundation: PASS**
-- **P2.5b — Project Bar + Projects dialog / Create/Open: PASS**
-- **P2.5c — Save + dirty/error/conflict recovery: PASS**
-- **P2.5c live authenticated Save v2 → v3 + direct Supabase verification: PASS**
-- **P2.5d — final P2.5 acceptance: IN PROGRESS**
-
-P2.5 scope is only:
-- Create project;
-- Open existing project;
-- Save current project;
-- clear save/version/conflict/error status;
-- preserve Client Preview as read-only.
-
-Not in P2.5:
-- Publishing;
-- Published Revision UI;
-- Link / PIN;
-- Client editing;
-- Complete Room expansion;
-- new service families;
-- production Price Book expansion;
-- unrelated visual redesign.
+P2.5 final evidence:
+- P2.5a Project Session foundation: PASS;
+- P2.5b Project Bar + Projects/Create/Open: PASS;
+- P2.5c Save + dirty/error/conflict recovery: PASS;
+- real authenticated Work Save `v2 → v3`: PASS;
+- direct Supabase verification: PASS;
+- P2.5d technical regression gate: PASS;
+- P2.5d mobile-first visual acceptance: PASS;
+- readability correction: mobile project title `12 → 14 px`, status `10 → 12 px`;
+- correction commit: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`;
+- CI #259: SUCCESS;
+- static preview #150: SUCCESS;
+- fresh mobile Work / dirty / conflict / discard / Projects dialog and desktop Work screenshots reviewed: PASS;
+- no horizontal overflow introduced;
+- desktop remains unaffected.
 
 Current temporary work record:
-- GitHub Issue **#5**.
+- GitHub Issue **#undefined**.
 
+P2.6 is acceptance/audit only. It does not authorize new product behavior.
 ---
 
 ## 5. Active product/architecture truths relevant now
 
 The complete durable list is in `START_HERE.md §10`.
 
-Especially relevant to P2.5:
+Especially relevant to P2.6:
 - Project State and Viewer Session State stay separate;
 - Save/Open persists canonical project truth, not camera/selection/cutaway;
 - Client Preview is read-only;
@@ -182,7 +167,7 @@ Especially relevant to P2.5:
 
 ## 6. Known unresolved / deferred items
 
-These are known and must not be forgotten, but they are **not blockers for starting the P2.5 audit**:
+These are known and must not be forgotten. P2.6 must explicitly classify whether any of them blocks Slice 2 closure:
 
 1. **Password recovery redirect**
    - current Supabase recovery redirect exposed a localhost default during testing;
@@ -221,40 +206,32 @@ These are known and must not be forgotten, but they are **not blockers for start
 Continuity system:
 - canonical `START_HERE.md`: active;
 - canonical `PROJECT_STATE.md`: active;
-- single Current Work Issue: **#5**;
+- single Current Work Issue: **#undefined**;
 - historical/superseded documents remain non-authoritative.
 
-P2.5 verification:
-- P2.5a technical gate: PASS;
-- P2.5b technical + Controller visual gate: PASS;
-- P2.5c code/automated QA/Controller visual gate: PASS;
-- P2.5c source checkpoint: `8821b3ac837360c9475d7543dbfc49cf96a5b6bb`;
-- CI #255: SUCCESS;
-- static preview #146: SUCCESS;
-- latest branch head after a no-code checkpoint: `ad19a8c15d966f5b54c822a8077fe23121100b80`;
-- CI #256: SUCCESS;
-- static preview #147: SUCCESS;
-- real authenticated P2.5c Save through the visible Work UI: **PASS**;
-- direct Supabase verification after the live Save: **PASS**;
-- live QA project is now at `work_version = 3`;
-- persisted geometry is `4.2 × 4.8 × 2.7 m`;
-- no Viewer Session State was persisted.
+P2.5 final status: **PASS / CLOSED**.
+- latest product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`;
+- CI #259: SUCCESS;
+- static preview #150: SUCCESS;
+- live QA project: `work_version = 3`;
+- persisted geometry: `4.2 × 4.8 × 2.7 m`;
+- no Viewer Session State persisted;
+- mobile-first final visual review after readability correction: PASS;
+- desktop consistency: PASS.
 
-P2.5d final acceptance is now the active gate.
+P2.6 acceptance is the active gate.
 
-A new chat must verify the current latest branch/PR/CI state rather than treating these run numbers as eternal state.
-
+A new chat must verify the actual current branch/PR/CI state rather than treating these run numbers as eternal state.
 ---
 
 ## 9. NEXT EXACT STEP
 
-**P2.5d — complete final P2.5 acceptance.**
+**P2.6 — run the Slice 2 acceptance audit gate-by-gate.**
 
-Required:
-- verify current branch HEAD / PR / CI after the live-PASS state record;
-- confirm full P2.5 technical regression gate remains green;
-- perform final mobile-first visual acceptance for the complete persistence flow;
-- confirm desktop consistency;
-- record any visual/product defect immediately before closure.
+First:
+- reconcile current branch HEAD / PR #4 / Current Work Issue;
+- verify all 12 Slice 2 acceptance gates against current evidence;
+- re-check live RLS/security posture and deferred security warning;
+- identify any missing proof before PR #4 can leave draft.
 
-Do not begin P2.6 or merge PR #4 until P2.5d passes.
+Do not merge PR #4 and do not begin Slice 3 until P2.6 passes and Owner gives the required merge decision.
