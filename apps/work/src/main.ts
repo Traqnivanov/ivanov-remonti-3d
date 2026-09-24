@@ -201,8 +201,9 @@ let previewMode = appEntry === "direct-client";
 let offerInteraction = createInitialOfferInteraction();
 let autoCutaway = true;
 
-const app = document.querySelector<HTMLDivElement>("#app");
-if (!app) throw new Error("Missing #app");
+const appNode = document.querySelector<HTMLDivElement>("#app");
+if (!appNode) throw new Error("Missing #app");
+const app: HTMLDivElement = appNode;
 
 app.innerHTML = `
   <div class="app-shell${appEntry === "work" && projectSession ? " has-project-bar" : ""}" id="shell">
