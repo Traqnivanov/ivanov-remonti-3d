@@ -960,6 +960,9 @@ async function runMobileClientSmoke() {
     );
     await assertMobileLayout(session, "Client");
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-client.png");
+    await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
+    await delay(160);
+    await saveScreenshot(session, "/tmp/p31d-laminate-mobile-client.png");
     await smokeViewerTouch(session);
     throwBrowserErrors(session);
   } finally {
@@ -981,6 +984,8 @@ async function runDirectClientSmoke() {
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate"))', "Client P3.1c: Laminate offer row is missing");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
     await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Client P3.1c: Laminate interaction is not available in read-only Client view");
+    await delay(160);
+    await saveScreenshot(session, "/tmp/p31d-laminate-desktop.png");
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
 
     const originalWidth = await evaluate(session, 'document.querySelector("#widthInput").value');

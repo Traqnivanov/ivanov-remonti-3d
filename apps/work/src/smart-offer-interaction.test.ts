@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   FINE_PUTTY_ASSIGNMENT_ID,
+  LAMINATE_ASSIGNMENT_ID,
   createInitialOfferInteraction,
   getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
   selectModelEntity,
   selectOfferService,
+  shouldShowLaminateFloor,
   showWholeResult,
 } from "./smart-offer-interaction";
 import {
@@ -20,8 +22,6 @@ import {
   getFinePuttyAssignment,
   getLaminateFlooringAssignment,
 } from "./domain";
-
-const LAMINATE_ASSIGNMENT_ID = "assignment-laminate-flooring-1";
 
 describe("Smart Offer core interaction loop", () => {
   it("Offer → Model highlights the exact Fine Putty walls", () => {
@@ -146,5 +146,51 @@ describe("Smart Offer core interaction loop", () => {
     expect(getLaminateFlooringAssignment(project).targetEntityIds).toEqual(
       floorBefore,
     );
+  });
+});
+
+
+describe("Laminate floor presentation state", () => {
+  it("shows the Laminate result for Laminate focus and whole-result mode", () => {
+    const project = createDefaultProject();
+
+    expect(
+      shouldShowLaminateFloor(
+        project,
+        selectOfferService(LAMINATE_ASSIGNMENT_ID),
+      ),
+    ).toBe(true);
+    expect(shouldShowLaminateFloor(project, showWholeResult())).toBe(true);
+  });
+
+  it("keeps the Laminate result hidden while Fine Putty is the focused service", () => {
+    const project = createDefaultProject();
+
+    expect(
+      shouldShowLaminateFloor(
+        project,
+        selectOfferService(FINE_PUTTY_ASSIGNMENT_ID),
+      ),
+    ).toBe(false);
+  });
+
+  it("shows Laminate when the linked floor itself is selected", () => {
+    const project = createDefaultProject();
+
+    expect(
+      shouldShowLaminateFloor(
+        project,
+        selectModelEntity(project, "room-1.floor"),
+      ),
+    ).toBe(true);
+  });
+
+  it("does not invent Laminate presentation for an older Fine Putty-only project", () => {
+    const project = createDefaultProject();
+    project.serviceAssignments = project.serviceAssignments.filter(
+      (assignment) => assignment.id !== LAMINATE_ASSIGNMENT_ID,
+    );
+
+    expect(shouldShowLaminateFloor(project, showWholeResult())).toBe(false);
   });
 });

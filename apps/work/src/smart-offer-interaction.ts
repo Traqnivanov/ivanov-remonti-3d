@@ -1,6 +1,7 @@
 import type { ProjectState, SurfaceId } from "./domain";
 
 export const FINE_PUTTY_ASSIGNMENT_ID = "assignment-fine-putty-1";
+export const LAMINATE_ASSIGNMENT_ID = "assignment-laminate-flooring-1";
 
 export type OfferInteractionState = {
   selectedServiceId: string | null;
@@ -91,4 +92,32 @@ export function getHighlightedEntityIds(
   }
 
   return [];
+}
+
+
+export function shouldShowLaminateFloor(
+  project: ProjectState,
+  interaction: OfferInteractionState,
+): boolean {
+  const laminate = project.serviceAssignments.find(
+    (assignment) =>
+      assignment.id === LAMINATE_ASSIGNMENT_ID &&
+      assignment.included &&
+      assignment.targetEntityIds.includes("room-1.floor"),
+  );
+
+  if (!laminate) return false;
+
+  if (interaction.selectedEntity) {
+    return (
+      interaction.selectedEntity === "room-1.floor" &&
+      laminate.targetEntityIds.includes(interaction.selectedEntity)
+    );
+  }
+
+  if (interaction.selectedServiceId) {
+    return interaction.selectedServiceId === LAMINATE_ASSIGNMENT_ID;
+  }
+
+  return true;
 }

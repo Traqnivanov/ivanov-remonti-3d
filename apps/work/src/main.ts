@@ -27,6 +27,7 @@ import {
   getHighlightedEntityIds,
   selectModelEntity,
   selectOfferService,
+  shouldShowLaminateFloor,
   showWholeResult,
 } from "./smart-offer-interaction";
 import { createWorkSupabaseClient } from "./supabase";
@@ -627,6 +628,9 @@ function renderWallTargets(): void {
 
 function syncViewerFocus(): void {
   viewer.setHighlightedEntities(getHighlightedEntityIds(project, offerInteraction));
+  viewer.setLaminateFloorVisible(
+    shouldShowLaminateFloor(project, offerInteraction),
+  );
 
   const chip = mustGet("selectionChip");
   if (offerInteraction.selectedEntity) {
