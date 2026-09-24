@@ -64,7 +64,8 @@ Current checkpoint:
 - **P3.1a — multi-service domain/runtime foundation: PASS**
 - **P3.1b — floor quantity + DEV pricing: PASS**
 - **P3.1c — Smart Offer interaction: PASS**
-- **P3.1d — floor visual result + persistence acceptance: ACTIVE**
+- **P3.1d — floor visual result + persistence acceptance: PASS**
+- **P3.1 overall acceptance: PASS / OWNER MERGE DECISION PENDING**
 
 Owner-approved P3.1 direction:
 - expand the proven Smart Offer mechanism through a real floor-finish vertical slice;
@@ -77,15 +78,29 @@ Owner-approved P3.1 direction:
 
 Dedicated Supabase project remains the canonical persisted application truth.
 
-Current bounded QA project:
+Two bounded QA projects now prove both backward compatibility and P3.1:
+
+### Existing Slice 2 QA project
+- title: `QA — P2.4b Create List Open`;
 - `work_version = 3`;
 - geometry: `4.2 × 4.8 × 2.7 m`;
-- reload/reopen: verified;
-- Fine Putty after reopen: `48.60 m²`;
-- DB row ID and persisted `projectId`: matching;
-- Viewer Session State: not persisted.
+- service assignments: **Fine Putty only**;
+- remained unchanged throughout P3.1.
 
-Current verified security posture:
+### P3.1 QA project
+- title: `P3.1 QA Floor`;
+- project ID: `67e7f6ff-16b8-4278-8cd0-6d2c0beab4ff`;
+- `work_version = 2`;
+- geometry: `4.3 × 4.8 × 2.6 m`;
+- service assignments: **Fine Putty + Laminate**;
+- Laminate target: `room-1.floor`;
+- Laminate quantity after reload/open: **20.64 m²**;
+- DB row ID and persisted `projectId`: matching;
+- `presentation = {}`;
+- camera/zoom/selection/cutaway Viewer Session State: not persisted;
+- real authenticated Create → Save v1→v2 → reload → Open: PASS.
+
+Current verified security posture remains unchanged:
 - RLS enabled on `projects` and `work_users`;
 - `anon` has no Work-project SELECT/INSERT/UPDATE;
 - authenticated project access is owner + active Work-user scoped;
@@ -148,40 +163,47 @@ Active branch:
 Active PR:
 - **#10 — DRAFT / OPEN**
 
-Current checkpoint:
-- **P3.1a — multi-service domain/runtime foundation**
+P3.1 checkpoints:
+- P3.1a multi-service runtime foundation: **PASS**;
+- P3.1b floor quantity + DEV pricing: **PASS**;
+- P3.1c Smart Offer interaction: **PASS**;
+- P3.1d floor visual result + persistence acceptance: **PASS**.
 
-P3.1a implementation checkpoint:
-- runtime Project State changed from singleton `serviceAssignment` to `serviceAssignments[]`;
-- persisted schema version remains v1 because persistence already used an assignments array;
-- canonical Fine Putty assignment remains required;
-- runtime can round-trip multiple surface-targeted assignments;
-- unique assignment IDs are enforced;
-- visible UI remains Fine Putty-only in P3.1a;
-- product-code checkpoint: `8459e9c9ef4a118b426a3d43174845429fc270c9`.
+Final accepted P3.1 result:
+- runtime supports multiple surface-targeted service assignments;
+- Fine Putty remains the regression baseline;
+- Laminate targets exactly `room-1.floor`;
+- floor quantity comes from canonical geometry;
+- price stays in a separate EUR DEV Price Book fixture;
+- Offer → Model and Model → Offer work for Fine Putty and Laminate;
+- Client Info/quantity/DEV price are synchronized to the focused service;
+- corrected lightweight Laminate presentation passed desktop/mobile visual QA;
+- Save/reload/Open with both assignments passed live authenticated verification;
+- old Fine Putty-only persisted v1 project remains valid and unchanged;
+- no Viewer Session State persistence regression.
 
-P3.1a verification:
-- CI #267: SUCCESS;
-- typecheck/tests/build/browser smoke: PASS;
-- Fine Putty regression: PASS;
-- scope audit: PASS.
+Accepted product/QA checkpoints:
+- P3.1a product-code: `8459e9c9ef4a118b426a3d43174845429fc270c9`;
+- P3.1b product-code: `ddfc447b0f36d7ac370254dcb3a56ee4ce7b7bf5`;
+- P3.1c product-code: `7785668a3c0a789a87746ebca6d3de6afe0e44a3`;
+- Laminate visual correction: `54275623f63e4e32eb44ec2842273a1df344f901`;
+- final verified product/QA HEAD before this state record: `e63fad567a66e7e6c78a546c2092b27fb72af04f`;
+- CI #276: SUCCESS;
+- P3.1 static preview #156: SUCCESS.
 
-Safety rule for P3.1b:
-- existing persisted projects are not silently given a new quoted floor service;
-- existing v1 Fine Putty-only state remains valid.
+Scope audit: PASS — no openings, wall net deductions, palettes/uploads, furniture, electrical objects, PDF/export, publishing, production Price Book, broad service catalog or AI/photo expansion entered P3.1.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**P3.1d — floor visual result + persistence acceptance.**
+**Final PR #10 merge gate.**
 
-Implement only:
-1. a bounded, lightweight Laminate floor presentation in the 3D viewer;
-2. show it for Laminate focus and whole-result mode, without changing geometry/quantity truth;
-3. preserve Fine Putty highlight behavior;
-4. automated visual/regression checks;
-5. prove persistence round-trip technically;
-6. then run one real authenticated Create/Save/reload/Open proof for a new P3.1 QA project without modifying the existing Fine Putty-only project.
+Before merge:
+1. commit this factual P3.1 acceptance state only;
+2. require final branch HEAD CI = SUCCESS;
+3. require P3.1 static preview publish = SUCCESS;
+4. verify PR #10 remains mergeable and scope-clean;
+5. stop for explicit Owner merge approval.
 
-No uploaded custom materials, palettes, openings, furniture or other complete-room expansion in P3.1d.
+Do not begin the next complete-room block before PR #10 is merged and `main` is verified.
