@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { calculateFinePuttyQuantity, calculateLineTotalEur, devPriceBookItem } from "./calculation";
-import { createDefaultProject, getFinePuttyAssignment } from "./domain";
+import { calculateFinePuttyQuantity, calculateLaminateFlooringQuantity, calculateLineTotalEur, devLaminateFlooringPriceBookItem, devPriceBookItem } from "./calculation";
+import { createDefaultProject, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
 
 describe("fine putty quantity", () => {
   it("calculates selected wall area from domain geometry", () => {
@@ -31,6 +31,63 @@ describe("fine putty quantity", () => {
 
     expect(calculateLineTotalEur(quantity, devPriceBookItem)).toBeCloseTo(
       quantity.value * devPriceBookItem.unitPriceEur,
+      8,
+    );
+  });
+});
+
+
+describe("laminate flooring quantity", () => {
+  it("calculates the exact floor area from canonical room geometry", () => {
+    const project = createDefaultProject();
+    const result = calculateLaminateFlooringQuantity(project);
+
+    expect(result.ruleId).toBe("floor-area-v1");
+    expect(result.sourceEntityIds).toEqual(["room-1.floor"]);
+    expect(result.value).toBeCloseTo(
+      project.room.widthM * project.room.lengthM,
+      8,
+    );
+  });
+
+  it("changes with floor dimensions but not with room height", () => {
+    const project = createDefaultProject();
+    const before = calculateLaminateFlooringQuantity(project).value;
+
+    project.room.heightM += 1;
+    expect(calculateLaminateFlooringQuantity(project).value).toBeCloseTo(
+      before,
+      8,
+    );
+
+    project.room.widthM += 1;
+    expect(calculateLaminateFlooringQuantity(project).value).toBeCloseTo(
+      project.room.widthM * project.room.lengthM,
+      8,
+    );
+  });
+
+  it("returns zero when the laminate assignment is not included", () => {
+    const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = false;
+
+    const result = calculateLaminateFlooringQuantity(project);
+
+    expect(result.value).toBe(0);
+    expect(result.sourceEntityIds).toEqual([]);
+  });
+
+  it("uses a separate EUR DEV price-book fixture", () => {
+    const project = createDefaultProject();
+    const quantity = calculateLaminateFlooringQuantity(project);
+
+    expect(devLaminateFlooringPriceBookItem.id).toBe("dev-laminate-flooring");
+    expect(devLaminateFlooringPriceBookItem.devOnly).toBe(true);
+    expect(calculateLineTotalEur(
+      quantity,
+      devLaminateFlooringPriceBookItem,
+    )).toBeCloseTo(
+      quantity.value * devLaminateFlooringPriceBookItem.unitPriceEur,
       8,
     );
   });

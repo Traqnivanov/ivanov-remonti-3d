@@ -59,6 +59,17 @@ export type FinePuttyServiceAssignment = ServiceAssignment & {
   clientInfo: ClientInfo;
 };
 
+export type LaminateFlooringServiceAssignment = ServiceAssignment & {
+  id: "assignment-laminate-flooring-1";
+  serviceCode: "laminate-flooring";
+  label: "Ламинат";
+  targetEntityIds: "room-1.floor"[];
+  quantityRuleId: "floor-area-v1";
+  priceBookItemId: "dev-laminate-flooring";
+  presentationMode: "material";
+  clientInfo: ClientInfo;
+};
+
 export type ProjectState = {
   schemaVersion: 1;
   projectId: string;
@@ -106,6 +117,60 @@ export function getFinePuttyAssignment(
   return assignment as FinePuttyServiceAssignment;
 }
 
+export function createLaminateFlooringAssignment(): LaminateFlooringServiceAssignment {
+  return {
+    id: "assignment-laminate-flooring-1",
+    serviceCode: "laminate-flooring",
+    label: "Ламинат",
+    targetEntityIds: ["room-1.floor"],
+    included: true,
+    quantityRuleId: "floor-area-v1",
+    priceBookItemId: "dev-laminate-flooring",
+    presentationMode: "material",
+    clientInfo: {
+      what: "Ламинирана подова настилка за пода на помещението.",
+      why: "За да се покаже и остойности конкретният подов финиш в Smart Offer.",
+      result: "Завършен под с ламиниран финиш в крайния резултат.",
+      includes: "Количеството се изчислява от площта на пода. DEV позицията не е production цена.",
+    },
+  };
+}
+
+export function findLaminateFlooringAssignment(
+  project: ProjectState,
+): LaminateFlooringServiceAssignment | undefined {
+  const assignment = project.serviceAssignments.find(
+    (item) => item.id === "assignment-laminate-flooring-1",
+  );
+
+  if (!assignment) return undefined;
+
+  if (
+    assignment.serviceCode !== "laminate-flooring" ||
+    assignment.label !== "Ламинат" ||
+    assignment.quantityRuleId !== "floor-area-v1" ||
+    assignment.priceBookItemId !== "dev-laminate-flooring" ||
+    assignment.presentationMode !== "material" ||
+    !assignment.clientInfo ||
+    assignment.targetEntityIds.length !== 1 ||
+    assignment.targetEntityIds[0] !== "room-1.floor"
+  ) {
+    throw new Error("Project has an invalid canonical Laminate assignment.");
+  }
+
+  return assignment as LaminateFlooringServiceAssignment;
+}
+
+export function getLaminateFlooringAssignment(
+  project: ProjectState,
+): LaminateFlooringServiceAssignment {
+  const assignment = findLaminateFlooringAssignment(project);
+  if (!assignment) {
+    throw new Error("Project is missing the canonical Laminate assignment.");
+  }
+  return assignment;
+}
+
 export function createDefaultProject(projectId = "prototype-room-1"): ProjectState {
   return {
     schemaVersion: 1,
@@ -147,6 +212,7 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
           includes: "Количеството и стойността се отнасят само за стените, включени в тази позиция.",
         },
       },
+      createLaminateFlooringAssignment(),
     ],
   };
 }

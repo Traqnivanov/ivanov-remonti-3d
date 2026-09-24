@@ -1,26 +1,41 @@
-import { getFinePuttyAssignment, type ProjectState, type WallId } from "./domain";
-import { getWallAreaM2 } from "./geometry";
+import {
+  getFinePuttyAssignment,
+  getLaminateFlooringAssignment,
+  type ProjectState,
+  type SurfaceId,
+} from "./domain";
+import { getWallAreaM2, summarizeRoomGeometry } from "./geometry";
 
 export type QuantityResult = {
-  ruleId: "wall-area-v1";
+  ruleId: string;
   ruleVersion: "1.0.0";
   unit: "m2";
   value: number;
-  sourceEntityIds: WallId[];
+  sourceEntityIds: SurfaceId[];
   usedOverride: false;
 };
 
 export type PriceBookItem = {
-  id: "dev-fine-putty";
-  label: "Фина шпакловка — DEV";
+  id: string;
+  label: string;
   unit: "m2";
   unitPriceEur: number;
   devOnly: true;
 };
 
-export const devPriceBookItem: PriceBookItem = {
+export const devFinePuttyPriceBookItem: PriceBookItem = {
   id: "dev-fine-putty",
   label: "Фина шпакловка — DEV",
+  unit: "m2",
+  unitPriceEur: 1,
+  devOnly: true,
+};
+
+export const devPriceBookItem = devFinePuttyPriceBookItem;
+
+export const devLaminateFlooringPriceBookItem: PriceBookItem = {
+  id: "dev-laminate-flooring",
+  label: "Ламинат — DEV",
   unit: "m2",
   unitPriceEur: 1,
   devOnly: true,
@@ -42,6 +57,26 @@ export function calculateFinePuttyQuantity(project: ProjectState): QuantityResul
     ruleVersion: "1.0.0",
     unit: "m2",
     value,
+    sourceEntityIds,
+    usedOverride: false,
+  };
+}
+
+export function calculateLaminateFlooringQuantity(
+  project: ProjectState,
+): QuantityResult {
+  const assignment = getLaminateFlooringAssignment(project);
+  const sourceEntityIds = assignment.included
+    ? [...assignment.targetEntityIds]
+    : [];
+
+  return {
+    ruleId: "floor-area-v1",
+    ruleVersion: "1.0.0",
+    unit: "m2",
+    value: sourceEntityIds.length
+      ? summarizeRoomGeometry(project).floorM2
+      : 0,
     sourceEntityIds,
     usedOverride: false,
   };

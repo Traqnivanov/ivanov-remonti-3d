@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultProject, getFinePuttyAssignment } from "./domain";
+import { createDefaultProject, findLaminateFlooringAssignment, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
 import {
   CURRENT_PROJECT_SCHEMA_VERSION,
   ProjectPersistenceError,
@@ -9,7 +9,7 @@ import {
 } from "./persistence";
 
 describe("project persistence boundary", () => {
-  it("serializes the First Slice into the generalized persisted v1 shape", () => {
+  it("serializes the current project into the generalized persisted v1 shape", () => {
     const project = createDefaultProject("project-123");
     const persisted = serializeProjectState(project);
 
@@ -24,7 +24,7 @@ describe("project persistence boundary", () => {
     expect(persisted.rooms[0]!.openings).toEqual([]);
     expect(persisted.rooms[0]!.objects).toEqual([]);
     expect(persisted.rooms[0]!.materials).toEqual([]);
-    expect(persisted.serviceAssignments).toHaveLength(1);
+    expect(persisted.serviceAssignments).toHaveLength(2);
     expect(persisted.projectNotes).toEqual([]);
     expect(persisted.presentation).toEqual({});
     expect(persisted).not.toHaveProperty("camera");
@@ -43,6 +43,19 @@ describe("project persistence boundary", () => {
     const restored = deserializeProjectState(serializeProjectState(project));
 
     expect(restored).toEqual(project);
+  });
+
+  it("keeps an existing Fine Putty-only persisted v1 project valid without injecting Laminate", () => {
+    const persisted = serializeProjectState(createDefaultProject("existing-v1-project"));
+    persisted.serviceAssignments = persisted.serviceAssignments.filter(
+      (assignment) => assignment.serviceCode === "fine-putty",
+    );
+
+    const restored = deserializeProjectState(persisted);
+
+    expect(restored.serviceAssignments).toHaveLength(1);
+    expect(getFinePuttyAssignment(restored).serviceCode).toBe("fine-putty");
+    expect(findLaminateFlooringAssignment(restored)).toBeUndefined();
   });
 
   it("round-trips multiple runtime service assignments without changing the canonical Fine Putty assignment", () => {
@@ -87,6 +100,9 @@ describe("project persistence boundary", () => {
     ]);
     expect(parsed.serviceAssignments[0]!.targetEntityIds).toEqual(
       getFinePuttyAssignment(project).targetEntityIds,
+    );
+    expect(parsed.serviceAssignments[1]!.targetEntityIds).toEqual(
+      getLaminateFlooringAssignment(project).targetEntityIds,
     );
   });
 
@@ -138,6 +154,9 @@ describe("project persistence boundary", () => {
 
     expect(project.room.surfaces[0]!.label).toBe("Предна стена");
     expect(getFinePuttyAssignment(project).targetEntityIds).toHaveLength(4);
+    expect(getLaminateFlooringAssignment(project).targetEntityIds).toEqual([
+      "room-1.floor",
+    ]);
   });
 });
 
