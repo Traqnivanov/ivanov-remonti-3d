@@ -16,7 +16,7 @@ It is not a history log. Git and historical documents preserve the past.
 - That main commit is the merged **First Vertical Slice** baseline.
 - Active working branch: `feat/persistence-slice-v1`
 - Active PR: **#4 — DRAFT / OPEN**
-- Latest verified product-code checkpoint: `8a09c6066e085fdf7dd8ffce9f5230648c797cc7`
+- Latest verified product-code checkpoint: `8821b3ac837360c9475d7543dbfc49cf96a5b6bb`
 - Continuity system: **ACTIVE / MIGRATION VERIFIED**.
 - Continuity migration was verified through branch head `c4b1b59b613647bfb832d2da2730fdffaa2caf3d` with Vertical Slice CI #222 SUCCESS and static preview #112 SUCCESS.
 - Every new chat must still verify the **actual current branch HEAD and PR state** before implementation; Git continues moving after this state record.
@@ -134,7 +134,8 @@ Owner decision:
 Implementation progress:
 - **P2.5a — Project Session foundation: PASS**
 - **P2.5b — Project Bar + Projects dialog / Create/Open: PASS**
-- **P2.5c — Save + dirty/error/conflict recovery: NEXT**
+- **P2.5c — Save + dirty/error/conflict recovery: CODE + AUTOMATED QA + CONTROLLER VISUAL REVIEW PASS**
+- **P2.5c live verification: PENDING — one real authenticated Save v2 → v3, then direct Supabase verification**
 
 P2.5 scope is only:
 - Create project;
@@ -213,20 +214,25 @@ These are known and must not be forgotten, but they are **not blockers for start
 
 ## 8. Current verification status
 
-Continuity migration verification:
-- canonical `START_HERE.md`: present;
-- canonical `PROJECT_STATE.md`: present;
+Continuity system:
+- canonical `START_HERE.md`: active;
+- canonical `PROJECT_STATE.md`: active;
 - single Current Work Issue: **#5**;
-- old `CURRENT_HANDOFF.md`: preserved but explicitly SUPERSEDED;
-- First Slice implementation/acceptance docs: explicitly HISTORICAL;
-- Work/Client publishing contract: synchronized to Owner-approved Published Revision;
-- M²-only legacy integration scope: surfaced at the top of the reuse audit;
-- PR #4 description: synchronized to actual P2.1–P2.4 state;
-- active conflict scan: no unresolved active contradiction found;
-- Vertical Slice CI **#222 — SUCCESS**;
-- static preview **#112 — SUCCESS**;
-- P2.4 repository verification: PASS;
-- no P2.5 visible change exists yet, therefore P2.5 visual QA has not started.
+- historical/superseded documents remain non-authoritative.
+
+P2.5 verification:
+- P2.5a technical gate: PASS;
+- P2.5b technical + Controller visual gate: PASS;
+- P2.5c code/automated QA/Controller visual gate: PASS;
+- P2.5c source checkpoint: `8821b3ac837360c9475d7543dbfc49cf96a5b6bb`;
+- CI #255: SUCCESS;
+- static preview #146: SUCCESS;
+- latest branch head after a no-code checkpoint: `ad19a8c15d966f5b54c822a8077fe23121100b80`;
+- CI #256: SUCCESS;
+- static preview #147: SUCCESS;
+- real authenticated P2.5c Save through the visible Work UI: **NOT YET VERIFIED**.
+
+Live QA project is still at `work_version = 2`, so the bounded v2 → v3 Save test has not happened yet.
 
 A new chat must verify the current latest branch/PR/CI state rather than treating these run numbers as eternal state.
 
@@ -234,12 +240,11 @@ A new chat must verify the current latest branch/PR/CI state rather than treatin
 
 ## 9. NEXT EXACT STEP
 
-**P2.5b — implement the approved visible Work-only Project Bar shell + Projects dialog + Create/Open + 0/1/2+ startup behavior.**
+**P2.5c-live — run one bounded real authenticated Save through the published Work UI against the existing QA project. Expected transition: `work_version 2 → 3`.**
 
-Scope boundary:
-- no Save/conflict recovery UI yet;
-- no autosave;
-- no rename/archive/delete;
-- Client Preview remains read-only.
+Then verify directly in Supabase that:
+- `work_version = 3`;
+- the intended canonical Work change persisted;
+- no viewer/session-only state was persisted.
 
-After P2.5b: technical gate + exact preview + visual inspection before advancing to P2.5c.
+Do not start P2.5d final acceptance before this live verification passes.
