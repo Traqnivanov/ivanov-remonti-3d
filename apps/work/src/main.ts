@@ -3,8 +3,13 @@ import type { SurfaceId, WallId } from "./domain";
 import { createDefaultProject, wallIds } from "./domain";
 import type { ProjectRepository } from "./project-repository";
 import {
+  applyProjectSaveFailure,
+  applyProjectSaveSuccess,
+  beginProjectSave,
   createProjectSession,
   loadProjectStartup,
+  markProjectDirty,
+  shouldWarnBeforeProjectSwitch,
   type ProjectSession,
 } from "./project-session";
 import {
@@ -27,6 +32,7 @@ import { createSupabaseProjectReadRepository } from "./supabase-project-reposito
 import { resolveWorkAccess } from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
 import {
+  confirmDiscardUnsavedChanges,
   openProjectsDialog,
   renderProjectBar,
   renderProjectGate,
@@ -189,7 +195,7 @@ activeViewer = null;
 
 const project = options.project;
 const appEntry = options.appEntry;
-const projectSession = options.session;
+let projectSession = options.session;
 const projectRepository = options.repository;
 let previewMode = appEntry === "direct-client";
 let offerInteraction = createInitialOfferInteraction();
@@ -224,6 +230,7 @@ app.innerHTML = `
       <div class="project-bar-actions">
         <button id="projectsButton" type="button">Проекти</button>
         <button id="saveProjectButton" type="button">Запази</button>
+        <button id="reloadProjectButton" type="button" hidden>Зареди последната версия</button>
       </div>
     </div>
         `
@@ -327,27 +334,7 @@ const viewer = new RoomViewer({
 activeViewer = viewer;
 
 if (appEntry === "work" && projectSession) {
-  renderProjectBar(app, projectSession, {
-    projectsEnabled: projectRepository !== null,
-    onProjects: () => {
-      if (!projectRepository) return;
-
-      void openProjectsDialog({
-        mount: app,
-        repository: projectRepository,
-        currentSession: projectSession,
-        requireSelection: false,
-        onProjectReady: (nextSession) => {
-          startSmartOfferApp({
-            appEntry: "work",
-            project: nextSession.project,
-            session: nextSession,
-            repository: projectRepository,
-          });
-        },
-      });
-    },
-  });
+  syncProjectBar();
 }
 
 const widthInput = mustGet<HTMLInputElement>("widthInput");
@@ -414,6 +401,117 @@ function wireControls(): void {
   });
 }
 
+function syncProjectBar(): void {
+  if (appEntry !== "work" || !projectSession) return;
+
+  renderProjectBar(app, projectSession, {
+    persistenceEnabled: projectRepository !== null,
+    onProjects: () => {
+      void openProjectChooser();
+    },
+    onSave: () => {
+      void saveCurrentProject();
+    },
+    onReloadLatest: () => {
+      void reloadLatestProject();
+    },
+  });
+}
+
+async function openProjectChooser(): Promise<void> {
+  if (!projectRepository || !projectSession) return;
+
+  await openProjectsDialog({
+    mount: app,
+    repository: projectRepository,
+    currentSession: projectSession,
+    requireSelection: false,
+    beforeProjectChange: confirmDiscardIfNeeded,
+    onProjectReady: (nextSession) => {
+      startSmartOfferApp({
+        appEntry: "work",
+        project: nextSession.project,
+        session: nextSession,
+        repository: projectRepository,
+      });
+    },
+  });
+}
+
+async function confirmDiscardIfNeeded(): Promise<boolean> {
+  if (
+    !projectSession ||
+    !shouldWarnBeforeProjectSwitch(projectSession)
+  ) {
+    return true;
+  }
+
+  return confirmDiscardUnsavedChanges(app);
+}
+
+function markCurrentProjectDirty(): void {
+  if (appEntry !== "work" || !projectSession) return;
+
+  projectSession = markProjectDirty(projectSession);
+  syncProjectBar();
+}
+
+async function saveCurrentProject(): Promise<void> {
+  if (!projectRepository || !projectSession) return;
+
+  let saveStarted = false;
+
+  try {
+    const begun = beginProjectSave(projectSession);
+    projectSession = begun.session;
+    saveStarted = true;
+    syncProjectBar();
+
+    const result = await projectRepository.save(begun.input);
+    projectSession = applyProjectSaveSuccess(projectSession, result);
+  } catch (error) {
+    if (
+      saveStarted &&
+      projectSession &&
+      projectSession.saveState === "saving"
+    ) {
+      projectSession = applyProjectSaveFailure(projectSession, error);
+    } else {
+      console.error("Project save could not start", error);
+    }
+  }
+
+  syncProjectBar();
+}
+
+async function reloadLatestProject(): Promise<void> {
+  if (!projectRepository || !projectSession) return;
+
+  const confirmed = await confirmDiscardUnsavedChanges(app);
+  if (!confirmed) return;
+
+  try {
+    const opened = await projectRepository.open(
+      projectSession.projectId,
+    );
+    const nextSession = createProjectSession(opened);
+
+    startSmartOfferApp({
+      appEntry: "work",
+      project: nextSession.project,
+      session: nextSession,
+      repository: projectRepository,
+    });
+  } catch (error) {
+    console.error("Reload latest project failed", error);
+    projectSession = {
+      ...projectSession,
+      lastError: "Reload latest project failed.",
+    };
+    syncProjectBar();
+  }
+}
+
 function setPreviewMode(enabled: boolean): void {
   if (!enabled && !currentCapabilities().canReturnToWork) return;
 
@@ -441,6 +539,11 @@ function updateDimensions(): void {
   const length = safeDimension(lengthInput.value, project.room.lengthM);
   const height = safeDimension(heightInput.value, project.room.heightM);
 
+  const changed =
+    width !== project.room.widthM ||
+    length !== project.room.lengthM ||
+    height !== project.room.heightM;
+
   project.room.widthM = width;
   project.room.lengthM = length;
   project.room.heightM = height;
@@ -448,6 +551,10 @@ function updateDimensions(): void {
   widthInput.value = String(width);
   lengthInput.value = String(length);
   heightInput.value = String(height);
+
+  if (changed) {
+    markCurrentProjectDirty();
+  }
 
   renderM2Schema(mustGet("m2Schema"), project);
   viewer.setProject(project);
@@ -479,10 +586,27 @@ function renderWallTargets(): void {
         return;
       }
 
-      const targets = new Set(project.serviceAssignment.targetEntityIds);
+      const previousTargets =
+        project.serviceAssignment.targetEntityIds;
+      const targets = new Set(previousTargets);
       if (checkbox.checked) targets.add(id);
       else targets.delete(id);
-      project.serviceAssignment.targetEntityIds = wallIds.filter((wallId) => targets.has(wallId));
+
+      const nextTargets = wallIds.filter((wallId) =>
+        targets.has(wallId),
+      );
+      const changed =
+        nextTargets.length !== previousTargets.length ||
+        nextTargets.some(
+          (wallId, index) => wallId !== previousTargets[index],
+        );
+
+      project.serviceAssignment.targetEntityIds = nextTargets;
+
+      if (changed) {
+        markCurrentProjectDirty();
+      }
+
       offerInteraction = selectOfferService();
       syncViewerFocus();
       renderOffer();
