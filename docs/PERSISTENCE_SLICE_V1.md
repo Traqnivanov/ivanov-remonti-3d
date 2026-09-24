@@ -1,6 +1,6 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — P2.4 PROJECT REPOSITORY COMPLETE / P2.5 MINIMAL VISIBLE INTEGRATION NEXT  
+**Status:** CURRENT TECHNICAL CONTRACT — SLICE 2 ACCEPTANCE PASS / OWNER MERGE DECISION NEXT  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
 **Working branch:** `feat/persistence-slice-v1`  
 **Base:** merged First Vertical Slice on `main`  
@@ -8,7 +8,7 @@
 **Supabase project ref:** `qjfpbxucrxrtpygusnuv`  
 **Region:** `eu-west-1`  
 **Current-state authority:** `PROJECT_STATE.md`  
-**Current work:** GitHub Issue #5  
+**Current work:** GitHub Issue #6  
 **Initial database state at audit:** empty `public` schema, no migrations.
 
 > Sections 16+ preserve implementation checkpoint evidence. They are historical execution records inside this technical contract and do not replace `PROJECT_STATE.md` for the current NEXT.
@@ -862,3 +862,74 @@ Before implementation, perform a short UI/interaction audit and proposal because
 - no unrelated redesign.
 
 Do not begin P2.6 acceptance until P2.5 visible integration is complete and visually reviewed.
+
+
+---
+
+## P2.5 final visible integration — PASS
+
+P2.5 is complete and visually accepted.
+
+Verified:
+- Work-only Project Bar;
+- Projects dialog and Create/Open lifecycle;
+- manual Save with explicit clean/dirty/saving/error/conflict states;
+- unsaved-change guard;
+- explicit stale-write recovery;
+- Client Preview/direct Client remain persistence read-only;
+- real authenticated Work Save `v2 → v3`;
+- direct Supabase verification confirmed `work_version = 3`;
+- canonical geometry persisted as `4.2 × 4.8 × 2.7 m`;
+- Viewer Session State did not leak into persisted Project State;
+- mobile readability correction increased project title `12 → 14 px` and status `10 → 12 px`;
+- final product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`;
+- CI #259 SUCCESS;
+- static preview #150 SUCCESS;
+- mobile Work/dirty/conflict/discard/Projects-dialog and desktop consistency visual review PASS.
+
+## P2.6 final acceptance — PASS
+
+All 12 Slice 2 acceptance gates are satisfied:
+
+1. **Unauthenticated Work access:** PASS — live grants/RLS show `anon` has no Work project SELECT/INSERT/UPDATE.
+2. **Foreign-owner isolation:** PASS by current live RLS policy enforcement + repository boundary — project SELECT/UPDATE require `owner_user_id = auth.uid()` and an active Work user; RLS-hidden foreign rows map to `NOT_FOUND`. A second real account adversarial test was not provisioned and is not claimed.
+3. **Create/save/reload/reopen equivalent canonical state:** PASS — live project reopened after a new page load at `v3` with height `2.7`.
+4. **Stable entity IDs survive round trip:** PASS — persistence tests plus live row/project identity verification.
+5. **Fine Putty result survives save/open:** PASS — after reload/reopen the visible quantity remains `48.60 m²` for the persisted `4.2 × 4.8 × 2.7 m` geometry.
+6. **Save increments `work_version`:** PASS — live `v2 → v3`.
+7. **Stale Save rejection:** PASS — live stale retry previously rejected as `STALE_WRITE`, with automated regression coverage.
+8. **Unsupported/invalid schema rejection:** PASS — persistence/repository tests reject unsupported future schema and invalid stored state.
+9. **Viewer Session State does not dirty/persist Project State:** PASS — browser QA plus persisted-state inspection.
+10. **No privileged browser credential:** PASS — repository/source and published bundle contain no `service_role` or secret credential. The literal string `sb_secret_` appears only inside Supabase library key-format detection, not as a credential.
+11. **CI/typecheck/tests/build/browser smoke:** PASS — latest acceptance baseline remains green; documentation-only reconciliation must also remain green before merge.
+12. **Visible Auth/Save/Open mobile-first + desktop QA:** PASS — final mobile and desktop acceptance completed.
+
+### P2.6 security disposition
+
+Current live RLS/grants posture: PASS.
+
+Supabase Security Advisor still reports:
+- **Leaked Password Protection Disabled**.
+
+Disposition:
+- known warning;
+- not a Slice 2 correctness/RLS blocker;
+- must be reviewed again before production/final release and enabled if available/appropriate for the deployed plan.
+
+Password recovery redirect:
+- current recovery redirect previously exposed a localhost default during testing;
+- password recovery is not an exposed product flow in Slice 2;
+- non-blocking for Slice 2 acceptance;
+- must be corrected before password recovery is exposed to users.
+
+Protection Gate:
+- mandatory before production/final release;
+- not bypassed by this acceptance.
+
+### Current merge gate
+
+Slice 2 — Persistence is technically and visually accepted.
+
+PR #4 remains **DRAFT / OPEN**.
+Do not merge until explicit Owner merge approval.
+Do not start Slice 3 before the merge decision.
