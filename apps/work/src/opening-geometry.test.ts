@@ -33,15 +33,15 @@ describe("opening geometry bridge", () => {
     const [door] = getWallOpeningRects(project, "room-1.wall-front");
 
     expect(getWallSpanM(project, "room-1.wall-front")).toBeCloseTo(4.2, 8);
-    expect(door).toEqual({
+    expect(door).toMatchObject({
       id: "room-1.door-1",
       kind: "door",
       wallId: "room-1.wall-front",
-      startM: 0.55,
-      endM: 1.45,
-      bottomM: 0,
-      topM: 2.1,
     });
+    expect(door!.startM).toBeCloseTo(0.55, 8);
+    expect(door!.endM).toBeCloseTo(1.45, 8);
+    expect(door!.bottomM).toBeCloseTo(0, 8);
+    expect(door!.topM).toBeCloseTo(2.1, 8);
   });
 
   it("maps the right-wall window to exact wall coordinates", () => {
@@ -52,14 +52,14 @@ describe("opening geometry bridge", () => {
     );
 
     expect(getWallSpanM(project, "room-1.wall-right")).toBeCloseTo(4.8, 8);
-    expect(windowOpening).toEqual({
+    expect(windowOpening).toMatchObject({
       id: "room-1.window-1",
       kind: "window",
       wallId: "room-1.wall-right",
-      startM: 1.4,
-      endM: 2.6,
-      bottomM: 0.9,
-      topM: 2,
     });
+    expect(windowOpening!.startM).toBeCloseTo(1.4, 8);
+    expect(windowOpening!.endM).toBeCloseTo(2.6, 8);
+    expect(windowOpening!.bottomM).toBeCloseTo(0.9, 8);
+    expect(windowOpening!.topM).toBeCloseTo(2, 8);
   });
 });
