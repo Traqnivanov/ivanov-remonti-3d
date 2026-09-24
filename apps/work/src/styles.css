@@ -476,8 +476,29 @@ input[type="number"] {
 @media (max-width: 680px) {
   .project-bar {
     grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 8px 12px 10px;
+  }
+
+  .project-bar-current {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
-    padding: 9px 12px 10px;
+    align-items: baseline;
+  }
+
+  .project-bar-label {
+    display: none;
+  }
+
+  .project-bar-current strong {
+    font-size: 12px;
+  }
+
+  .project-bar-status {
+    min-height: 0;
+    font-size: 10px;
+    white-space: nowrap;
   }
 
   .project-bar-actions {
