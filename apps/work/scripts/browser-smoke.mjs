@@ -328,6 +328,98 @@ async function assertProjectDialogLayout(session, label) {
   }
 }
 
+async function renderProjectBarStateQa(session, saveState) {
+  await evaluate(
+    session,
+    `(async () => {
+      const ui = await import("/src/work-project-ui.ts");
+      const domain = await import("/src/domain.ts");
+      const project = domain.createDefaultProject("qa-p25c-project");
+      const base = {
+        projectId: project.projectId,
+        title: "QA прототип",
+        project,
+        workVersion: 2,
+        updatedAt: "2026-09-24T19:30:00.000Z",
+        editRevision: saveState === "clean" ? 0 : 1,
+        savedEditRevision: 0,
+        savingEditRevision: saveState === "saving" ? 1 : null,
+        lastError: saveState === "conflict" ? "Project changed on the server." : null,
+        saveState,
+      };
+      ui.renderProjectBar(document.querySelector("#app"), base, {
+        persistenceEnabled: true,
+        onProjects: () => {},
+        onSave: () => {},
+        onReloadLatest: () => {},
+      });
+    })()`,
+  );
+  await delay(80);
+}
+
+async function openDiscardDialogQa(session) {
+  await evaluate(
+    session,
+    `(async () => {
+      const ui = await import("/src/work-project-ui.ts");
+      window.__p25cDiscardResult = "pending";
+      ui.confirmDiscardUnsavedChanges(document.querySelector("#app"))
+        .then((result) => { window.__p25cDiscardResult = result; });
+    })()`,
+  );
+  await delay(120);
+
+  await assertEval(
+    session,
+    'Boolean(document.querySelector("#discardChangesDialog")?.open)',
+    "Discard changes dialog did not open",
+  );
+}
+
+async function assertDiscardDialogLayout(session, label) {
+  const metrics = await evaluate(
+    session,
+    `(() => {
+      const dialog = document.querySelector("#discardChangesDialog");
+      if (!dialog) return null;
+      const r = dialog.getBoundingClientRect();
+      const controls = [...dialog.querySelectorAll("button")]
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          return style.display !== "none" && style.visibility !== "hidden";
+        })
+        .map((el) => {
+          const b = el.getBoundingClientRect();
+          return { left: b.left, right: b.right, height: b.height };
+        });
+      return {
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        left: r.left,
+        right: r.right,
+        controls,
+      };
+    })()`,
+  );
+
+  if (!metrics) throw new Error(label + ": discard dialog metrics unavailable");
+  if (metrics.scrollWidth > metrics.innerWidth + 1) {
+    throw new Error(label + ": discard dialog causes horizontal overflow");
+  }
+  if (metrics.left < -1 || metrics.right > metrics.innerWidth + 1) {
+    throw new Error(label + ": discard dialog is clipped");
+  }
+  for (const control of metrics.controls) {
+    if (control.left < -1 || control.right > metrics.innerWidth + 1) {
+      throw new Error(label + ": discard action is clipped");
+    }
+    if (metrics.innerWidth <= 360 && control.height < 44) {
+      throw new Error(label + ": discard mobile action is smaller than 44px");
+    }
+  }
+}
+
 async function assertMobileLayout(session, label) {
   const metrics = await evaluate(
     session,
@@ -763,6 +855,36 @@ async function runMobileWorkSmoke() {
     await authorizeQaWork(session);
     await assertMobileLayout(session, "Work");
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
+
+    await renderProjectBarStateQa(session, "dirty");
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Има промени") && !document.querySelector("#saveProjectButton").disabled',
+      "Mobile P2.5c: dirty state is not visible/saveable",
+    );
+    await saveScreenshot(session, "/tmp/p25c-mobile-dirty.png");
+
+    await renderProjectBarStateQa(session, "conflict");
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Конфликт") && document.querySelector("#saveProjectButton").hidden && !document.querySelector("#reloadProjectButton").hidden',
+      "Mobile P2.5c: conflict recovery action is not visible",
+    );
+    await saveScreenshot(session, "/tmp/p25c-mobile-conflict.png");
+
+    await openDiscardDialogQa(session);
+    await assertDiscardDialogLayout(session, "Mobile discard changes");
+    await saveScreenshot(session, "/tmp/p25c-mobile-discard.png");
+    await evaluate(session, 'document.querySelector("#discardCancelButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'window.__p25cDiscardResult === false && !document.querySelector("#discardChangesDialog")',
+      "Mobile P2.5c: discard cancel did not preserve the current project",
+    );
+
+    await waitForApp(session, baseUrl);
+    await assertMobileLayout(session, "Work restored");
 
     await openProjectDialogQa(session, { openCreate: true });
     await assertProjectDialogLayout(session, "Mobile Projects dialog");
