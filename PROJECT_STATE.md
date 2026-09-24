@@ -61,7 +61,8 @@ History: PR #4 / closed Issue #6.
 **P3.1 — Floor Finish vertical slice — ACTIVE**
 
 Current checkpoint:
-- **P3.1a — multi-service domain/runtime foundation**
+- **P3.1a — multi-service domain/runtime foundation: PASS**
+- **P3.1b — floor quantity + DEV pricing: ACTIVE**
 
 Owner-approved P3.1 direction:
 - expand the proven Smart Offer mechanism through a real floor-finish vertical slice;
@@ -157,21 +158,27 @@ P3.1a implementation checkpoint:
 - visible UI remains Fine Putty-only in P3.1a;
 - product-code checkpoint: `8459e9c9ef4a118b426a3d43174845429fc270c9`.
 
-P3.1b must not start until P3.1a CI/regression verification passes.
+P3.1a verification:
+- CI #267: SUCCESS;
+- typecheck/tests/build/browser smoke: PASS;
+- Fine Putty regression: PASS;
+- scope audit: PASS.
+
+Safety rule for P3.1b:
+- existing persisted projects are not silently given a new quoted floor service;
+- existing v1 Fine Putty-only state remains valid.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**Verify P3.1a only.**
+**P3.1b — floor quantity + DEV pricing.**
 
-Required:
-1. run CI/typecheck/tests/build/browser smoke on the active PR;
-2. confirm the visible Fine Putty UI has no regression;
-3. confirm persistence round-trip with multiple assignments passes;
-4. inspect the PR diff for scope leakage;
-5. record P3.1a PASS or report the exact blocker.
+Implement only:
+1. canonical laminate/floor-finish assignment factory for new P3.1 default/proof projects;
+2. exact floor-area quantity from canonical room geometry;
+3. separate DEV Price Book fixture in EUR;
+4. regression tests proving Fine Putty remains unchanged;
+5. persistence round-trip for the new assignment.
 
-Only after P3.1a PASS may Work Controller authorize **P3.1b — floor quantity + DEV pricing**.
-
-Do not begin P3.1b early.
+Do not add the second visible offer row or floor material rendering yet. Those belong to P3.1c/P3.1d.
