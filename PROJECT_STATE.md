@@ -63,7 +63,8 @@ History: PR #4 / closed Issue #6.
 **P3.2 — Door + Window Openings — ACTIVE**
 
 Current checkpoint:
-- **P3.2a — Opening domain + persistence foundation**
+- **P3.2a — Opening domain + persistence foundation: PASS**
+- **P3.2b — Opening geometry proof: ACTIVE**
 
 P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
@@ -194,16 +195,15 @@ No visible geometry, quantity-rule change or Work UI exists in P3.2a.
 
 ## 7. NEXT EXACT STEP
 
-**Verify P3.2a only.**
+**P3.2b — Opening geometry proof.**
 
-Required:
-1. run typecheck/tests/build/browser smoke on PR #12;
-2. confirm existing Fine Putty + Laminate UI has no regression;
-3. confirm old empty-opening persisted state remains valid;
-4. confirm valid door/window openings round-trip with stable IDs;
-5. confirm invalid/out-of-bounds/overlapping openings are rejected;
-6. inspect PR diff for scope leakage.
+Implement only:
+1. one door + one window in the new proof/default room;
+2. render real rectangular holes in their host wall meshes;
+3. preserve one stable wall mesh/entity per wall;
+4. preserve highlight, selection, manual visibility and automatic cutaway;
+5. keep old persisted `openings: []` projects visually unchanged;
+6. automated geometry/regression checks;
+7. fresh mobile-first + desktop visual QA.
 
-Only after P3.2a PASS may Work Controller authorize **P3.2b — Opening geometry proof**.
-
-Do not begin P3.2b early.
+Do not change Fine Putty quantity yet. Net wall quantity belongs to P3.2c.
