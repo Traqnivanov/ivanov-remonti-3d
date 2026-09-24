@@ -133,7 +133,8 @@ Owner decision:
 
 Implementation progress:
 - **P2.5a — Project Session foundation: PASS**
-- **P2.5b — Project Bar + Projects dialog / Create/Open: NEXT**
+- **P2.5b — Project Bar + Projects dialog / Create/Open: PASS**
+- **P2.5c — Save + dirty/error/conflict recovery: NEXT**
 
 P2.5 scope is only:
 - Create project;
