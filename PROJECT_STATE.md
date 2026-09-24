@@ -65,7 +65,8 @@ History: PR #4 / closed Issue #6.
 Current checkpoint:
 - **P3.2a — Opening domain + persistence foundation: PASS**
 - **P3.2b — Opening geometry proof: PASS**
-- **P3.2c — Fine Putty net wall quantity: ACTIVE**
+- **P3.2c — Fine Putty net wall quantity: PASS**
+- **P3.2d — Work opening controls + live persistence acceptance: NOT STARTED**
 
 P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
@@ -196,17 +197,15 @@ No visible geometry, quantity-rule change or Work UI exists in P3.2a.
 
 ## 7. NEXT EXACT STEP
 
-**P3.2c — Fine Putty net wall quantity.**
+**STOP CHECKPOINT — P3.2c PASS.**
 
-Implement only:
-1. keep gross wall geometry unchanged and addressable;
-2. add canonical opening-area + net-wall-area domain helpers;
-3. Fine Putty quantity uses gross target wall area minus openings hosted on those walls;
-4. introduce an explicit versioned Fine Putty net-area rule without silently changing the meaning of the legacy rule;
-5. migrate legacy Fine Putty `wall-area-v1` state safely at the persistence boundary;
-6. prove old projects without openings keep exactly the same quantity;
-7. prove door/window deductions affect only their host Fine Putty wall targets;
-8. prove Laminate quantity remains unchanged;
-9. full regression CI.
+Verified product-code HEAD:
+- `4f9cc93ef134d7443e7a57252622c6b0639f6d1a`
+- CI #285: SUCCESS
+- Fine Putty proof quantity: **43.59 m²**
+- Laminate remains: **20.16 m²**
 
-Do not add Work opening controls yet. Those belong to P3.2d.
+Next bounded work, only after a fresh Work decision:
+**P3.2d — Work opening controls + live persistence acceptance.**
+
+Do not start P3.2d inside the completed P3.2c task.
