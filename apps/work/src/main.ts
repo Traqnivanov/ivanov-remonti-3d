@@ -1,6 +1,11 @@
 import "./styles.css";
 import type { SurfaceId, WallId } from "./domain";
-import { createDefaultProject, getFinePuttyAssignment, wallIds } from "./domain";
+import {
+  createDefaultProject,
+  createOpeningProofProject,
+  getFinePuttyAssignment,
+  wallIds,
+} from "./domain";
 import type { ProjectRepository } from "./project-repository";
 import {
   applyProjectSaveFailure,
@@ -54,7 +59,7 @@ async function bootstrapWorkEntry(): Promise<void> {
   if (directClientEntry) {
     startSmartOfferApp({
       appEntry: "direct-client",
-      project: createDefaultProject(),
+      project: createOpeningProofProject(),
       session: null,
       repository: null,
     });
@@ -168,7 +173,7 @@ function hasDevQaWorkAccess(): boolean {
 }
 
 function createDevQaProjectSession(): ProjectSession {
-  const project = createDefaultProject("qa-prototype-room-1");
+  const project = createOpeningProofProject("qa-prototype-room-1");
 
   return createProjectSession({
     id: project.projectId,

@@ -182,6 +182,32 @@ export function getLaminateFlooringAssignment(
   return assignment;
 }
 
+export function createOpeningProofProject(
+  projectId = "prototype-room-1",
+): ProjectState {
+  const project = createDefaultProject(projectId);
+  project.room.openings = [
+    {
+      id: "room-1.door-1",
+      kind: "door",
+      hostSurfaceId: "room-1.wall-front",
+      widthM: 0.9,
+      heightM: 2.1,
+      offsetM: 0.55,
+    },
+    {
+      id: "room-1.window-1",
+      kind: "window",
+      hostSurfaceId: "room-1.wall-right",
+      widthM: 1.2,
+      heightM: 1.1,
+      offsetM: 1.4,
+      sillM: 0.9,
+    },
+  ];
+  return project;
+}
+
 export function createDefaultProject(projectId = "prototype-room-1"): ProjectState {
   return {
     schemaVersion: 1,

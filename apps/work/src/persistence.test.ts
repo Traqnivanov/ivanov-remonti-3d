@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultProject, findLaminateFlooringAssignment, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
+import { createDefaultProject, createOpeningProofProject, findLaminateFlooringAssignment, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
 import {
   CURRENT_PROJECT_SCHEMA_VERSION,
   ProjectPersistenceError,
@@ -122,6 +122,16 @@ describe("project persistence boundary", () => {
     expect(getFinePuttyAssignment(restored)).toEqual(
       getFinePuttyAssignment(project),
     );
+  });
+
+  it("preserves stable proof opening ids through persistence", () => {
+    const project = createOpeningProofProject("stable-opening-project");
+    const restored = deserializeProjectState(serializeProjectState(project));
+
+    expect(restored.room.openings.map((opening) => opening.id)).toEqual([
+      "room-1.door-1",
+      "room-1.window-1",
+    ]);
   });
 
   it("preserves stable surface and service target ids", () => {

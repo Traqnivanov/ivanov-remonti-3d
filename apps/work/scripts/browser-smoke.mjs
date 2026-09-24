@@ -725,6 +725,11 @@ async function runWorkSmoke() {
   const session = await createSession();
   try {
     await authorizeQaWork(session);
+    await evaluate(session, 'document.querySelector("#showAllBtn").click()');
+    await delay(220);
+    await saveScreenshot(session, "/tmp/p32b-openings-desktop-work.png");
+    await evaluate(session, 'document.querySelector("#autoCutawayBtn").click()');
+    await delay(120);
     await saveScreenshot(session, "/tmp/vertical-slice-work.png");
 
     await openProjectDialogQa(session, { openCreate: true });
@@ -959,6 +964,11 @@ async function runMobileClientSmoke() {
       "Mobile Client P3.1c: Laminate row is missing or too small for touch",
     );
     await assertMobileLayout(session, "Client");
+    await evaluate(session, 'document.querySelector("#showAllBtn").click()');
+    await delay(220);
+    await saveScreenshot(session, "/tmp/p32b-openings-mobile-client.png");
+    await evaluate(session, 'document.querySelector("#autoCutawayBtn").click()');
+    await delay(120);
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-client.png");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
     await delay(160);
