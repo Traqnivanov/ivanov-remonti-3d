@@ -62,7 +62,8 @@ History: PR #4 / closed Issue #6.
 
 Current checkpoint:
 - **P3.1a — multi-service domain/runtime foundation: PASS**
-- **P3.1b — floor quantity + DEV pricing: ACTIVE**
+- **P3.1b — floor quantity + DEV pricing: PASS**
+- **P3.1c — Smart Offer interaction: ACTIVE**
 
 Owner-approved P3.1 direction:
 - expand the proven Smart Offer mechanism through a real floor-finish vertical slice;
@@ -172,13 +173,16 @@ Safety rule for P3.1b:
 
 ## 7. NEXT EXACT STEP
 
-**P3.1b — floor quantity + DEV pricing.**
+**P3.1c — Smart Offer interaction.**
 
 Implement only:
-1. canonical laminate/floor-finish assignment factory for new P3.1 default/proof projects;
-2. exact floor-area quantity from canonical room geometry;
-3. separate DEV Price Book fixture in EUR;
-4. regression tests proving Fine Putty remains unchanged;
-5. persistence round-trip for the new assignment.
+1. offer interaction state that identifies the selected service assignment;
+2. second visible Laminate offer row for P3.1 default/proof projects;
+3. Offer → Model for Fine Putty and Laminate;
+4. Model → Offer for linked wall/floor;
+5. dynamic quantity/DEV price/Info for the focused service;
+6. preserve old Fine Putty-only project behavior;
+7. preserve Client read-only capability and Viewer Session separation;
+8. update automated browser QA and run mobile-first visual review.
 
-Do not add the second visible offer row or floor material rendering yet. Those belong to P3.1c/P3.1d.
+Do not add floor material rendering yet. That belongs to P3.1d.
