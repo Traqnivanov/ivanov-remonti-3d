@@ -465,6 +465,8 @@ async function runWorkSmoke() {
 
     await assertEval(session, 'document.querySelector("#viewer canvas") instanceof HTMLCanvasElement', "Work: true 3D canvas is missing");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display !== "none"', "Work: authoring panel should be visible");
+    await assertEval(session, 'Boolean(document.querySelector("#projectBar")) && getComputedStyle(document.querySelector("#projectBar")).display !== "none"', "Work: project bar should be visible");
+    await assertEval(session, 'document.querySelector("#projectBarStatus").textContent.includes("v1")', "Work: project version status is missing");
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
 
     const beforeViewerInput = await capturePage(session);
@@ -546,6 +548,7 @@ async function runWorkSmoke() {
     await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Work: Preview as Client did not activate");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Work preview: authoring panel leaked into Client mode");
+    await assertEval(session, 'getComputedStyle(document.querySelector("#projectBar")).display === "none"', "Work preview: project persistence controls leaked into Client mode");
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display !== "none"', "Work preview: owner return control is missing");
 
     await evaluate(session, 'document.querySelector("#exitPreviewBtn").click()');
@@ -619,6 +622,7 @@ async function runDirectClientSmoke() {
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Client: preview mode is not active");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Client: authoring panel is visible");
     await assertEval(session, 'getComputedStyle(document.querySelector(".mode-switch")).display === "none"', "Client: Work/Preview mode switch is visible");
+    await assertEval(session, '!document.querySelector("#projectBar")', "Client: Work project bar is present");
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display === "none"', "Client: owner-only return control is visible");
     await assertEval(session, 'document.querySelector("#lineTotalText").textContent.includes("ТЕСТОВА ЦЕНА")', "Client: prototype price is not clearly marked as test price");
 
