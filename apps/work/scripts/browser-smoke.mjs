@@ -643,7 +643,7 @@ async function runWorkSmoke() {
     await assertEval(session, 'document.querySelector("#viewer canvas") instanceof HTMLCanvasElement', "Work: true 3D canvas is missing");
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display !== "none"', "Work: authoring panel should be visible");
     await assertEval(session, 'Boolean(document.querySelector("#projectBar")) && getComputedStyle(document.querySelector("#projectBar")).display !== "none"', "Work: project bar should be visible");
-    await assertEval(session, 'document.querySelector("#projectBarStatus").textContent.includes("v1")', "Work: project version status is missing");
+    await assertEval(session, 'document.querySelector("#projectBarStatus").textContent.includes("Запазено") && document.querySelector("#projectBarStatus").textContent.includes("v1")', "Work: clean project status is missing");
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
 
     const beforeViewerInput = await capturePage(session);
@@ -653,6 +653,21 @@ async function runWorkSmoke() {
       beforeViewerInput,
       afterViewerInput,
       "Work: orbit/zoom input did not change the rendered view",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Запазено")',
+      "Work: viewer-only interaction incorrectly dirtied project state",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#widthInput"); input.value = "4.3"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Има промени") && document.querySelector("#projectBarStatus").textContent.includes("v1")',
+      "Work: authoring change did not mark project dirty",
     );
 
     await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
@@ -727,6 +742,11 @@ async function runWorkSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Work preview: authoring panel leaked into Client mode");
     await assertEval(session, 'getComputedStyle(document.querySelector("#projectBar")).display === "none"', "Work preview: project persistence controls leaked into Client mode");
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display !== "none"', "Work preview: owner return control is missing");
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Има промени")',
+      "Work preview: dirty project state was lost while persistence controls were hidden",
+    );
 
     await evaluate(session, 'document.querySelector("#exitPreviewBtn").click()');
     await assertEval(session, '!document.querySelector("#shell").classList.contains("preview-mode")', "Work: could not return from Client Preview");
