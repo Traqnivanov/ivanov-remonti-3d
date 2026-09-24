@@ -53,10 +53,11 @@ async function bootstrapWorkEntry(): Promise<void> {
   }
 
   if (hasDevQaWorkAccess()) {
+    const session = createDevQaProjectSession();
     startSmartOfferApp({
       appEntry: "work",
-      project: createDefaultProject("qa-prototype-room-1"),
-      session: createDevQaProjectSession(),
+      project: session.project,
+      session,
       repository: null,
     });
     return;
