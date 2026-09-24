@@ -97,7 +97,10 @@ function projectStatusView(session: ProjectSession): {
       };
     case "conflict":
       return {
-        text: "Конфликт — има по-нова версия",
+        text:
+          session.lastError === "Reload latest project failed."
+            ? "Конфликт — зареждането не успя"
+            : "Конфликт — има по-нова версия",
         state: "conflict",
       };
   }
