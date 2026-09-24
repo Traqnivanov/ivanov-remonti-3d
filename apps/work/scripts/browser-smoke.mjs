@@ -322,18 +322,29 @@ function assertScreenshotChanged(before, after, message) {
 async function smokeViewerInput(session) {
   const rect = await evaluate(
     session,
-    '(() => { const canvas = document.querySelector("#viewer canvas"); if (!canvas) return null; const r = canvas.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()',
+    `(() => {
+      const canvas = document.querySelector("#viewer canvas");
+      if (!canvas) return null;
+      const r = canvas.getBoundingClientRect();
+      const visibleTop = Math.max(0, r.top);
+      const visibleBottom = Math.min(window.innerHeight, r.bottom);
+      if (visibleBottom - visibleTop < 80) return null;
+      return {
+        x: r.left + r.width / 2,
+        y: visibleTop + (visibleBottom - visibleTop) * 0.55,
+      };
+    })()`,
   );
 
-  if (!rect) throw new Error("3D canvas is missing");
+  if (!rect) throw new Error("3D canvas has no usable visible interaction area");
 
   const pointerTarget = await evaluate(
     session,
     `(() => {
       const canvas = document.querySelector("#viewer canvas");
       const r = canvas.getBoundingClientRect();
-      const x = r.left + r.width / 2;
-      const y = r.top + r.height / 2;
+      const x = ${rect.x};
+      const y = ${rect.y};
       const hit = document.elementFromPoint(x, y);
       return {
         x,
