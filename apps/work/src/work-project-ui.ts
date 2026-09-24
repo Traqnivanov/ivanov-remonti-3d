@@ -4,6 +4,7 @@ import {
   type ProjectRepository,
 } from "./project-repository";
 import {
+  canSaveProject,
   createProjectSession,
   type ProjectSession,
 } from "./project-session";
@@ -15,6 +16,7 @@ type OpenProjectsDialogOptions = {
   initialProjects?: ProjectListItem[];
   startInCreate?: boolean;
   requireSelection?: boolean;
+  beforeProjectChange?: () => Promise<boolean>;
   onProjectReady: (session: ProjectSession) => void;
 };
 
@@ -22,8 +24,10 @@ export function renderProjectBar(
   mount: HTMLElement,
   session: ProjectSession,
   options: {
-    projectsEnabled: boolean;
+    persistenceEnabled: boolean;
     onProjects: () => void;
+    onSave: () => void;
+    onReloadLatest: () => void;
   },
 ): void {
   const title = mustGet<HTMLElement>(mount, "projectBarTitle");
@@ -36,17 +40,67 @@ export function renderProjectBar(
     mount,
     "saveProjectButton",
   );
+  const reloadButton = mustGet<HTMLButtonElement>(
+    mount,
+    "reloadProjectButton",
+  );
 
   title.textContent = session.title;
   title.title = session.title;
-  status.textContent = `Запазено · v${session.workVersion}`;
-  status.dataset.state = "clean";
 
-  projectsButton.disabled = !options.projectsEnabled;
-  projectsButton.addEventListener("click", options.onProjects);
+  const statusView = projectStatusView(session);
+  status.textContent = statusView.text;
+  status.dataset.state = statusView.state;
+  status.title = session.lastError ?? "";
 
-  // P2.5c wires dirty/save/conflict behavior.
-  saveButton.disabled = true;
+  const busy = session.saveState === "saving";
+  const conflict = session.saveState === "conflict";
+
+  projectsButton.disabled = !options.persistenceEnabled || busy;
+  projectsButton.onclick = options.onProjects;
+
+  saveButton.hidden = conflict;
+  saveButton.disabled =
+    !options.persistenceEnabled || !canSaveProject(session) || busy;
+  saveButton.textContent = busy ? "Запазване…" : "Запази";
+  saveButton.onclick = options.onSave;
+
+  reloadButton.hidden = !conflict;
+  reloadButton.disabled = !options.persistenceEnabled || busy;
+  reloadButton.onclick = options.onReloadLatest;
+}
+
+function projectStatusView(session: ProjectSession): {
+  text: string;
+  state: ProjectSession["saveState"];
+} {
+  switch (session.saveState) {
+    case "clean":
+      return {
+        text: `Запазено · v${session.workVersion}`,
+        state: "clean",
+      };
+    case "dirty":
+      return {
+        text: `Има промени · v${session.workVersion}`,
+        state: "dirty",
+      };
+    case "saving":
+      return {
+        text: `Запазване… · v${session.workVersion}`,
+        state: "saving",
+      };
+    case "error":
+      return {
+        text: `Грешка — не е записано · v${session.workVersion}`,
+        state: "error",
+      };
+    case "conflict":
+      return {
+        text: "Конфликт — има по-нова версия",
+        state: "conflict",
+      };
+  }
 }
 
 export async function openProjectsDialog(
@@ -57,6 +111,7 @@ export async function openProjectsDialog(
     repository,
     currentSession,
     onProjectReady,
+    beforeProjectChange,
     requireSelection = false,
     startInCreate = false,
   } = options;
@@ -162,6 +217,10 @@ export async function openProjectsDialog(
     );
 
     renderProjectList(list, projects ?? [], currentSession, async (id) => {
+      if (beforeProjectChange && !(await beforeProjectChange())) {
+        return;
+      }
+
       setDialogBusy(dialog, true);
       setStatus(status, "Отваряне на проекта…", "progress");
 
@@ -212,6 +271,10 @@ export async function openProjectsDialog(
       if (!title) {
         setStatus(status, "Въведете име на проекта.", "error");
         titleInput.focus();
+        return;
+      }
+
+      if (beforeProjectChange && !(await beforeProjectChange())) {
         return;
       }
 
@@ -296,6 +359,71 @@ export async function openProjectsDialog(
   }
 
   render();
+}
+
+export function confirmDiscardUnsavedChanges(
+  mount: HTMLElement,
+): Promise<boolean> {
+  const existing = mount.querySelector<HTMLDialogElement>(
+    "#discardChangesDialog",
+  );
+  existing?.remove();
+
+  const dialog = document.createElement("dialog");
+  dialog.id = "discardChangesDialog";
+  dialog.className = "projects-dialog discard-dialog";
+  dialog.setAttribute("aria-labelledby", "discardChangesTitle");
+  dialog.innerHTML = `
+    <div class="projects-dialog-card">
+      <div class="projects-dialog-head">
+        <div>
+          <p class="projects-dialog-kicker">НЕЗАПИСАНИ ПРОМЕНИ</p>
+          <h2 id="discardChangesTitle">Промените ще бъдат загубени</h2>
+        </div>
+      </div>
+      <p class="discard-dialog-copy">
+        Има промени, които още не са записани. Ако продължите,
+        те няма да бъдат запазени.
+      </p>
+      <div class="discard-dialog-actions">
+        <button id="discardCancelButton" type="button">Откажи</button>
+        <button id="discardContinueButton" class="primary" type="button">
+          Продължи без запис
+        </button>
+      </div>
+    </div>
+  `;
+
+  mount.append(dialog);
+
+  return new Promise<boolean>((resolve) => {
+    let settled = false;
+
+    const finish = (result: boolean): void => {
+      if (settled) return;
+      settled = true;
+      dialog.close();
+      dialog.remove();
+      resolve(result);
+    };
+
+    mustGet<HTMLButtonElement>(
+      dialog,
+      "discardCancelButton",
+    ).addEventListener("click", () => finish(false));
+
+    mustGet<HTMLButtonElement>(
+      dialog,
+      "discardContinueButton",
+    ).addEventListener("click", () => finish(true));
+
+    dialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      finish(false);
+    });
+
+    dialog.showModal();
+  });
 }
 
 export function renderProjectGate(
