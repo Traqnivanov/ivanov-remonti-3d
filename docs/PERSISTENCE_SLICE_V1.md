@@ -1,14 +1,14 @@
 # PERSISTENCE SLICE v1 — Ivanov Remonti Smart Offer
 
-**Status:** CURRENT TECHNICAL CONTRACT — SLICE 2 ACCEPTANCE PASS / OWNER MERGE DECISION NEXT  
+**Status:** SLICE 2 — MERGED / CLOSED  
 **Repo:** `Traqnivanov/ivanov-remonti-3d`  
-**Working branch:** `feat/persistence-slice-v1`  
+**Merged via:** PR #4 → `main` at `4e281f15dd343048fd353ccf30f12596d69fcc98`  
 **Base:** merged First Vertical Slice on `main`  
 **Supabase project:** `ivanov-remonti-3d`  
 **Supabase project ref:** `qjfpbxucrxrtpygusnuv`  
 **Region:** `eu-west-1`  
 **Current-state authority:** `PROJECT_STATE.md`  
-**Current work:** GitHub Issue #6  
+**Current work:** none — Issue #6 is the completed Slice 2 acceptance record  
 **Initial database state at audit:** empty `public` schema, no migrations.
 
 > Sections 16+ preserve implementation checkpoint evidence. They are historical execution records inside this technical contract and do not replace `PROJECT_STATE.md` for the current NEXT.
@@ -926,10 +926,16 @@ Protection Gate:
 - mandatory before production/final release;
 - not bypassed by this acceptance.
 
-### Current merge gate
+### Merge closure
 
-Slice 2 — Persistence is technically and visually accepted.
+Slice 2 — Persistence is technically and visually accepted and is now merged.
 
-PR #4 remains **DRAFT / OPEN**.
-Do not merge until explicit Owner merge approval.
-Do not start Slice 3 before the merge decision.
+- Owner merge approval: GIVEN;
+- PR #4: MERGED / CLOSED;
+- merge commit: `4e281f15dd343048fd353ccf30f12596d69fcc98`;
+- `main` verification: PASS;
+- final pre-merge CI #262: SUCCESS;
+- final pre-merge static preview #154: SUCCESS.
+
+Slice 2 is closed.
+No Slice 3 implementation is authorized by this contract; the next slice must start through a new Current Work record and the normal audit → proposal → Criteria Check → Owner approval process.
