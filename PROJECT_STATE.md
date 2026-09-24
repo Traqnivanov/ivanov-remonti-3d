@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** none
+**Current Work Issue:** #9 — **[CURRENT WORK] P3.1 — Floor Finish vertical slice**
 
 This file answers only: **where is the project now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -15,9 +15,9 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - Stable product baseline: `main` after merged Slice 2 + continuity consolidation.
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
-- Active branch: **none**
-- Active PR: **none**
-- Active Current Work: **none**
+- Active branch: `feat/p3-1-floor-finish-vertical-slice`
+- Active PR: **#10 — DRAFT / OPEN**
+- Active Current Work: **Issue #9 — P3.1**
 - PR #8: **MERGED / CLOSED**
 
 Every new chat must verify the actual branch / HEAD / PR state before changing anything.
@@ -58,9 +58,15 @@ History: PR #4 / closed Issue #6.
 
 ### Current product implementation
 
-**None.**
+**P3.1 — Floor Finish vertical slice — ACTIVE**
 
-No Slice 3 implementation is active or authorized yet.
+Current checkpoint:
+- **P3.1a — multi-service domain/runtime foundation**
+
+Owner-approved P3.1 direction:
+- expand the proven Smart Offer mechanism through a real floor-finish vertical slice;
+- preserve Fine Putty as a regression baseline;
+- do not broaden into openings, furniture, uploaded materials, publishing or unrelated Slice 3 work.
 
 ---
 
@@ -131,33 +137,41 @@ These do not block planning of the next slice, but must not be forgotten:
 
 ## 6. Current Work
 
-**None.**
+**Issue #9 — P3.1 Floor Finish vertical slice**
 
-Issue #7 — documentation consolidation — is complete after merged PR #8.
+Active branch:
+- `feat/p3-1-floor-finish-vertical-slice`
 
-Result now in `main`:
-- `START_HERE.md` contains the compact end-state product compass;
-- documentation routing is explicit;
-- `PROJECT_STATE.md` is current-state only;
-- permanent docs are not used as a chat diary;
-- cold-start continuity simulation passed.
+Active PR:
+- **#10 — DRAFT / OPEN**
 
-Detailed execution history remains in PR #8 / Issue #7 / Git.
+Current checkpoint:
+- **P3.1a — multi-service domain/runtime foundation**
+
+P3.1a implementation checkpoint:
+- runtime Project State changed from singleton `serviceAssignment` to `serviceAssignments[]`;
+- persisted schema version remains v1 because persistence already used an assignments array;
+- canonical Fine Putty assignment remains required;
+- runtime can round-trip multiple surface-targeted assignments;
+- unique assignment IDs are enforced;
+- visible UI remains Fine Putty-only in P3.1a;
+- product-code checkpoint: `8459e9c9ef4a118b426a3d43174845429fc270c9`.
+
+P3.1b must not start until P3.1a CI/regression verification passes.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**No active implementation task.**
+**Verify P3.1a only.**
 
-The next major product direction remains the approved **one complete room** path.
+Required:
+1. run CI/typecheck/tests/build/browser smoke on the active PR;
+2. confirm the visible Fine Putty UI has no regression;
+3. confirm persistence round-trip with multiple assignments passes;
+4. inspect the PR diff for scope leakage;
+5. record P3.1a PASS or report the exact blocker.
 
-Before any Slice 3 implementation:
-1. Work Controller audits the complete-room target against the current accepted baseline;
-2. identify the smallest logically complete and verifiable first work block;
-3. make one concrete proposal;
-4. run the mandatory Criteria Check;
-5. obtain explicit Owner approval where required;
-6. only then create/activate the new Current Work implementation task.
+Only after P3.1a PASS may Work Controller authorize **P3.1b — floor quantity + DEV pricing**.
 
-Do not jump directly into broad services/assets/AI expansion and do not implement from historical notes or assumptions.
+Do not begin P3.1b early.
