@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultProject } from "./domain";
+import { createDefaultProject, findLaminateFlooringAssignment, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
 import {
   CURRENT_PROJECT_SCHEMA_VERSION,
   ProjectPersistenceError,
@@ -9,7 +9,7 @@ import {
 } from "./persistence";
 
 describe("project persistence boundary", () => {
-  it("serializes the First Slice into the generalized persisted v1 shape", () => {
+  it("serializes the current project into the generalized persisted v1 shape", () => {
     const project = createDefaultProject("project-123");
     const persisted = serializeProjectState(project);
 
@@ -24,7 +24,7 @@ describe("project persistence boundary", () => {
     expect(persisted.rooms[0]!.openings).toEqual([]);
     expect(persisted.rooms[0]!.objects).toEqual([]);
     expect(persisted.rooms[0]!.materials).toEqual([]);
-    expect(persisted.serviceAssignments).toHaveLength(1);
+    expect(persisted.serviceAssignments).toHaveLength(2);
     expect(persisted.projectNotes).toEqual([]);
     expect(persisted.presentation).toEqual({});
     expect(persisted).not.toHaveProperty("camera");
@@ -35,7 +35,7 @@ describe("project persistence boundary", () => {
     const project = createDefaultProject("project-round-trip");
     project.room.widthM = 5.1;
     project.room.lengthM = 3.7;
-    project.serviceAssignment.targetEntityIds = [
+    getFinePuttyAssignment(project).targetEntityIds = [
       "room-1.wall-front",
       "room-1.wall-left",
     ];
@@ -43,6 +43,46 @@ describe("project persistence boundary", () => {
     const restored = deserializeProjectState(serializeProjectState(project));
 
     expect(restored).toEqual(project);
+  });
+
+  it("keeps an existing Fine Putty-only persisted v1 project valid without injecting Laminate", () => {
+    const persisted = serializeProjectState(createDefaultProject("existing-v1-project"));
+    persisted.serviceAssignments = persisted.serviceAssignments.filter(
+      (assignment) => assignment.serviceCode === "fine-putty",
+    );
+
+    const restored = deserializeProjectState(persisted);
+
+    expect(restored.serviceAssignments).toHaveLength(1);
+    expect(getFinePuttyAssignment(restored).serviceCode).toBe("fine-putty");
+    expect(findLaminateFlooringAssignment(restored)).toBeUndefined();
+  });
+
+  it("round-trips multiple runtime service assignments without changing the canonical Fine Putty assignment", () => {
+    const project = createDefaultProject("multi-assignment-project");
+    project.serviceAssignments.push({
+      id: "assignment-p3-1a-foundation-2",
+      serviceCode: "p3-1a-foundation-test",
+      label: "P3.1a foundation test",
+      targetEntityIds: ["room-1.floor"],
+      included: true,
+      quantityRuleId: "surface-area-foundation-test",
+      priceBookItemId: "dev-p3-1a-foundation-test",
+      presentationMode: "material",
+      clientInfo: {
+        what: "Foundation-only test assignment.",
+        why: "Proves runtime multi-assignment round-trip.",
+        result: "No visible product expansion.",
+        includes: "Persistence/runtime foundation only.",
+      },
+    });
+
+    const restored = deserializeProjectState(serializeProjectState(project));
+
+    expect(restored.serviceAssignments).toEqual(project.serviceAssignments);
+    expect(getFinePuttyAssignment(restored)).toEqual(
+      getFinePuttyAssignment(project),
+    );
   });
 
   it("preserves stable surface and service target ids", () => {
@@ -59,7 +99,10 @@ describe("project persistence boundary", () => {
       "room-1.ceiling",
     ]);
     expect(parsed.serviceAssignments[0]!.targetEntityIds).toEqual(
-      project.serviceAssignment.targetEntityIds,
+      getFinePuttyAssignment(project).targetEntityIds,
+    );
+    expect(parsed.serviceAssignments[1]!.targetEntityIds).toEqual(
+      getLaminateFlooringAssignment(project).targetEntityIds,
     );
   });
 
@@ -110,7 +153,10 @@ describe("project persistence boundary", () => {
     persisted.serviceAssignments[0]!.targetEntityIds.length = 0;
 
     expect(project.room.surfaces[0]!.label).toBe("Предна стена");
-    expect(project.serviceAssignment.targetEntityIds).toHaveLength(4);
+    expect(getFinePuttyAssignment(project).targetEntityIds).toHaveLength(4);
+    expect(getLaminateFlooringAssignment(project).targetEntityIds).toEqual([
+      "room-1.floor",
+    ]);
   });
 });
 

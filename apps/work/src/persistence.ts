@@ -1,9 +1,10 @@
-import type {
-  ProjectState,
-  ServiceAssignment,
-  Surface,
-  SurfaceId,
-  WallId,
+import {
+  getFinePuttyAssignment,
+  surfaceIds,
+  type ProjectState,
+  type ServiceAssignment,
+  type Surface,
+  type SurfaceId,
 } from "./domain";
 
 export const CURRENT_PROJECT_SCHEMA_VERSION = 1 as const;
@@ -86,19 +87,21 @@ export function serializeProjectState(project: ProjectState): PersistedProjectV1
         materials: [],
       },
     ],
-    serviceAssignments: [
-      {
-        id: project.serviceAssignment.id,
-        serviceCode: project.serviceAssignment.serviceCode,
-        label: project.serviceAssignment.label,
-        targetEntityIds: [...project.serviceAssignment.targetEntityIds],
-        included: project.serviceAssignment.included,
-        quantityRuleId: project.serviceAssignment.quantityRuleId,
-        priceBookItemId: project.serviceAssignment.priceBookItemId,
-        presentationMode: project.serviceAssignment.presentationMode,
-        clientInfo: { ...project.serviceAssignment.clientInfo },
-      },
-    ],
+    serviceAssignments: project.serviceAssignments.map((assignment) => ({
+      id: assignment.id,
+      serviceCode: assignment.serviceCode,
+      label: assignment.label,
+      targetEntityIds: [...assignment.targetEntityIds],
+      included: assignment.included,
+      quantityRuleId: assignment.quantityRuleId,
+      ...(assignment.priceBookItemId
+        ? { priceBookItemId: assignment.priceBookItemId }
+        : {}),
+      presentationMode: assignment.presentationMode,
+      ...(assignment.clientInfo
+        ? { clientInfo: { ...assignment.clientInfo } }
+        : {}),
+    })),
     projectNotes: [],
     presentation: {},
   };
@@ -125,13 +128,9 @@ export function deserializeProjectState(raw: unknown): ProjectState {
   if (persisted.rooms.length !== 1) {
     unsupported("Current Work runtime supports exactly one room.");
   }
-  if (persisted.serviceAssignments.length !== 1) {
-    unsupported("Current Work runtime supports exactly one service assignment.");
-  }
 
   const room = persisted.rooms[0];
-  const assignment = persisted.serviceAssignments[0];
-  if (!room || !assignment) {
+  if (!room) {
     unsupported("Current Work runtime persistence shape is incomplete.");
   }
 
@@ -140,10 +139,12 @@ export function deserializeProjectState(raw: unknown): ProjectState {
     unsupported("Current Work runtime does not yet support persisted openings, objects or materials.");
   }
 
-  const surfaces = toRuntimeSurfaces(room.surfaces);
-  const serviceAssignment = toRuntimeServiceAssignment(assignment);
+  const serviceAssignments = persisted.serviceAssignments.map(
+    toRuntimeServiceAssignment,
+  );
+  assertUniqueAssignmentIds(serviceAssignments);
 
-  return {
+  const project: ProjectState = {
     schemaVersion: 1,
     projectId: persisted.projectId,
     room: {
@@ -152,10 +153,18 @@ export function deserializeProjectState(raw: unknown): ProjectState {
       widthM: room.geometry.widthM,
       lengthM: room.geometry.lengthM,
       heightM: room.geometry.heightM,
-      surfaces,
+      surfaces: toRuntimeSurfaces(room.surfaces),
     },
-    serviceAssignment,
+    serviceAssignments,
   };
+
+  try {
+    getFinePuttyAssignment(project);
+  } catch {
+    unsupported("Current Work runtime requires the canonical Fine Putty assignment.");
+  }
+
+  return project;
 }
 
 function validateV1(raw: Record<string, unknown>): PersistedProjectV1 {
@@ -247,9 +256,9 @@ function validateAssignment(raw: unknown, index: number): PersistedServiceAssign
       assignment.quantityRuleId,
       `${path}.quantityRuleId`,
     ),
-    priceBookItemId,
+    ...(priceBookItemId ? { priceBookItemId } : {}),
     presentationMode: mode,
-    clientInfo,
+    ...(clientInfo ? { clientInfo } : {}),
   };
 }
 
@@ -290,42 +299,36 @@ function toRuntimeSurfaces(surfaces: PersistedSurfaceV1[]): Surface[] {
 function toRuntimeServiceAssignment(
   assignment: PersistedServiceAssignmentV1,
 ): ServiceAssignment {
-  if (
-    assignment.id !== "assignment-fine-putty-1" ||
-    assignment.serviceCode !== "fine-putty" ||
-    assignment.quantityRuleId !== "wall-area-v1" ||
-    assignment.priceBookItemId !== "dev-fine-putty" ||
-    assignment.presentationMode !== "highlight" ||
-    !assignment.clientInfo
-  ) {
-    unsupported("Current Work runtime supports only the First Slice Fine Putty assignment.");
-  }
-
-  const wallIds = new Set<WallId>([
-    "room-1.wall-front",
-    "room-1.wall-back",
-    "room-1.wall-left",
-    "room-1.wall-right",
-  ]);
-
-  const targets = assignment.targetEntityIds.map((id) => {
-    if (!wallIds.has(id as WallId)) {
-      unsupported(`Unsupported Fine Putty target: ${id}.`);
+  const knownSurfaceIds = new Set<SurfaceId>(surfaceIds);
+  const targetEntityIds = assignment.targetEntityIds.map((id) => {
+    if (!knownSurfaceIds.has(id as SurfaceId)) {
+      unsupported(`Unsupported service target: ${id}.`);
     }
-    return id as WallId;
+    return id as SurfaceId;
   });
 
   return {
-    id: "assignment-fine-putty-1",
-    serviceCode: "fine-putty",
-    label: "Фина шпакловка",
-    targetEntityIds: targets,
+    id: assignment.id,
+    serviceCode: assignment.serviceCode,
+    label: assignment.label,
+    targetEntityIds,
     included: assignment.included,
-    quantityRuleId: "wall-area-v1",
-    priceBookItemId: "dev-fine-putty",
-    presentationMode: "highlight",
-    clientInfo: { ...assignment.clientInfo },
+    quantityRuleId: assignment.quantityRuleId,
+    ...(assignment.priceBookItemId
+      ? { priceBookItemId: assignment.priceBookItemId }
+      : {}),
+    presentationMode: assignment.presentationMode,
+    ...(assignment.clientInfo
+      ? { clientInfo: { ...assignment.clientInfo } }
+      : {}),
   };
+}
+
+function assertUniqueAssignmentIds(assignments: ServiceAssignment[]): void {
+  const ids = new Set(assignments.map((assignment) => assignment.id));
+  if (ids.size !== assignments.length) {
+    unsupported("Current Work runtime requires unique service assignment IDs.");
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

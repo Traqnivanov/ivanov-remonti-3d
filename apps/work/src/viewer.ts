@@ -25,6 +25,8 @@ export class RoomViewer {
   private readonly manualHidden = new Set<SurfaceId>();
   private readonly autoHidden = new Set<SurfaceId>();
   private highlighted = new Set<SurfaceId>();
+  private floorFinishMesh: THREE.Mesh | null = null;
+  private laminateFloorVisible = false;
   private project: ProjectState | null = null;
   private autoCutaway = true;
   private showcaseFrameActive = true;
@@ -83,6 +85,11 @@ export class RoomViewer {
     this.applyMaterials();
   }
 
+  setLaminateFloorVisible(visible: boolean): void {
+    this.laminateFloorVisible = visible;
+    this.updateFloorFinishVisibility();
+  }
+
   setManualVisibility(id: SurfaceId, visible: boolean): void {
     if (visible) this.manualHidden.delete(id);
     else this.manualHidden.add(id);
@@ -114,11 +121,14 @@ export class RoomViewer {
     this.renderer.domElement.removeEventListener("pointerup", this.handlePointerUp);
     this.controls.removeEventListener("start", this.handleControlsStart);
     this.controls.dispose();
+    this.disposeFloorFinish();
     this.renderer.dispose();
     this.container.replaceChildren();
   }
 
   private rebuildRoom(): void {
+    this.disposeFloorFinish();
+
     for (const mesh of this.entityMeshes.values()) {
       mesh.geometry.dispose();
       if (Array.isArray(mesh.material)) {
@@ -146,6 +156,7 @@ export class RoomViewer {
       new THREE.BoxGeometry(width, WALL_THICKNESS, length),
       new THREE.Vector3(0, -WALL_THICKNESS / 2, 0),
     );
+    this.makeLaminateFloor(width, length);
 
     this.makeMesh(
       "room-1.ceiling",
@@ -213,6 +224,119 @@ export class RoomViewer {
     return mesh;
   }
 
+  private makeLaminateFloor(width: number, length: number): void {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 512;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const rows = 6;
+    const rowHeight = canvas.height / rows;
+    const plankWidth = canvas.width / 2;
+    const tones = ["#b58a5d", "#ad8156", "#ba9065", "#a97d53", "#b1865a"];
+
+    context.fillStyle = "#ad8156";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let row = 0; row < rows; row += 1) {
+      const y = row * rowHeight;
+      const offset = row % 2 === 0 ? 0 : plankWidth / 2;
+
+      for (
+        let plankIndex = -1;
+        plankIndex <= 2;
+        plankIndex += 1
+      ) {
+        const x = plankIndex * plankWidth - offset;
+        const toneIndex =
+          Math.abs(row * 7 + plankIndex * 11 + 17) % tones.length;
+
+        context.fillStyle = tones[toneIndex]!;
+        context.fillRect(x, y, plankWidth, rowHeight);
+
+        context.strokeStyle = "rgba(55, 34, 20, 0.40)";
+        context.lineWidth = 2;
+        context.strokeRect(x, y, plankWidth, rowHeight);
+
+        context.strokeStyle = "rgba(255, 240, 214, 0.09)";
+        context.lineWidth = 1;
+
+        for (let grain = 1; grain <= 4; grain += 1) {
+          const grainY = y + (rowHeight * grain) / 5;
+          const wave = ((row + plankIndex + grain) % 3 - 1) * 5;
+
+          context.beginPath();
+          context.moveTo(x + 18, grainY);
+          context.bezierCurveTo(
+            x + plankWidth * 0.28,
+            grainY + wave,
+            x + plankWidth * 0.68,
+            grainY - wave,
+            x + plankWidth - 18,
+            grainY,
+          );
+          context.stroke();
+        }
+      }
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+
+    // One canvas tile represents roughly 4.8 m × 1.2 m:
+    // long ~2.4 m planks and ~0.2 m plank width.
+    texture.repeat.set(
+      Math.max(0.5, width / 4.8),
+      Math.max(1, length / 1.2),
+    );
+    texture.anisotropy = Math.min(
+      8,
+      this.renderer.capabilities.getMaxAnisotropy(),
+    );
+
+    const material = new THREE.MeshStandardMaterial({
+      map: texture,
+      roughness: 0.76,
+      metalness: 0,
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(width, length),
+      material,
+    );
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = 0.006;
+    mesh.renderOrder = 1;
+    mesh.visible = false;
+
+    this.scene.add(mesh);
+    this.floorFinishMesh = mesh;
+    this.updateFloorFinishVisibility();
+  }
+
+  private disposeFloorFinish(): void {
+    if (!this.floorFinishMesh) return;
+
+    this.floorFinishMesh.geometry.dispose();
+    const material = this.floorFinishMesh.material as THREE.MeshStandardMaterial;
+    material.map?.dispose();
+    material.dispose();
+    this.scene.remove(this.floorFinishMesh);
+    this.floorFinishMesh = null;
+  }
+
+  private updateFloorFinishVisibility(): void {
+    if (!this.floorFinishMesh) return;
+
+    const floorVisible =
+      this.entityMeshes.get("room-1.floor")?.visible ?? true;
+    this.floorFinishMesh.visible =
+      this.laminateFloorVisible && floorVisible;
+  }
+
   private applyMaterials(): void {
     for (const [id, mesh] of this.entityMeshes) {
       const material = mesh.material as THREE.MeshStandardMaterial;
@@ -266,6 +390,7 @@ export class RoomViewer {
     for (const [id, mesh] of this.entityMeshes) {
       mesh.visible = isSurfaceVisible(id, this.manualHidden, this.autoHidden);
     }
+    this.updateFloorFinishVisibility();
   }
 
   private readonly handleControlsStart = (): void => {

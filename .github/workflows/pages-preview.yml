@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "feat/persistence-slice-v1"
+      - "feat/p3-1-floor-finish-vertical-slice"
   workflow_dispatch:
 
 permissions:
@@ -47,6 +48,19 @@ jobs:
         run: |
           set -euo pipefail
 
+          case "${GITHUB_REF_NAME}" in
+            feat/persistence-slice-v1)
+              PREVIEW_BRANCH="preview-persistence-slice-v1"
+              ;;
+            feat/p3-1-floor-finish-vertical-slice)
+              PREVIEW_BRANCH="preview-p3-1-floor-finish"
+              ;;
+            *)
+              echo "No preview destination configured for ${GITHUB_REF_NAME}"
+              exit 1
+              ;;
+          esac
+
           rm -rf /tmp/ivanov-preview-dist
           mkdir -p /tmp/ivanov-preview-dist
           cp -R apps/work/dist/. /tmp/ivanov-preview-dist/
@@ -54,7 +68,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git checkout --orphan preview-persistence-slice-v1
+          git checkout --orphan "${PREVIEW_BRANCH}"
 
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -R /tmp/ivanov-preview-dist/. .
@@ -62,4 +76,4 @@ jobs:
 
           git add -A
           git commit -m "preview: publish vertical slice ${GITHUB_SHA}"
-          git push --force origin HEAD:preview-persistence-slice-v1
+          git push --force origin "HEAD:${PREVIEW_BRANCH}"

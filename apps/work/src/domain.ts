@@ -22,28 +22,59 @@ export type Room = {
   surfaces: Surface[];
 };
 
+export type ClientInfo = {
+  what: string;
+  why: string;
+  result: string;
+  includes: string;
+};
+
+export type ServicePresentationMode =
+  | "highlight"
+  | "material"
+  | "geometry"
+  | "xray"
+  | "object";
+
 export type ServiceAssignment = {
+  id: string;
+  serviceCode: string;
+  label: string;
+  targetEntityIds: SurfaceId[];
+  included: boolean;
+  quantityRuleId: string;
+  priceBookItemId?: string;
+  presentationMode: ServicePresentationMode;
+  clientInfo?: ClientInfo;
+};
+
+export type FinePuttyServiceAssignment = ServiceAssignment & {
   id: "assignment-fine-putty-1";
   serviceCode: "fine-putty";
   label: "Фина шпакловка";
   targetEntityIds: WallId[];
-  included: boolean;
   quantityRuleId: "wall-area-v1";
   priceBookItemId: "dev-fine-putty";
   presentationMode: "highlight";
-  clientInfo: {
-    what: string;
-    why: string;
-    result: string;
-    includes: string;
-  };
+  clientInfo: ClientInfo;
+};
+
+export type LaminateFlooringServiceAssignment = ServiceAssignment & {
+  id: "assignment-laminate-flooring-1";
+  serviceCode: "laminate-flooring";
+  label: "Ламинат";
+  targetEntityIds: "room-1.floor"[];
+  quantityRuleId: "floor-area-v1";
+  priceBookItemId: "dev-laminate-flooring";
+  presentationMode: "material";
+  clientInfo: ClientInfo;
 };
 
 export type ProjectState = {
   schemaVersion: 1;
   projectId: string;
   room: Room;
-  serviceAssignment: ServiceAssignment;
+  serviceAssignments: ServiceAssignment[];
 };
 
 export const wallIds: WallId[] = [
@@ -52,6 +83,93 @@ export const wallIds: WallId[] = [
   "room-1.wall-left",
   "room-1.wall-right",
 ];
+
+export const surfaceIds: SurfaceId[] = [
+  ...wallIds,
+  "room-1.floor",
+  "room-1.ceiling",
+];
+
+export function isWallId(id: SurfaceId): id is WallId {
+  return wallIds.includes(id as WallId);
+}
+
+export function getFinePuttyAssignment(
+  project: ProjectState,
+): FinePuttyServiceAssignment {
+  const assignment = project.serviceAssignments.find(
+    (item) => item.id === "assignment-fine-putty-1",
+  );
+
+  if (
+    !assignment ||
+    assignment.serviceCode !== "fine-putty" ||
+    assignment.label !== "Фина шпакловка" ||
+    assignment.quantityRuleId !== "wall-area-v1" ||
+    assignment.priceBookItemId !== "dev-fine-putty" ||
+    assignment.presentationMode !== "highlight" ||
+    !assignment.clientInfo ||
+    assignment.targetEntityIds.some((id) => !isWallId(id))
+  ) {
+    throw new Error("Project is missing the canonical Fine Putty assignment.");
+  }
+
+  return assignment as FinePuttyServiceAssignment;
+}
+
+export function createLaminateFlooringAssignment(): LaminateFlooringServiceAssignment {
+  return {
+    id: "assignment-laminate-flooring-1",
+    serviceCode: "laminate-flooring",
+    label: "Ламинат",
+    targetEntityIds: ["room-1.floor"],
+    included: true,
+    quantityRuleId: "floor-area-v1",
+    priceBookItemId: "dev-laminate-flooring",
+    presentationMode: "material",
+    clientInfo: {
+      what: "Ламинирана подова настилка за пода на помещението.",
+      why: "За да се покаже и остойности конкретният подов финиш в Smart Offer.",
+      result: "Завършен под с ламиниран финиш в крайния резултат.",
+      includes: "Количеството се изчислява от площта на пода. DEV позицията не е production цена.",
+    },
+  };
+}
+
+export function findLaminateFlooringAssignment(
+  project: ProjectState,
+): LaminateFlooringServiceAssignment | undefined {
+  const assignment = project.serviceAssignments.find(
+    (item) => item.id === "assignment-laminate-flooring-1",
+  );
+
+  if (!assignment) return undefined;
+
+  if (
+    assignment.serviceCode !== "laminate-flooring" ||
+    assignment.label !== "Ламинат" ||
+    assignment.quantityRuleId !== "floor-area-v1" ||
+    assignment.priceBookItemId !== "dev-laminate-flooring" ||
+    assignment.presentationMode !== "material" ||
+    !assignment.clientInfo ||
+    assignment.targetEntityIds.length !== 1 ||
+    assignment.targetEntityIds[0] !== "room-1.floor"
+  ) {
+    throw new Error("Project has an invalid canonical Laminate assignment.");
+  }
+
+  return assignment as LaminateFlooringServiceAssignment;
+}
+
+export function getLaminateFlooringAssignment(
+  project: ProjectState,
+): LaminateFlooringServiceAssignment {
+  const assignment = findLaminateFlooringAssignment(project);
+  if (!assignment) {
+    throw new Error("Project is missing the canonical Laminate assignment.");
+  }
+  return assignment;
+}
 
 export function createDefaultProject(projectId = "prototype-room-1"): ProjectState {
   return {
@@ -72,26 +190,29 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
         { id: "room-1.ceiling", kind: "ceiling", label: "Таван" },
       ],
     },
-    serviceAssignment: {
-      id: "assignment-fine-putty-1",
-      serviceCode: "fine-putty",
-      label: "Фина шпакловка",
-      targetEntityIds: [
-        "room-1.wall-front",
-        "room-1.wall-back",
-        "room-1.wall-left",
-        "room-1.wall-right",
-      ],
-      included: true,
-      quantityRuleId: "wall-area-v1",
-      priceBookItemId: "dev-fine-putty",
-      presentationMode: "highlight",
-      clientInfo: {
-        what: "Фина шпакловка за финално изравняване и заглаждане на включените стени.",
-        why: "За да се получи гладка и равномерна основа преди грундиране и боядисване.",
-        result: "Гладки стени, подготвени за следващите довършителни слоеве.",
-        includes: "Количеството и стойността се отнасят само за стените, включени в тази позиция.",
+    serviceAssignments: [
+      {
+        id: "assignment-fine-putty-1",
+        serviceCode: "fine-putty",
+        label: "Фина шпакловка",
+        targetEntityIds: [
+          "room-1.wall-front",
+          "room-1.wall-back",
+          "room-1.wall-left",
+          "room-1.wall-right",
+        ],
+        included: true,
+        quantityRuleId: "wall-area-v1",
+        priceBookItemId: "dev-fine-putty",
+        presentationMode: "highlight",
+        clientInfo: {
+          what: "Фина шпакловка за финално изравняване и заглаждане на включените стени.",
+          why: "За да се получи гладка и равномерна основа преди грундиране и боядисване.",
+          result: "Гладки стени, подготвени за следващите довършителни слоеве.",
+          includes: "Количеството и стойността се отнасят само за стените, включени в тази позиция.",
+        },
       },
-    },
+      createLaminateFlooringAssignment(),
+    ],
   };
 }

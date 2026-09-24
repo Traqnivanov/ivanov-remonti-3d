@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** none
+**Current Work Issue:** #9 — **[CURRENT WORK] P3.1 — Floor Finish vertical slice**
 
 This file answers only: **where is the project now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -15,9 +15,9 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - Stable product baseline: `main` after merged Slice 2 + continuity consolidation.
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
-- Active branch: **none**
-- Active PR: **none**
-- Active Current Work: **none**
+- Active branch: `feat/p3-1-floor-finish-vertical-slice`
+- Active PR: **#10 — DRAFT / OPEN**
+- Active Current Work: **Issue #9 — P3.1**
 - PR #8: **MERGED / CLOSED**
 
 Every new chat must verify the actual branch / HEAD / PR state before changing anything.
@@ -58,9 +58,19 @@ History: PR #4 / closed Issue #6.
 
 ### Current product implementation
 
-**None.**
+**P3.1 — Floor Finish vertical slice — ACTIVE**
 
-No Slice 3 implementation is active or authorized yet.
+Current checkpoint:
+- **P3.1a — multi-service domain/runtime foundation: PASS**
+- **P3.1b — floor quantity + DEV pricing: PASS**
+- **P3.1c — Smart Offer interaction: PASS**
+- **P3.1d — floor visual result + persistence acceptance: PASS**
+- **P3.1 overall acceptance: PASS / OWNER MERGE DECISION PENDING**
+
+Owner-approved P3.1 direction:
+- expand the proven Smart Offer mechanism through a real floor-finish vertical slice;
+- preserve Fine Putty as a regression baseline;
+- do not broaden into openings, furniture, uploaded materials, publishing or unrelated Slice 3 work.
 
 ---
 
@@ -68,15 +78,29 @@ No Slice 3 implementation is active or authorized yet.
 
 Dedicated Supabase project remains the canonical persisted application truth.
 
-Current bounded QA project:
+Two bounded QA projects now prove both backward compatibility and P3.1:
+
+### Existing Slice 2 QA project
+- title: `QA — P2.4b Create List Open`;
 - `work_version = 3`;
 - geometry: `4.2 × 4.8 × 2.7 m`;
-- reload/reopen: verified;
-- Fine Putty after reopen: `48.60 m²`;
-- DB row ID and persisted `projectId`: matching;
-- Viewer Session State: not persisted.
+- service assignments: **Fine Putty only**;
+- remained unchanged throughout P3.1.
 
-Current verified security posture:
+### P3.1 QA project
+- title: `P3.1 QA Floor`;
+- project ID: `67e7f6ff-16b8-4278-8cd0-6d2c0beab4ff`;
+- `work_version = 2`;
+- geometry: `4.3 × 4.8 × 2.6 m`;
+- service assignments: **Fine Putty + Laminate**;
+- Laminate target: `room-1.floor`;
+- Laminate quantity after reload/open: **20.64 m²**;
+- DB row ID and persisted `projectId`: matching;
+- `presentation = {}`;
+- camera/zoom/selection/cutaway Viewer Session State: not persisted;
+- real authenticated Create → Save v1→v2 → reload → Open: PASS.
+
+Current verified security posture remains unchanged:
 - RLS enabled on `projects` and `work_users`;
 - `anon` has no Work-project SELECT/INSERT/UPDATE;
 - authenticated project access is owner + active Work-user scoped;
@@ -131,33 +155,55 @@ These do not block planning of the next slice, but must not be forgotten:
 
 ## 6. Current Work
 
-**None.**
+**Issue #9 — P3.1 Floor Finish vertical slice**
 
-Issue #7 — documentation consolidation — is complete after merged PR #8.
+Active branch:
+- `feat/p3-1-floor-finish-vertical-slice`
 
-Result now in `main`:
-- `START_HERE.md` contains the compact end-state product compass;
-- documentation routing is explicit;
-- `PROJECT_STATE.md` is current-state only;
-- permanent docs are not used as a chat diary;
-- cold-start continuity simulation passed.
+Active PR:
+- **#10 — DRAFT / OPEN**
 
-Detailed execution history remains in PR #8 / Issue #7 / Git.
+P3.1 checkpoints:
+- P3.1a multi-service runtime foundation: **PASS**;
+- P3.1b floor quantity + DEV pricing: **PASS**;
+- P3.1c Smart Offer interaction: **PASS**;
+- P3.1d floor visual result + persistence acceptance: **PASS**.
+
+Final accepted P3.1 result:
+- runtime supports multiple surface-targeted service assignments;
+- Fine Putty remains the regression baseline;
+- Laminate targets exactly `room-1.floor`;
+- floor quantity comes from canonical geometry;
+- price stays in a separate EUR DEV Price Book fixture;
+- Offer → Model and Model → Offer work for Fine Putty and Laminate;
+- Client Info/quantity/DEV price are synchronized to the focused service;
+- corrected lightweight Laminate presentation passed desktop/mobile visual QA;
+- Save/reload/Open with both assignments passed live authenticated verification;
+- old Fine Putty-only persisted v1 project remains valid and unchanged;
+- no Viewer Session State persistence regression.
+
+Accepted product/QA checkpoints:
+- P3.1a product-code: `8459e9c9ef4a118b426a3d43174845429fc270c9`;
+- P3.1b product-code: `ddfc447b0f36d7ac370254dcb3a56ee4ce7b7bf5`;
+- P3.1c product-code: `7785668a3c0a789a87746ebca6d3de6afe0e44a3`;
+- Laminate visual correction: `54275623f63e4e32eb44ec2842273a1df344f901`;
+- final verified product/QA HEAD before this state record: `e63fad567a66e7e6c78a546c2092b27fb72af04f`;
+- CI #276: SUCCESS;
+- P3.1 static preview #156: SUCCESS.
+
+Scope audit: PASS — no openings, wall net deductions, palettes/uploads, furniture, electrical objects, PDF/export, publishing, production Price Book, broad service catalog or AI/photo expansion entered P3.1.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**No active implementation task.**
+**Final PR #10 merge gate.**
 
-The next major product direction remains the approved **one complete room** path.
+Before merge:
+1. commit this factual P3.1 acceptance state only;
+2. require final branch HEAD CI = SUCCESS;
+3. require P3.1 static preview publish = SUCCESS;
+4. verify PR #10 remains mergeable and scope-clean;
+5. stop for explicit Owner merge approval.
 
-Before any Slice 3 implementation:
-1. Work Controller audits the complete-room target against the current accepted baseline;
-2. identify the smallest logically complete and verifiable first work block;
-3. make one concrete proposal;
-4. run the mandatory Criteria Check;
-5. obtain explicit Owner approval where required;
-6. only then create/activate the new Current Work implementation task.
-
-Do not jump directly into broad services/assets/AI expansion and do not implement from historical notes or assumptions.
+Do not begin the next complete-room block before PR #10 is merged and `main` is verified.
