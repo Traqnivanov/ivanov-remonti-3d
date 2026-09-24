@@ -105,6 +105,8 @@ jobs:
             /tmp/vertical-slice-mobile-work.png
             /tmp/vertical-slice-mobile-owner-preview.png
             /tmp/vertical-slice-mobile-client.png
+            /tmp/p25b-projects-dialog-desktop.png
+            /tmp/p25b-projects-dialog-mobile.png
             /tmp/persistence-login-desktop.png
             /tmp/persistence-login-mobile.png
           if-no-files-found: error
