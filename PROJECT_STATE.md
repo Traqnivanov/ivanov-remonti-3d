@@ -131,8 +131,9 @@ Completed before implementation:
 Owner decision:
 **APPROVED.**
 
-Current implementation block:
-**P2.5a — Project Session foundation only.**
+Implementation progress:
+- **P2.5a — Project Session foundation: PASS**
+- **P2.5b — Project Bar + Projects dialog / Create/Open: NEXT**
 
 P2.5 scope is only:
 - Create project;
@@ -232,6 +233,12 @@ A new chat must verify the current latest branch/PR/CI state rather than treatin
 
 ## 9. NEXT EXACT STEP
 
-**P2.5a — implement and test the Project Session foundation only: current project identity, work version, dirty/save/conflict state, and 0/1/2+ startup selection rules.**
+**P2.5b — implement the approved visible Work-only Project Bar shell + Projects dialog + Create/Open + 0/1/2+ startup behavior.**
 
-Do not implement the visible Project Bar/Dialog until P2.5a passes its technical gate.
+Scope boundary:
+- no Save/conflict recovery UI yet;
+- no autosave;
+- no rename/archive/delete;
+- Client Preview remains read-only.
+
+After P2.5b: technical gate + exact preview + visual inspection before advancing to P2.5c.
