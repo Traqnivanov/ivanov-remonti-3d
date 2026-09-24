@@ -15,7 +15,7 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - Stable product baseline: `main@dd85c583ec52b687126fac62fd4646a7e02c8143`
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Active branch: `docs/continuity-compass-consolidation`
-- Active PR: **none yet**
+- Active PR: **#8 — DRAFT / OPEN**
 - Active Current Work: **Issue #7**
 - Current branch purpose: documentation consolidation only; no product implementation.
 
@@ -143,17 +143,13 @@ No product code, Supabase, 3D, pricing, service or client-delivery behavior is b
 
 ## 7. NEXT EXACT STEP
 
-Complete Issue #7:
+Issue #7 implementation and cold-start simulation are complete.
 
-1. record the durable documentation-routing Owner decision in `docs/DECISION_LOG.md`;
-2. run a cold-start simulation using only:
-   - `START_HERE.md`;
-   - this `PROJECT_STATE.md`;
-   - Current Work Issue #7;
-   - Git branch/HEAD verification;
-3. verify the simulation can identify the end-state product, current state, protected truths and correct NEXT without reading all contracts;
-4. open a focused documentation PR;
-5. require green CI / repository checks;
-6. stop for explicit Owner merge approval.
+Cold-start result: **PASS** — `START_HERE.md + PROJECT_STATE.md + Issue #7 + Git verification` are sufficient to reconstruct the end-state product, current state, protected truths and correct NEXT without reading the full document stack.
+
+Current merge gate:
+1. review PR #8 diff;
+2. require green CI / repository checks on the final docs branch;
+3. stop for explicit Owner merge approval.
 
 **Do not start Slice 3 implementation inside Issue #7.**
