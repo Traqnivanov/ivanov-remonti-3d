@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #6 — **[CURRENT WORK] P2.6 — Slice 2 acceptance**
+**Current Work Issue:** none — Slice 2 is closed after merged PR #4.
 
 This file describes **where the project is now**.  
 It is not a history log. Git and historical documents preserve the past.
@@ -12,10 +12,11 @@ It is not a history log. Git and historical documents preserve the past.
 ## 1. Current repository state
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
-- Stable production-development baseline: `main@cda27d78faf28565b7faef2f4917aa14c5d8a2d4`
-- That main commit is the merged **First Vertical Slice** baseline.
-- Active working branch: `feat/persistence-slice-v1`
-- Active PR: **#4 — DRAFT / OPEN**
+- Stable product baseline: `main@4e281f15dd343048fd353ccf30f12596d69fcc98`
+- That merge commit contains the accepted **Slice 2 — Persistence** result.
+- Active working branch: **none**
+- Active PR: **none**
+- PR #4: **MERGED / CLOSED**
 - Latest verified product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`
 - Continuity system: **ACTIVE / MIGRATION VERIFIED**.
 - Continuity migration was verified through branch head `c4b1b59b613647bfb832d2da2730fdffaa2caf3d` with Vertical Slice CI #222 SUCCESS and static preview #112 SUCCESS.
@@ -25,7 +26,7 @@ It is not a history log. Git and historical documents preserve the past.
 
 ## 2. Current product phase
 
-**Current active slice:** Slice 2 — Persistence — **ACCEPTANCE PASS / OWNER MERGE DECISION PENDING**.
+**Current phase:** Slice 2 — Persistence — **MERGED / CLOSED**.
 
 ### Completed
 
@@ -122,36 +123,23 @@ Temporary `repoqa` / `saveqa` routes and modules were removed after verification
 
 ## 4. Current gate
 
-**P2.6 — Slice 2 acceptance: PASS**
+**Slice 2 — Persistence: MERGED / CLOSED**
 
-All Slice 2 acceptance gates are satisfied.
+Owner approved merge of PR #4.
 
-Key final evidence:
-- P2.1–P2.5: PASS;
-- real authenticated Work Save `v2 → v3`: PASS;
-- direct Supabase verification: `work_version = 3`, geometry `4.2 × 4.8 × 2.7 m`;
-- new-page reload → automatic reopen: PASS;
-- reopened Fine Putty quantity: `48.60 m²`;
-- stable persisted project/entity identity: PASS;
-- stale-write rejection: PASS;
-- invalid/unsupported schema rejection: PASS;
-- Viewer Session State isolation: PASS;
-- live RLS/grants re-verification: PASS;
-- no privileged browser credential: PASS;
-- final mobile-first + desktop visible QA: PASS;
-- latest verified product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`.
+Verified merge result:
+- PR #4: MERGED / CLOSED;
+- merge commit: `4e281f15dd343048fd353ccf30f12596d69fcc98`;
+- `main` moved to that merge commit;
+- accepted product-code checkpoint remains `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`;
+- pre-merge final CI #262: SUCCESS;
+- pre-merge static preview #154: SUCCESS;
+- P2.6 acceptance: PASS.
 
-Security disposition:
-- leaked-password protection disabled: known non-blocking warning for Slice 2; review again before production/final release;
-- password recovery localhost redirect: non-blocking because recovery is not exposed in Slice 2; must be fixed before exposing recovery;
-- Protection Gate remains mandatory before production/final release.
+There is no active product implementation task now.
+Issue #6 is the closing record for Slice 2 and is to be closed after this continuity update.
 
-Current temporary work record:
-- GitHub Issue **#6**.
-
-PR #4 remains **DRAFT / OPEN**.
-**Next gate is explicit Owner merge approval.**
-No merge and no Slice 3 work before that approval.
+No Slice 3 implementation is authorized yet.
 ---
 
 ## 5. Active product/architecture truths relevant now
@@ -212,10 +200,10 @@ These are known and must not be forgotten. P2.6 must explicitly classify whether
 Continuity system:
 - canonical `START_HERE.md`: active;
 - canonical `PROJECT_STATE.md`: active;
-- single Current Work Issue: **#6**;
+- no active Current Work Issue after Slice 2 closure;
 - historical/superseded documents remain non-authoritative.
 
-Slice 2 — Persistence: **ACCEPTANCE PASS**.
+Slice 2 — Persistence: **MERGED / CLOSED**.
 - product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`;
 - P2.5 final CI #259: SUCCESS;
 - P2.5 static preview #150: SUCCESS;
@@ -227,25 +215,20 @@ Slice 2 — Persistence: **ACCEPTANCE PASS**.
 - mobile-first final visual review: PASS;
 - desktop consistency: PASS.
 
-Current branch documentation reconciliation is part of the final PR gate and must have green CI before merge.
+Final pre-merge documentation gate passed on CI #262 and static preview #154; PR #4 was then merged by explicit Owner approval.
 
 A new chat must verify the actual current branch/PR/CI state rather than treating these run numbers as eternal state.
 ---
 
 ## 9. NEXT EXACT STEP
 
-**Owner merge decision for PR #4.**
+**No active implementation task.**
 
-Before merge:
-- verify the latest branch HEAD after final documentation reconciliation;
-- require latest CI = SUCCESS;
-- require static preview publish = SUCCESS;
-- PR #4 remains DRAFT until the Owner explicitly approves merge.
+Before any Slice 3 implementation:
+- create a new Current Work Issue only when the next work block is actually defined;
+- perform the required Work audit;
+- make one concrete proposal;
+- run Criteria Check;
+- obtain explicit Owner approval where required.
 
-If Owner approves merge and the final checks are green:
-- merge PR #4 into `main`;
-- verify resulting `main` state;
-- close Current Work Issue #6;
-- only then prepare the next Slice 3 work record.
-
-Do not start Slice 3 before the merge is complete and verified.
+Do not start Slice 3 implementation from historical notes or assumptions.
