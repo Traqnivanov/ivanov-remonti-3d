@@ -84,7 +84,29 @@ describe("project persistence boundary", () => {
     expect(restored.room.openings).toEqual([]);
   });
 
-  it("keeps an existing Fine Putty-only persisted v1 project valid without injecting Laminate", () => {
+  it("migrates the legacy Fine Putty wall-area-v1 rule to the canonical net-area rule on load", () => {
+    const persisted = serializeProjectState(createDefaultProject("legacy-fine-putty-rule"));
+    const finePutty = persisted.serviceAssignments.find(
+      (assignment) => assignment.id === "assignment-fine-putty-1",
+    );
+    if (!finePutty) throw new Error("Missing Fine Putty assignment.");
+    finePutty.quantityRuleId = "wall-area-v1";
+
+    const migrated = parseAndMigrateProjectState(persisted);
+    const migratedFinePutty = migrated.serviceAssignments.find(
+      (assignment) => assignment.id === "assignment-fine-putty-1",
+    );
+    const restored = deserializeProjectState(persisted);
+
+    expect(migratedFinePutty?.quantityRuleId).toBe(
+      "wall-net-area-openings-v1",
+    );
+    expect(getFinePuttyAssignment(restored).quantityRuleId).toBe(
+      "wall-net-area-openings-v1",
+    );
+  });
+
+    it("keeps an existing Fine Putty-only persisted v1 project valid without injecting Laminate", () => {
     const persisted = serializeProjectState(createDefaultProject("existing-v1-project"));
     persisted.serviceAssignments = persisted.serviceAssignments.filter(
       (assignment) => assignment.serviceCode === "fine-putty",

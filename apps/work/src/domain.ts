@@ -64,7 +64,7 @@ export type FinePuttyServiceAssignment = ServiceAssignment & {
   serviceCode: "fine-putty";
   label: "Фина шпакловка";
   targetEntityIds: WallId[];
-  quantityRuleId: "wall-area-v1";
+  quantityRuleId: "wall-net-area-openings-v1";
   priceBookItemId: "dev-fine-putty";
   presentationMode: "highlight";
   clientInfo: ClientInfo;
@@ -116,7 +116,7 @@ export function getFinePuttyAssignment(
     !assignment ||
     assignment.serviceCode !== "fine-putty" ||
     assignment.label !== "Фина шпакловка" ||
-    assignment.quantityRuleId !== "wall-area-v1" ||
+    assignment.quantityRuleId !== "wall-net-area-openings-v1" ||
     assignment.priceBookItemId !== "dev-fine-putty" ||
     assignment.presentationMode !== "highlight" ||
     !assignment.clientInfo ||
@@ -240,7 +240,7 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
           "room-1.wall-right",
         ],
         included: true,
-        quantityRuleId: "wall-area-v1",
+        quantityRuleId: "wall-net-area-openings-v1",
         priceBookItemId: "dev-fine-putty",
         presentationMode: "highlight",
         clientInfo: {

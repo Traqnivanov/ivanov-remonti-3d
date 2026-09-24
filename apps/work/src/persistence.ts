@@ -132,7 +132,7 @@ export function parseAndMigrateProjectState(raw: unknown): PersistedProjectV1 {
     );
   }
 
-  return validateV1(raw);
+  return migrateLegacyFinePuttyRule(validateV1(raw));
 }
 
 export function deserializeProjectState(raw: unknown): ProjectState {
@@ -179,6 +179,24 @@ export function deserializeProjectState(raw: unknown): ProjectState {
   }
 
   return project;
+}
+
+function migrateLegacyFinePuttyRule(
+  persisted: PersistedProjectV1,
+): PersistedProjectV1 {
+  return {
+    ...persisted,
+    serviceAssignments: persisted.serviceAssignments.map((assignment) =>
+      assignment.id === "assignment-fine-putty-1" &&
+      assignment.serviceCode === "fine-putty" &&
+      assignment.quantityRuleId === "wall-area-v1"
+        ? {
+            ...assignment,
+            quantityRuleId: "wall-net-area-openings-v1",
+          }
+        : assignment,
+    ),
+  };
 }
 
 function validateV1(raw: Record<string, unknown>): PersistedProjectV1 {

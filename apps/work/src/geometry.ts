@@ -41,3 +41,30 @@ export function summarizeRoomGeometry(project: ProjectState): RoomGeometrySummar
 export function getWallAreaM2(project: ProjectState, wallId: WallId): number {
   return summarizeRoomGeometry(project).wallAreasM2[wallId];
 }
+
+export function getOpeningAreaM2(
+  project: ProjectState,
+  openingId: string,
+): number {
+  const opening = project.room.openings.find((item) => item.id === openingId);
+  if (!opening) {
+    throw new Error(`Unknown opening: ${openingId}.`);
+  }
+  return opening.widthM * opening.heightM;
+}
+
+export function getWallOpeningAreaM2(
+  project: ProjectState,
+  wallId: WallId,
+): number {
+  return project.room.openings
+    .filter((opening) => opening.hostSurfaceId === wallId)
+    .reduce((sum, opening) => sum + opening.widthM * opening.heightM, 0);
+}
+
+export function getWallNetAreaM2(
+  project: ProjectState,
+  wallId: WallId,
+): number {
+  return getWallAreaM2(project, wallId) - getWallOpeningAreaM2(project, wallId);
+}
