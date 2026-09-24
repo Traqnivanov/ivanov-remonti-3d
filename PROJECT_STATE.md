@@ -64,7 +64,8 @@ History: PR #4 / closed Issue #6.
 
 Current checkpoint:
 - **P3.2a — Opening domain + persistence foundation: PASS**
-- **P3.2b — Opening geometry proof: ACTIVE**
+- **P3.2b — Opening geometry proof: PASS**
+- **P3.2c — Fine Putty net wall quantity: ACTIVE**
 
 P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
@@ -195,15 +196,17 @@ No visible geometry, quantity-rule change or Work UI exists in P3.2a.
 
 ## 7. NEXT EXACT STEP
 
-**P3.2b — Opening geometry proof.**
+**P3.2c — Fine Putty net wall quantity.**
 
 Implement only:
-1. one door + one window in the new proof/default room;
-2. render real rectangular holes in their host wall meshes;
-3. preserve one stable wall mesh/entity per wall;
-4. preserve highlight, selection, manual visibility and automatic cutaway;
-5. keep old persisted `openings: []` projects visually unchanged;
-6. automated geometry/regression checks;
-7. fresh mobile-first + desktop visual QA.
+1. keep gross wall geometry unchanged and addressable;
+2. add canonical opening-area + net-wall-area domain helpers;
+3. Fine Putty quantity uses gross target wall area minus openings hosted on those walls;
+4. introduce an explicit versioned Fine Putty net-area rule without silently changing the meaning of the legacy rule;
+5. migrate legacy Fine Putty `wall-area-v1` state safely at the persistence boundary;
+6. prove old projects without openings keep exactly the same quantity;
+7. prove door/window deductions affect only their host Fine Putty wall targets;
+8. prove Laminate quantity remains unchanged;
+9. full regression CI.
 
-Do not change Fine Putty quantity yet. Net wall quantity belongs to P3.2c.
+Do not add Work opening controls yet. Those belong to P3.2d.
