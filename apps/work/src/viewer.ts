@@ -226,43 +226,54 @@ export class RoomViewer {
 
   private makeLaminateFloor(width: number, length: number): void {
     const canvas = document.createElement("canvas");
-    canvas.width = 512;
+    canvas.width = 1024;
     canvas.height = 512;
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    const plankRows = 8;
-    const rowHeight = canvas.height / plankRows;
-    const tones = ["#b88d5c", "#a97a4d", "#c09a69", "#9f7046"];
+    const rows = 6;
+    const rowHeight = canvas.height / rows;
+    const plankWidth = canvas.width / 2;
+    const tones = ["#b58a5d", "#ad8156", "#ba9065", "#a97d53", "#b1865a"];
 
-    context.fillStyle = "#a97a4d";
+    context.fillStyle = "#ad8156";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    for (let row = 0; row < plankRows; row += 1) {
+    for (let row = 0; row < rows; row += 1) {
       const y = row * rowHeight;
-      const offset = row % 2 === 0 ? 0 : canvas.width / 4;
-      const plankWidth = canvas.width / 2;
+      const offset = row % 2 === 0 ? 0 : plankWidth / 2;
 
-      for (let x = -offset; x < canvas.width; x += plankWidth) {
-        context.fillStyle = tones[(row + Math.round(x / plankWidth) + 8) % tones.length]!;
+      for (
+        let plankIndex = -1;
+        plankIndex <= 2;
+        plankIndex += 1
+      ) {
+        const x = plankIndex * plankWidth - offset;
+        const toneIndex =
+          Math.abs(row * 7 + plankIndex * 11 + 17) % tones.length;
+
+        context.fillStyle = tones[toneIndex]!;
         context.fillRect(x, y, plankWidth, rowHeight);
 
-        context.strokeStyle = "rgba(63, 39, 22, 0.38)";
+        context.strokeStyle = "rgba(55, 34, 20, 0.40)";
         context.lineWidth = 2;
         context.strokeRect(x, y, plankWidth, rowHeight);
 
-        context.strokeStyle = "rgba(255, 236, 204, 0.10)";
+        context.strokeStyle = "rgba(255, 240, 214, 0.09)";
         context.lineWidth = 1;
-        for (let grain = 1; grain <= 3; grain += 1) {
-          const grainY = y + (rowHeight * grain) / 4;
+
+        for (let grain = 1; grain <= 4; grain += 1) {
+          const grainY = y + (rowHeight * grain) / 5;
+          const wave = ((row + plankIndex + grain) % 3 - 1) * 5;
+
           context.beginPath();
-          context.moveTo(x + 12, grainY);
+          context.moveTo(x + 18, grainY);
           context.bezierCurveTo(
-            x + plankWidth * 0.3,
-            grainY - 4,
-            x + plankWidth * 0.7,
-            grainY + 4,
-            x + plankWidth - 12,
+            x + plankWidth * 0.28,
+            grainY + wave,
+            x + plankWidth * 0.68,
+            grainY - wave,
+            x + plankWidth - 18,
             grainY,
           );
           context.stroke();
@@ -274,8 +285,11 @@ export class RoomViewer {
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
+
+    // One canvas tile represents roughly 4.8 m × 1.2 m:
+    // long ~2.4 m planks and ~0.2 m plank width.
     texture.repeat.set(
-      Math.max(1, width / 2.4),
+      Math.max(0.5, width / 4.8),
       Math.max(1, length / 1.2),
     );
     texture.anisotropy = Math.min(
@@ -285,7 +299,7 @@ export class RoomViewer {
 
     const material = new THREE.MeshStandardMaterial({
       map: texture,
-      roughness: 0.72,
+      roughness: 0.76,
       metalness: 0,
       side: THREE.DoubleSide,
     });
