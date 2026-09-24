@@ -198,7 +198,7 @@ const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) throw new Error("Missing #app");
 
 app.innerHTML = `
-  <div class="app-shell" id="shell">
+  <div class="app-shell${appEntry === "work" && projectSession ? " has-project-bar" : ""}" id="shell">
     <header class="topbar">
       <div class="brand">
         <strong>IVANOV REMONTI · SMART OFFER</strong>
