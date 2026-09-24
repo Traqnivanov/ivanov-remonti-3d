@@ -3,7 +3,6 @@ import {
   getLaminateFlooringAssignment,
   type ClientInfo,
   type ProjectState,
-  type SurfaceId,
 } from "./domain";
 import { getWallNetAreaM2, summarizeRoomGeometry } from "./geometry";
 
