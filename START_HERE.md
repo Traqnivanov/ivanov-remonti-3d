@@ -22,6 +22,43 @@ This is not:
 
 The product must preserve the direct relationship between the real modeled object, the renovation operation, its exact scope, quantity, price and client explanation.
 
+### End-state product compass
+
+A future Work chat must understand the intended finished tool from this section without reading every product document.
+
+The finished Ivanov Remonti Smart Offer must provide:
+
+- a practical **Work/Edit environment** for Ivanov Remonti over a real editable room/object model;
+- true interactive **2D/3D** behavior where needed, with dimensions, surfaces, openings, objects, selection, movement and cutaway/visibility controls;
+- real renovation services linked to the **exact surfaces/zones/objects** they affect;
+- quantities derived from confirmed project geometry + approved rules;
+- prices derived from a separate Price Book / approved pricing rules;
+- bidirectional **offer ↔ model** interaction;
+- short client-facing ⓘ Info that explains what the service is, why it is done, what is included and what the client receives;
+- real wall/ceiling/material color selection, including practical **color picker / palettes**;
+- user-supplied images/materials that can be applied intentionally to the appropriate wall, floor, ceiling or object, including examples such as paint/reference color, decorative plaster, panels, laminate, tile, doors, cabinets/furniture and other supported finishes/objects;
+- controllable material/image scale, repeat, orientation/rotation and correction where required for believable placement;
+- movable/positioned objects such as doors, windows, outlets, switches, lighting, radiators, furniture, cabinets, sanitary items and other approved assets;
+- a **fast and practical Work view**; it does not need maximum visual quality at every editing moment;
+- a **high-quality Client/Final Result view** that aims to feel close to the real room through believable proportions, PBR/material quality, correct texture scale, lighting, shadows/contact grounding and quality assets;
+- a read-only interactive client Smart Offer with services, exact scope, Info, quantities, unit prices, totals and final result;
+- controlled client delivery through Published Revision/Snapshot, with Link or Link + PIN according to the approved delivery contract;
+- EUR as the product currency.
+
+The target is not “a 3D room with many buttons”. The target is one coherent real-work workflow:
+
+**real object → editable model → service → exact place → quantity → price → Info → final result → protected interactive client offer**
+
+### Product-path guardrail
+
+The project grows through usable vertical slices, not by building many disconnected subsystems.
+
+The next major product direction after the accepted Persistence slice is the already approved **one complete room** direction before broad service-family expansion, unless the Owner explicitly changes that direction.
+
+That complete-room direction means proving the real workflow across the room: four walls + floor + ceiling + openings + visibility/cutaway + surface selection + real services + materials/finishes + core movable objects + room totals + client result.
+
+Do not jump from a proven core directly into a huge catalog of services/assets/AI features before that end-to-end room workflow is useful.
+
 ---
 
 ## 2. Authority
@@ -94,16 +131,18 @@ If the repo/Issue contradicts `PROJECT_STATE.md`, stop and reconcile before impl
 It must contain only:
 - current stable baseline;
 - active branch / PR;
-- latest verified implementation checkpoint;
-- what is complete and accepted;
+- a compact summary of completed/accepted phases;
 - what is currently active;
-- known unresolved/deferred items;
+- current live truths needed for the next work;
+- known unresolved/deferred items that can affect future work;
 - current Current Work Issue;
 - **NEXT EXACT STEP**.
 
-It must **not** become a chronological diary.
+It must **not** become a chronological diary or repeat closed sub-task history.
 
-Git stores history.
+Do not keep old CI numbers, intermediate commits, micro-checkpoints or step-by-step P2.x history there unless they are still required to understand the current gate.
+
+Closed Issue/PR/Git history stores those details.
 
 ---
 
@@ -126,6 +165,23 @@ The Issue is not the product source of truth. It stores temporary execution stat
 - NEXT.
 
 When that work is closed, close the Issue and create the next Current Work Issue only when needed.
+
+### Documentation routing — permanent rule
+
+Do not turn permanent product documents into a transcript of the chat.
+
+Use this routing:
+
+- **idea / question / problem / alternative / temporary hypothesis** → discuss in chat and record in the active Current Work Issue when it matters to execution;
+- **temporary implementation state, QA evidence, screenshots, commits, failures, options and NEXT inside the task** → Current Work Issue;
+- **current factual project state** → `PROJECT_STATE.md`, kept compact;
+- **durable Owner-approved product/architecture/process truth that future phases must obey** → the relevant permanent contract; put it in `START_HERE.md` only when it is globally important for every future Work chat;
+- **material Owner decision that needs historical traceability** → one concise entry in `docs/DECISION_LOG.md`;
+- **execution history** → Git, merged PRs and closed Issues.
+
+A rejected option or superseded intermediate idea does **not** belong in a permanent contract merely because it was discussed.
+
+Resolve first. Record the durable result second.
 
 ---
 
@@ -323,17 +379,25 @@ Keep them for traceability unless a separate cleanup explicitly proves they are 
 
 Update only what actually changed:
 
-1. Current Work Issue — temporary task result;
-2. `PROJECT_STATE.md` — current official state and NEXT;
-3. permanent contract / `DECISION_LOG.md` — only if a durable product/architecture decision changed;
-4. Git commit — history.
+1. Current Work Issue — complete the temporary task record and close it when done;
+2. `PROJECT_STATE.md` — keep only the new current truth and NEXT; remove/summarize state that is now merely history;
+3. permanent contract — only when a durable approved rule changed;
+4. `docs/DECISION_LOG.md` — only for a material Owner decision worth historical traceability;
+5. Git / merged PR / closed Issue — detailed execution history.
+
+Before adding text to a permanent document, ask:
+
+> Will a future Work chat need this as an active rule, or is it merely evidence of how we got there?
+
+If it is only evidence/history, do not add it to the permanent active contract.
 
 Do not create:
 - new handoff files per chat;
 - FINAL_FINAL variants;
 - NEXT_CHAT variants;
 - duplicate Masters;
-- duplicate state documents.
+- duplicate state documents;
+- “current thoughts” sections in permanent contracts.
 
 ---
 
@@ -341,8 +405,12 @@ Do not create:
 
 Before a work block is considered safely handed off, ask:
 
-> If this chat disappeared now, could a completely new chat read the repo + Current Work Issue and continue correctly without Owner retelling the project?
+> If this chat disappeared now, could a completely new chat read `START_HERE.md` + `PROJECT_STATE.md` + the active Current Work Issue (if one exists), verify Git, and continue correctly without Owner retelling the project?
 
-If not, continuity is not complete.
+The new chat should understand **the whole path without reading the whole history**.
+
+It should not need to read every master/contract. It reads only the dependency document(s) required by the active task.
+
+If this is not true, continuity is not complete.
 
 **Fix continuity before accumulating more work.**
