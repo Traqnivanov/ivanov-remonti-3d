@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultProject } from "./domain";
+import { createDefaultProject, getFinePuttyAssignment } from "./domain";
 import {
   CURRENT_PROJECT_SCHEMA_VERSION,
   ProjectPersistenceError,
@@ -35,7 +35,7 @@ describe("project persistence boundary", () => {
     const project = createDefaultProject("project-round-trip");
     project.room.widthM = 5.1;
     project.room.lengthM = 3.7;
-    project.serviceAssignment.targetEntityIds = [
+    getFinePuttyAssignment(project).targetEntityIds = [
       "room-1.wall-front",
       "room-1.wall-left",
     ];
@@ -43,6 +43,33 @@ describe("project persistence boundary", () => {
     const restored = deserializeProjectState(serializeProjectState(project));
 
     expect(restored).toEqual(project);
+  });
+
+  it("round-trips multiple runtime service assignments without changing the canonical Fine Putty assignment", () => {
+    const project = createDefaultProject("multi-assignment-project");
+    project.serviceAssignments.push({
+      id: "assignment-p3-1a-foundation-2",
+      serviceCode: "p3-1a-foundation-test",
+      label: "P3.1a foundation test",
+      targetEntityIds: ["room-1.floor"],
+      included: true,
+      quantityRuleId: "surface-area-foundation-test",
+      priceBookItemId: "dev-p3-1a-foundation-test",
+      presentationMode: "material",
+      clientInfo: {
+        what: "Foundation-only test assignment.",
+        why: "Proves runtime multi-assignment round-trip.",
+        result: "No visible product expansion.",
+        includes: "Persistence/runtime foundation only.",
+      },
+    });
+
+    const restored = deserializeProjectState(serializeProjectState(project));
+
+    expect(restored.serviceAssignments).toEqual(project.serviceAssignments);
+    expect(getFinePuttyAssignment(restored)).toEqual(
+      getFinePuttyAssignment(project),
+    );
   });
 
   it("preserves stable surface and service target ids", () => {
@@ -59,7 +86,7 @@ describe("project persistence boundary", () => {
       "room-1.ceiling",
     ]);
     expect(parsed.serviceAssignments[0]!.targetEntityIds).toEqual(
-      project.serviceAssignment.targetEntityIds,
+      getFinePuttyAssignment(project).targetEntityIds,
     );
   });
 
@@ -110,7 +137,7 @@ describe("project persistence boundary", () => {
     persisted.serviceAssignments[0]!.targetEntityIds.length = 0;
 
     expect(project.room.surfaces[0]!.label).toBe("Предна стена");
-    expect(project.serviceAssignment.targetEntityIds).toHaveLength(4);
+    expect(getFinePuttyAssignment(project).targetEntityIds).toHaveLength(4);
   });
 });
 

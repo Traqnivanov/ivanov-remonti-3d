@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateFinePuttyQuantity, calculateLineTotalEur, devPriceBookItem } from "./calculation";
-import { createDefaultProject } from "./domain";
+import { createDefaultProject, getFinePuttyAssignment } from "./domain";
 
 describe("fine putty quantity", () => {
   it("calculates selected wall area from domain geometry", () => {
@@ -17,7 +17,7 @@ describe("fine putty quantity", () => {
 
   it("changes only when the service target set changes", () => {
     const project = createDefaultProject();
-    project.serviceAssignment.targetEntityIds = ["room-1.wall-right"];
+    getFinePuttyAssignment(project).targetEntityIds = ["room-1.wall-right"];
 
     expect(calculateFinePuttyQuantity(project).value).toBeCloseTo(
       project.room.lengthM * project.room.heightM,

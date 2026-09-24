@@ -11,7 +11,7 @@ import {
   calculateLineTotalEur,
   devPriceBookItem,
 } from "./calculation";
-import { createDefaultProject } from "./domain";
+import { createDefaultProject, getFinePuttyAssignment } from "./domain";
 
 describe("Smart Offer core interaction loop", () => {
   it("Offer → Model highlights the exact assigned walls", () => {
@@ -21,7 +21,7 @@ describe("Smart Offer core interaction loop", () => {
     expect(interaction.selectedService).toBe(true);
     expect(interaction.selectedEntity).toBeNull();
     expect(getHighlightedEntityIds(project, interaction)).toEqual(
-      project.serviceAssignment.targetEntityIds,
+      getFinePuttyAssignment(project).targetEntityIds,
     );
   });
 
@@ -68,7 +68,7 @@ describe("Smart Offer core interaction loop", () => {
 
   it("starts with Fine Putty focused without changing project data", () => {
     const project = createDefaultProject();
-    const beforeTargets = [...project.serviceAssignment.targetEntityIds];
+    const beforeTargets = [...getFinePuttyAssignment(project).targetEntityIds];
 
     const interaction = createInitialOfferInteraction();
 
@@ -77,7 +77,7 @@ describe("Smart Offer core interaction loop", () => {
       selectedEntity: null,
     });
     expect(getHighlightedEntityIds(project, interaction)).toEqual(beforeTargets);
-    expect(project.serviceAssignment.targetEntityIds).toEqual(beforeTargets);
+    expect(getFinePuttyAssignment(project).targetEntityIds).toEqual(beforeTargets);
   });
 
   it("keeps quantity and price invariant across presentation-only selections", () => {

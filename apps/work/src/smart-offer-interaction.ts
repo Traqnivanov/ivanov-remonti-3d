@@ -1,4 +1,4 @@
-import type { ProjectState, SurfaceId } from "./domain";
+import { getFinePuttyAssignment, type ProjectState, type SurfaceId } from "./domain";
 
 export type OfferInteractionState = {
   selectedService: boolean;
@@ -23,7 +23,7 @@ export function selectModelEntity(
   project: ProjectState,
   id: SurfaceId,
 ): OfferInteractionState {
-  const linked = project.serviceAssignment.targetEntityIds.some(
+  const linked = getFinePuttyAssignment(project).targetEntityIds.some(
     (targetId) => targetId === id,
   );
 
@@ -49,7 +49,7 @@ export function getHighlightedEntityIds(
   }
 
   if (interaction.selectedService) {
-    return [...project.serviceAssignment.targetEntityIds];
+    return [...getFinePuttyAssignment(project).targetEntityIds];
   }
 
   return [];

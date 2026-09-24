@@ -1,6 +1,6 @@
 import "./styles.css";
 import type { SurfaceId, WallId } from "./domain";
-import { createDefaultProject, wallIds } from "./domain";
+import { createDefaultProject, getFinePuttyAssignment, wallIds } from "./domain";
 import type { ProjectRepository } from "./project-repository";
 import {
   applyProjectSaveFailure,
@@ -580,15 +580,15 @@ function renderWallTargets(): void {
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = project.serviceAssignment.targetEntityIds.includes(id);
+    checkbox.checked = getFinePuttyAssignment(project).targetEntityIds.includes(id);
     checkbox.addEventListener("change", () => {
       if (!currentCapabilities().canAuthorProject) {
-        checkbox.checked = project.serviceAssignment.targetEntityIds.includes(id);
+        checkbox.checked = getFinePuttyAssignment(project).targetEntityIds.includes(id);
         return;
       }
 
       const previousTargets =
-        project.serviceAssignment.targetEntityIds;
+        getFinePuttyAssignment(project).targetEntityIds;
       const targets = new Set(previousTargets);
       if (checkbox.checked) targets.add(id);
       else targets.delete(id);
@@ -602,7 +602,7 @@ function renderWallTargets(): void {
           (wallId, index) => wallId !== previousTargets[index],
         );
 
-      project.serviceAssignment.targetEntityIds = nextTargets;
+      getFinePuttyAssignment(project).targetEntityIds = nextTargets;
 
       if (changed) {
         markCurrentProjectDirty();
@@ -656,7 +656,7 @@ function renderOffer(): void {
   const row = mustGet("serviceRow");
   row.classList.toggle("selected", offerInteraction.selectedService);
 
-  const info = project.serviceAssignment.clientInfo;
+  const info = getFinePuttyAssignment(project).clientInfo;
   mustGet("infoWhat").textContent = info.what;
   mustGet("infoWhy").textContent = info.why;
   mustGet("infoResult").textContent = info.result;

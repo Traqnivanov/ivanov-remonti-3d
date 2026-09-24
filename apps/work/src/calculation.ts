@@ -1,4 +1,4 @@
-import type { ProjectState, WallId } from "./domain";
+import { getFinePuttyAssignment, type ProjectState, type WallId } from "./domain";
 import { getWallAreaM2 } from "./geometry";
 
 export type QuantityResult = {
@@ -27,8 +27,9 @@ export const devPriceBookItem: PriceBookItem = {
 };
 
 export function calculateFinePuttyQuantity(project: ProjectState): QuantityResult {
-  const sourceEntityIds = project.serviceAssignment.included
-    ? [...project.serviceAssignment.targetEntityIds]
+  const assignment = getFinePuttyAssignment(project);
+  const sourceEntityIds = assignment.included
+    ? [...assignment.targetEntityIds]
     : [];
 
   const value = sourceEntityIds.reduce(
