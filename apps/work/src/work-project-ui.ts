@@ -324,6 +324,26 @@ export function renderProjectGate(
   `;
 }
 
+export function renderProjectGateError(
+  mount: HTMLElement,
+  onRetry: () => void,
+): void {
+  renderProjectGate(
+    mount,
+    "Проектите не могат да се заредят. Проверете връзката и опитайте отново.",
+  );
+
+  const main = mount.querySelector<HTMLElement>(".project-gate-main");
+  if (!main) throw new Error("Missing project gate main");
+
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.className = "primary";
+  retry.textContent = "Опитай отново";
+  retry.addEventListener("click", onRetry);
+  main.append(retry);
+}
+
 function renderProjectList(
   mount: HTMLElement,
   projects: ProjectListItem[],
