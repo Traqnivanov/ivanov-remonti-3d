@@ -25,7 +25,7 @@ It is not a history log. Git and historical documents preserve the past.
 
 ## 2. Current product phase
 
-**Current active slice:** Slice 2 — Persistence.
+**Current active slice:** Slice 2 — Persistence — **ACCEPTANCE PASS / OWNER MERGE DECISION PENDING**.
 
 ### Completed
 
@@ -122,30 +122,36 @@ Temporary `repoqa` / `saveqa` routes and modules were removed after verification
 
 ## 4. Current gate
 
-**P2.6 — Slice 2 acceptance**
+**P2.6 — Slice 2 acceptance: PASS**
 
-P2.5 visible persistence integration is **COMPLETE / PASS**.
+All Slice 2 acceptance gates are satisfied.
 
-P2.5 final evidence:
-- P2.5a Project Session foundation: PASS;
-- P2.5b Project Bar + Projects/Create/Open: PASS;
-- P2.5c Save + dirty/error/conflict recovery: PASS;
+Key final evidence:
+- P2.1–P2.5: PASS;
 - real authenticated Work Save `v2 → v3`: PASS;
-- direct Supabase verification: PASS;
-- P2.5d technical regression gate: PASS;
-- P2.5d mobile-first visual acceptance: PASS;
-- readability correction: mobile project title `12 → 14 px`, status `10 → 12 px`;
-- correction commit: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`;
-- CI #259: SUCCESS;
-- static preview #150: SUCCESS;
-- fresh mobile Work / dirty / conflict / discard / Projects dialog and desktop Work screenshots reviewed: PASS;
-- no horizontal overflow introduced;
-- desktop remains unaffected.
+- direct Supabase verification: `work_version = 3`, geometry `4.2 × 4.8 × 2.7 m`;
+- new-page reload → automatic reopen: PASS;
+- reopened Fine Putty quantity: `48.60 m²`;
+- stable persisted project/entity identity: PASS;
+- stale-write rejection: PASS;
+- invalid/unsupported schema rejection: PASS;
+- Viewer Session State isolation: PASS;
+- live RLS/grants re-verification: PASS;
+- no privileged browser credential: PASS;
+- final mobile-first + desktop visible QA: PASS;
+- latest verified product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`.
+
+Security disposition:
+- leaked-password protection disabled: known non-blocking warning for Slice 2; review again before production/final release;
+- password recovery localhost redirect: non-blocking because recovery is not exposed in Slice 2; must be fixed before exposing recovery;
+- Protection Gate remains mandatory before production/final release.
 
 Current temporary work record:
 - GitHub Issue **#6**.
 
-P2.6 is acceptance/audit only. It does not authorize new product behavior.
+PR #4 remains **DRAFT / OPEN**.
+**Next gate is explicit Owner merge approval.**
+No merge and no Slice 3 work before that approval.
 ---
 
 ## 5. Active product/architecture truths relevant now
@@ -172,13 +178,13 @@ These are known and must not be forgotten. P2.6 must explicitly classify whether
 1. **Password recovery redirect**
    - current Supabase recovery redirect exposed a localhost default during testing;
    - email/password login itself works;
+   - P2.6 classification: non-blocking because recovery is not exposed in Slice 2;
    - configure/review recovery flow before exposing password recovery as a user-facing feature.
 
 2. **Supabase leaked-password protection advisor**
-   - Security Advisor reports leaked-password protection disabled;
-   - non-blocking for P2.4;
-   - review during P2.6 security acceptance;
-   - availability may depend on current Supabase plan/capability.
+   - Security Advisor still reports leaked-password protection disabled;
+   - P2.6 classification: known, non-blocking for Slice 2 correctness/RLS;
+   - review again before production/final release and enable if available/appropriate for the deployed plan.
 
 3. **Protection Gate before production/final release**
    - repo remains public during development by Owner decision;
@@ -209,29 +215,37 @@ Continuity system:
 - single Current Work Issue: **#6**;
 - historical/superseded documents remain non-authoritative.
 
-P2.5 final status: **PASS / CLOSED**.
-- latest product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`;
-- CI #259: SUCCESS;
-- static preview #150: SUCCESS;
-- live QA project: `work_version = 3`;
+Slice 2 — Persistence: **ACCEPTANCE PASS**.
+- product-code checkpoint: `7afa4856bdd56bfeb28e2b7ed3c3cd7e7d82be6c`;
+- P2.5 final CI #259: SUCCESS;
+- P2.5 static preview #150: SUCCESS;
+- current QA project: `work_version = 3`;
 - persisted geometry: `4.2 × 4.8 × 2.7 m`;
-- no Viewer Session State persisted;
-- mobile-first final visual review after readability correction: PASS;
+- reload/reopen proof: PASS;
+- Fine Putty after reopen: `48.60 m²`;
+- live RLS/grants re-check: PASS;
+- mobile-first final visual review: PASS;
 - desktop consistency: PASS.
 
-P2.6 acceptance is the active gate.
+Current branch documentation reconciliation is part of the final PR gate and must have green CI before merge.
 
 A new chat must verify the actual current branch/PR/CI state rather than treating these run numbers as eternal state.
 ---
 
 ## 9. NEXT EXACT STEP
 
-**P2.6 — run the Slice 2 acceptance audit gate-by-gate.**
+**Owner merge decision for PR #4.**
 
-First:
-- reconcile current branch HEAD / PR #4 / Current Work Issue;
-- verify all 12 Slice 2 acceptance gates against current evidence;
-- re-check live RLS/security posture and deferred security warning;
-- identify any missing proof before PR #4 can leave draft.
+Before merge:
+- verify the latest branch HEAD after final documentation reconciliation;
+- require latest CI = SUCCESS;
+- require static preview publish = SUCCESS;
+- PR #4 remains DRAFT until the Owner explicitly approves merge.
 
-Do not merge PR #4 and do not begin Slice 3 until P2.6 passes and Owner gives the required merge decision.
+If Owner approves merge and the final checks are green:
+- merge PR #4 into `main`;
+- verify resulting `main` state;
+- close Current Work Issue #6;
+- only then prepare the next Slice 3 work record.
+
+Do not start Slice 3 before the merge is complete and verified.
