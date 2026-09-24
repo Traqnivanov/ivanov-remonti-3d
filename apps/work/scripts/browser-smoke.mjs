@@ -438,6 +438,11 @@ async function clickLinkedWallThroughCanvas(session) {
   await delay(180);
   await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
   await delay(300);
+  await evaluate(
+    session,
+    'document.querySelector(".viewer-wrap").scrollIntoView({ block: "center", behavior: "instant" })',
+  );
+  await delay(140);
   await evaluate(session, 'document.querySelector("#showResultBtn").click()');
 
   const canvas = await evaluate(
