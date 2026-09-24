@@ -555,3 +555,25 @@ Continuity migration е консервативна:
 Основният acceptance test е:
 
 **ако текущият чат изчезне, нов чат трябва да може от repo + Current Work Issue да продължи правилно без Owner да разказва проекта отначало.**
+
+## 25.09.2026 — Permanent docs are not a chat diary
+
+**Owner decision:** the continuity system must preserve the project path without forcing future Work chats to read the full project history.
+
+Permanent documentation rule:
+- ideas, questions, alternatives, temporary problems, implementation evidence and intermediate reasoning belong in chat + the active Current Work Issue;
+- `PROJECT_STATE.md` contains only current factual state, active work, live risks and NEXT;
+- permanent product/architecture contracts receive only durable Owner-approved truths that future phases must obey;
+- `START_HERE.md` carries only globally important product/process guardrails and the end-state compass;
+- detailed execution history belongs to Git, merged PRs and closed Issues;
+- rejected/superseded options are not copied into permanent active contracts simply because they were discussed.
+
+Continuity target:
+
+**A future Work chat must understand the whole path without reading the whole history.**
+
+It starts from:
+`START_HERE.md → PROJECT_STATE.md → active Current Work Issue (if any) → verify Git → only task-relevant dependency docs`.
+
+This decision does not remove historical evidence; it changes where that evidence belongs.
+
