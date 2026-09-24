@@ -128,9 +128,11 @@ Completed before implementation:
 - one concrete interaction proposal — RECORDED IN ISSUE #5;
 - visible Criteria Check — RECORDED IN ISSUE #5.
 
-Current gate:
+Owner decision:
+**APPROVED.**
 
-**OWNER APPROVAL REQUIRED before implementation.**
+Current implementation block:
+**P2.5a — Project Session foundation only.**
 
 P2.5 scope is only:
 - Create project;
@@ -230,9 +232,6 @@ A new chat must verify the current latest branch/PR/CI state rather than treatin
 
 ## 9. NEXT EXACT STEP
 
-**Owner reviews the P2.5 interaction proposal recorded in Current Work Issue #5 and gives explicit APPROVE / REJECT / CHANGE decision.**
+**P2.5a — implement and test the Project Session foundation only: current project identity, work version, dirty/save/conflict state, and 0/1/2+ startup selection rules.**
 
-Proposed direction:
-**Work-only Project Bar + Projects dialog + manual Save + explicit dirty/version/error/stale states + safe unsaved-change guard.**
-
-**Do not implement P2.5 UI before explicit Owner approval.**
+Do not implement the visible Project Bar/Dialog until P2.5a passes its technical gate.
