@@ -223,7 +223,7 @@ app.innerHTML = `
       </div>
       <div class="project-bar-actions">
         <button id="projectsButton" type="button">Проекти</button>
-        <button id="saveProjectButton" class="primary" type="button">Запази</button>
+        <button id="saveProjectButton" type="button">Запази</button>
       </div>
     </div>
         `
