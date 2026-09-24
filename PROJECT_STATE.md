@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #7 — **[CURRENT WORK] Documentation consolidation — end-state compass**
+**Current Work Issue:** none
 
 This file answers only: **where is the project now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -12,12 +12,13 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 ## 1. Repository / active work
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
-- Stable product baseline: `main@dd85c583ec52b687126fac62fd4646a7e02c8143`
+- Stable product baseline: `main` after merged Slice 2 + continuity consolidation.
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
-- Active branch: `docs/continuity-compass-consolidation`
-- Active PR: **#8 — DRAFT / OPEN**
-- Active Current Work: **Issue #7**
-- Current branch purpose: documentation consolidation only; no product implementation.
+- Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
+- Active branch: **none**
+- Active PR: **none**
+- Active Current Work: **none**
+- PR #8: **MERGED / CLOSED**
 
 Every new chat must verify the actual branch / HEAD / PR state before changing anything.
 
@@ -59,7 +60,7 @@ History: PR #4 / closed Issue #6.
 
 **None.**
 
-No Slice 3 implementation is authorized while Issue #7 is active.
+No Slice 3 implementation is active or authorized yet.
 
 ---
 
@@ -108,7 +109,7 @@ Detailed rules are read from the dependency map in `START_HERE.md` only when the
 
 ## 5. Known deferred / blocking-before-release items
 
-These do not block the current documentation task, but must not be forgotten:
+These do not block planning of the next slice, but must not be forgotten:
 
 1. **Password recovery redirect**
    - localhost default was exposed during testing;
@@ -128,28 +129,35 @@ These do not block the current documentation task, but must not be forgotten:
 
 ---
 
-## 6. Current Work — Issue #7
+## 6. Current Work
 
-Purpose:
-- keep permanent docs out of chat-diary mode;
-- make `START_HERE` sufficient as the end-state/product/process compass;
-- keep `PROJECT_STATE` compact;
-- preserve history in Git / merged PRs / closed Issues;
-- prove that a new Work chat can continue without reading the entire document stack.
+**None.**
 
-No product code, Supabase, 3D, pricing, service or client-delivery behavior is being changed in this task.
+Issue #7 — documentation consolidation — is complete after merged PR #8.
+
+Result now in `main`:
+- `START_HERE.md` contains the compact end-state product compass;
+- documentation routing is explicit;
+- `PROJECT_STATE.md` is current-state only;
+- permanent docs are not used as a chat diary;
+- cold-start continuity simulation passed.
+
+Detailed execution history remains in PR #8 / Issue #7 / Git.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-Issue #7 implementation and cold-start simulation are complete.
+**No active implementation task.**
 
-Cold-start result: **PASS** — `START_HERE.md + PROJECT_STATE.md + Issue #7 + Git verification` are sufficient to reconstruct the end-state product, current state, protected truths and correct NEXT without reading the full document stack.
+The next major product direction remains the approved **one complete room** path.
 
-Current merge gate:
-1. review PR #8 diff;
-2. require green CI / repository checks on the final docs branch;
-3. stop for explicit Owner merge approval.
+Before any Slice 3 implementation:
+1. Work Controller audits the complete-room target against the current accepted baseline;
+2. identify the smallest logically complete and verifiable first work block;
+3. make one concrete proposal;
+4. run the mandatory Criteria Check;
+5. obtain explicit Owner approval where required;
+6. only then create/activate the new Current Work implementation task.
 
-**Do not start Slice 3 implementation inside Issue #7.**
+Do not jump directly into broad services/assets/AI expansion and do not implement from historical notes or assumptions.
