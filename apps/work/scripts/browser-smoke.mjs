@@ -833,7 +833,7 @@ async function runWorkSmoke() {
     );
     await assertEval(
       session,
-      'Boolean(document.querySelector("[data-opening-id=\"room-1.window-1\"][data-opening-field=\"widthM\"]")) && Boolean(document.querySelector("[data-opening-id=\"room-1.door-1\"][data-opening-field=\"offsetM\"]"))',
+      `Boolean(document.querySelector('[data-opening-id="room-1.window-1"][data-opening-field="widthM"]')) && Boolean(document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]'))`,
       "P3.2d: opening Work controls are missing",
     );
     await assertEval(
@@ -843,7 +843,7 @@ async function runWorkSmoke() {
     );
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-opening-id=\"room-1.window-1\"][data-opening-field=\"widthM\"]"); input.value = "1.3"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      `(() => { const input = document.querySelector('[data-opening-id="room-1.window-1"][data-opening-field="widthM"]'); input.value = "1.3"; input.dispatchEvent(new Event("change", { bubbles: true })); })()`,
     );
     await assertEval(
       session,
@@ -858,7 +858,7 @@ async function runWorkSmoke() {
 
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-opening-id=\"room-1.door-1\"][data-opening-field=\"offsetM\"]"); input.value = "99"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      `(() => { const input = document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]'); input.value = "99"; input.dispatchEvent(new Event("change", { bubbles: true })); })()`,
     );
     await assertEval(
       session,
@@ -867,7 +867,7 @@ async function runWorkSmoke() {
     );
     await assertEval(
       session,
-      'document.querySelector("#quantityText").textContent.includes("44,00") && document.querySelector("[data-opening-id=\"room-1.door-1\"][data-opening-field=\"offsetM\"]").value !== "99"',
+      `document.querySelector("#quantityText").textContent.includes("44,00") && document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]').value !== "99"`,
       "P3.2d: invalid opening edit mutated canonical geometry or quantity",
     );
 
