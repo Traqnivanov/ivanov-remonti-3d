@@ -418,6 +418,7 @@ input[type="number"] {
 .opening-card-head strong {
   color: #e8eef7;
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .opening-remove {
@@ -429,6 +430,10 @@ input[type="number"] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.opening-fields > label:first-child {
+  grid-column: 1 / -1;
 }
 
 .opening-fields select,
