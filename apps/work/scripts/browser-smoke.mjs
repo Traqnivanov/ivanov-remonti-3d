@@ -826,6 +826,58 @@ async function runWorkSmoke() {
       "Work: authoring change did not mark project dirty",
     );
 
+    await assertEval(
+      session,
+      'document.querySelector("#finePuttyRuleId").textContent === "wall-net-area-openings-v1"',
+      "P3.2d: Work UI reports the wrong Fine Putty quantity rule",
+    );
+    await assertEval(
+      session,
+      'Boolean(document.querySelector("[data-opening-id=\"room-1.window-1\"][data-opening-field=\"widthM\"]")) && Boolean(document.querySelector("[data-opening-id=\"room-1.door-1\"][data-opening-field=\"offsetM\"]"))',
+      "P3.2d: opening Work controls are missing",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#quantityText").textContent.includes("44,11")',
+      "P3.2d: Fine Putty net quantity did not follow the 4.3m room-width edit",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-opening-id=\"room-1.window-1\"][data-opening-field=\"widthM\"]"); input.value = "1.3"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#quantityText").textContent.includes("44,00")',
+      "P3.2d: window-width edit did not update Fine Putty net quantity to 44,00 m²",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Има промени")',
+      "P3.2d: opening edit did not keep the project dirty",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-opening-id=\"room-1.door-1\"][data-opening-field=\"offsetM\"]"); input.value = "99"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#openingsStatus").dataset.state === "error" && document.querySelector("#openingsStatus").textContent.length > 0',
+      "P3.2d: invalid opening edit was not rejected with a visible error",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#quantityText").textContent.includes("44,00") && document.querySelector("[data-opening-id=\"room-1.door-1\"][data-opening-field=\"offsetM\"]").value !== "99"',
+      "P3.2d: invalid opening edit mutated canonical geometry or quantity",
+    );
+
+    await evaluate(
+      session,
+      'document.querySelector(".openings-section").scrollIntoView({ block: "center", behavior: "instant" })',
+    );
+    await delay(120);
+    await saveScreenshot(session, "/tmp/p32d-opening-controls-desktop.png");
+
     await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
     await delay(450);
 
@@ -923,7 +975,20 @@ async function runMobileWorkSmoke() {
       'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#serviceRowLaminate").getBoundingClientRect().height >= 44',
       "Mobile Work P3.1c: Laminate row is missing or too small for touch",
     );
+    await assertEval(
+      session,
+      'document.querySelectorAll(".opening-fields input, .opening-fields select, .opening-add-actions button, .opening-remove").length > 0 && Array.from(document.querySelectorAll(".opening-fields input, .opening-fields select, .opening-add-actions button, .opening-remove")).every((el) => el.getBoundingClientRect().height >= 44)',
+      "Mobile P3.2d: opening controls are missing or below the 44px touch target",
+    );
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
+    await evaluate(
+      session,
+      'document.querySelector(".openings-section").scrollIntoView({ block: "start", behavior: "instant" })',
+    );
+    await delay(120);
+    await saveScreenshot(session, "/tmp/p32d-opening-controls-mobile.png");
+    await evaluate(session, 'window.scrollTo({ top: 0, behavior: "instant" })');
+    await delay(80);
 
     await renderProjectBarStateQa(session, "dirty");
     await assertEval(
@@ -1032,6 +1097,11 @@ async function runDirectClientSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector(".mode-switch")).display === "none"', "Client: Work/Preview mode switch is visible");
     await assertEval(session, '!document.querySelector("#projectBar")', "Client: Work project bar is present");
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display === "none"', "Client: owner-only return control is visible");
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector(".openings-section")).display === "none"',
+      "Client P3.2d: opening authoring controls leaked into Client mode",
+    );
     await assertEval(session, 'document.querySelector("#lineTotalText").textContent.includes("ТЕСТОВА ЦЕНА")', "Client: prototype price is not clearly marked as test price");
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate"))', "Client P3.1c: Laminate offer row is missing");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');

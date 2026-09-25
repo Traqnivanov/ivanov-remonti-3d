@@ -66,7 +66,7 @@ Current checkpoint:
 - **P3.2a — Opening domain + persistence foundation: PASS**
 - **P3.2b — Opening geometry proof: PASS**
 - **P3.2c — Fine Putty net wall quantity: PASS**
-- **P3.2d — Work opening controls + live persistence acceptance: NOT STARTED**
+- **P3.2d — Work opening controls + live persistence acceptance: ACTIVE**
 
 P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
@@ -173,39 +173,43 @@ Active branch:
 Active PR:
 - **#12 — DRAFT / OPEN**
 
-Current checkpoint:
-- **P3.2a — Opening domain + persistence foundation**
+Checkpoint status:
+- P3.2a Opening domain + persistence foundation: **PASS**;
+- P3.2b Opening geometry proof: **PASS**;
+- P3.2c Fine Putty net wall quantity: **PASS**;
+- P3.2d Work opening controls + live persistence acceptance: **ACTIVE**.
 
-P3.2a implementation checkpoint:
-- runtime Room now has canonical `openings[]`;
-- persisted schema stays v1;
-- old `openings: []` projects remain valid;
-- runtime accepts validated openings;
-- no opening is injected into existing/default projects;
-- opening validation covers host wall, bounds, unique IDs and overlap;
-- internal coordinate convention:
-  - `offsetM` = host-wall start edge → opening left edge;
-  - `sillM` = floor → opening lower edge; omitted = 0;
-- product-code checkpoint: `ccbd9704cbffe6ff051ddf8c168685385df3a482`.
+Current P3.2d implementation:
+- Work-only opening editor renders canonical openings;
+- add/remove door or window with stable IDs;
+- edit host wall / width / height / offset / window sill;
+- invalid edits are rejected instead of silently moving/shrinking geometry;
+- room resize is rejected if it would invalidate an opening;
+- valid opening edits mark Project State dirty and update 3D + Fine Putty net quantity;
+- Client remains read-only;
+- opening controls are mobile touch-sized;
+- Work UI now reports the canonical Fine Putty rule `wall-net-area-openings-v1`;
+- viewer visual regression tests were hardened to compare the actual 3D canvas.
 
-No visible geometry, quantity-rule change or Work UI exists in P3.2a.
-
----
-
+Important:
+- real Work default projects still start with `openings: []`;
+- openings are added only by explicit Work action;
+- no P3.2 live persistence acceptance has passed yet.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**STOP CHECKPOINT — P3.2c PASS.**
+**P3.2d pre-live verification gate.**
 
-Verified product-code HEAD:
-- `4f9cc93ef134d7443e7a57252622c6b0639f6d1a`
-- CI #285: SUCCESS
-- Fine Putty proof quantity: **43.59 m²**
-- Laminate remains: **20.16 m²**
+Required before real authenticated testing:
+1. P3.2d-specific browser QA passes;
+2. desktop/mobile opening-control screenshots pass visual review;
+3. Client opening controls remain hidden/read-only;
+4. dedicated P3.2 static preview publishes successfully;
+5. PR #12 diff remains within locked P3.2 scope.
 
-Next bounded work, only after a fresh Work decision:
-**P3.2d — Work opening controls + live persistence acceptance.**
+Only then run a NEW authenticated project proof:
+`P3.2 QA Openings` → add door + window → edit → Save v1→v2 → reload/Open → direct Supabase verification.
 
-Do not start P3.2d inside the completed P3.2c task.
+Do not modify the existing Slice 2 or P3.1 QA projects.
