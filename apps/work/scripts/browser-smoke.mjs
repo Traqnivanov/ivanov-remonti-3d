@@ -221,6 +221,39 @@ async function capturePage(session) {
   return result.data;
 }
 
+async function captureElement(session, selector) {
+  const rect = await evaluate(
+    session,
+    `(() => {
+      const element = document.querySelector(${JSON.stringify(selector)});
+      if (!element) return null;
+      const r = element.getBoundingClientRect();
+      return {
+        x: r.left + window.scrollX,
+        y: r.top + window.scrollY,
+        width: r.width,
+        height: r.height,
+      };
+    })()`,
+  );
+  if (!rect || rect.width < 1 || rect.height < 1) {
+    throw new Error("Cannot capture element: " + selector);
+  }
+  const result = await session.call("Page.captureScreenshot", {
+    format: "png",
+    fromSurface: true,
+    captureBeyondViewport: true,
+    clip: {
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      scale: 1,
+    },
+  });
+  return result.data;
+}
+
 async function saveScreenshot(session, path) {
   const data = await capturePage(session);
   await writeFile(path, Buffer.from(data, "base64"));
@@ -752,16 +785,14 @@ async function runWorkSmoke() {
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#quantityTextLaminate").textContent.includes("m²")', "Work P3.1c: Laminate offer row is missing");
 
-    await saveScreenshot(session, "/tmp/debug-laminate-before.png");
-    const finePuttyFocusedView = await capturePage(session);
+    const finePuttyFocusedView = await captureElement(session, "#viewer canvas");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
     await delay(120);
     await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && !document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Laminate row did not become the focused offer position");
     await assertEval(session, 'document.querySelector("#selectionChip").textContent.includes("Ламинат")', "Work P3.1c: Laminate focus is not visible");
     await assertEval(session, 'document.querySelector("#quantityKpi").textContent.includes("20,16") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Work P3.1c: Laminate quantity/Info is not synchronized");
     await waitForNextPaint(session);
-    await saveScreenshot(session, "/tmp/debug-laminate-after.png");
-    const laminateFocusedView = await capturePage(session);
+    const laminateFocusedView = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       finePuttyFocusedView,
       laminateFocusedView,
