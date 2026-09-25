@@ -801,9 +801,10 @@ async function runWorkSmoke() {
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
     await assertEval(session, 'document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Fine Putty focus could not be restored");
 
-    const beforeViewerInput = await capturePage(session);
+    const beforeViewerInput = await captureElement(session, "#viewer canvas");
     await smokeViewerInput(session);
-    const afterViewerInput = await capturePage(session);
+    await waitForNextPaint(session);
+    const afterViewerInput = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       beforeViewerInput,
       afterViewerInput,
