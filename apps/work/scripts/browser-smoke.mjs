@@ -206,6 +206,13 @@ async function assertEval(session, expression, message) {
   if (!ok) throw new Error(message);
 }
 
+async function waitForNextPaint(session) {
+  await evaluate(
+    session,
+    'new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))',
+  );
+}
+
 async function capturePage(session) {
   const result = await session.call("Page.captureScreenshot", {
     format: "png",
@@ -751,6 +758,7 @@ async function runWorkSmoke() {
     await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && !document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Laminate row did not become the focused offer position");
     await assertEval(session, 'document.querySelector("#selectionChip").textContent.includes("Ламинат")', "Work P3.1c: Laminate focus is not visible");
     await assertEval(session, 'document.querySelector("#quantityKpi").textContent.includes("20,16") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Work P3.1c: Laminate quantity/Info is not synchronized");
+    await waitForNextPaint(session);
     const laminateFocusedView = await capturePage(session);
     assertScreenshotChanged(
       finePuttyFocusedView,
