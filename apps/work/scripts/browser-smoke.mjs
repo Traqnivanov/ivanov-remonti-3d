@@ -752,6 +752,7 @@ async function runWorkSmoke() {
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#quantityTextLaminate").textContent.includes("m²")', "Work P3.1c: Laminate offer row is missing");
 
+    await saveScreenshot(session, "/tmp/debug-laminate-before.png");
     const finePuttyFocusedView = await capturePage(session);
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
     await delay(120);
@@ -759,6 +760,7 @@ async function runWorkSmoke() {
     await assertEval(session, 'document.querySelector("#selectionChip").textContent.includes("Ламинат")', "Work P3.1c: Laminate focus is not visible");
     await assertEval(session, 'document.querySelector("#quantityKpi").textContent.includes("20,16") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Work P3.1c: Laminate quantity/Info is not synchronized");
     await waitForNextPaint(session);
+    await saveScreenshot(session, "/tmp/debug-laminate-after.png");
     const laminateFocusedView = await capturePage(session);
     assertScreenshotChanged(
       finePuttyFocusedView,

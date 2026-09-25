@@ -96,6 +96,7 @@ jobs:
           google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,1000 --screenshot=/tmp/vertical-slice-client.png "http://127.0.0.1:4173/?preview=1"
 
       - name: Upload visual QA screenshot
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vertical-slice-visual-qa
@@ -109,6 +110,8 @@ jobs:
             /tmp/p31d-laminate-mobile-client.png
             /tmp/p32b-openings-desktop-work.png
             /tmp/p32b-openings-mobile-client.png
+            /tmp/debug-laminate-before.png
+            /tmp/debug-laminate-after.png
             /tmp/p25b-projects-dialog-desktop.png
             /tmp/p25b-projects-dialog-mobile.png
             /tmp/p25c-mobile-dirty.png
