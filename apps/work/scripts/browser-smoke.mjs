@@ -689,38 +689,74 @@ async function clickLinkedWallThroughCanvas(session) {
 
   const canvas = await evaluate(
     session,
-    '(() => { const el = document.querySelector("#viewer canvas"); const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })()',
+    `(() => {
+      const el = document.querySelector("#viewer canvas");
+      const r = el.getBoundingClientRect();
+      const visibleLeft = Math.max(0, r.left);
+      const visibleRight = Math.min(window.innerWidth, r.right);
+      const visibleTop = Math.max(0, r.top);
+      const visibleBottom = Math.min(window.innerHeight, r.bottom);
+      return {
+        left: r.left,
+        top: r.top,
+        width: r.width,
+        height: r.height,
+        visibleLeft,
+        visibleRight,
+        visibleTop,
+        visibleBottom,
+      };
+    })()`,
   );
 
-  const candidates = [
-    [0.58, 0.40],
-    [0.72, 0.46],
-    [0.35, 0.46],
-    [0.50, 0.32],
-  ];
-
-  for (const [fx, fy] of candidates) {
-    const x = canvas.left + canvas.width * fx;
-    const y = canvas.top + canvas.height * fy;
-
-    await session.call("Input.dispatchMouseEvent", {
-      type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1,
-    });
-    await session.call("Input.dispatchMouseEvent", {
-      type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1,
-    });
-    await delay(180);
-
-    const linked = await evaluate(
-      session,
-      'document.querySelector("#serviceRow").classList.contains("selected") && document.querySelector("#selectionChip").textContent.includes("Избрано:")',
+  const visibleWidth = canvas.visibleRight - canvas.visibleLeft;
+  const visibleHeight = canvas.visibleBottom - canvas.visibleTop;
+  if (visibleWidth < 120 || visibleHeight < 120) {
+    throw new Error(
+      "Work: 3D canvas has too little visible area for Model → Offer click QA",
     );
-    if (linked) return;
-
-    await evaluate(session, 'document.querySelector("#showResultBtn").click()');
   }
 
-  throw new Error("Work: clicking visible 3D geometry did not resolve a linked Fine Putty wall");
+  const scanFractions = [0.5, 0.35, 0.65, 0.2, 0.8];
+  let attemptedCanvasClicks = 0;
+
+  for (const fy of scanFractions) {
+    for (const fx of scanFractions) {
+      const x = canvas.visibleLeft + visibleWidth * fx;
+      const y = canvas.visibleTop + visibleHeight * fy;
+
+      const hitTarget = await evaluate(
+        session,
+        `(() => {
+          const hit = document.elementFromPoint(${x}, ${y});
+          return hit?.tagName ?? null;
+        })()`,
+      );
+      if (hitTarget !== "CANVAS") continue;
+
+      attemptedCanvasClicks += 1;
+      await session.call("Input.dispatchMouseEvent", {
+        type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1,
+      });
+      await session.call("Input.dispatchMouseEvent", {
+        type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1,
+      });
+      await delay(120);
+
+      const linked = await evaluate(
+        session,
+        'document.querySelector("#serviceRow").classList.contains("selected") && document.querySelector("#selectionChip").textContent.includes("Избрано:")',
+      );
+      if (linked) return;
+
+      await evaluate(session, 'document.querySelector("#showResultBtn").click()');
+    }
+  }
+
+  throw new Error(
+    "Work: clicking visible 3D geometry did not resolve a linked Fine Putty wall; canvas clicks attempted=" +
+      attemptedCanvasClicks,
+  );
 }
 
 function throwBrowserErrors(session) {
