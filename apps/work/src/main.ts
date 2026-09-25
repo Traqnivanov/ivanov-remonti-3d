@@ -1,5 +1,5 @@
 import "./styles.css";
-import type { SurfaceId, WallId } from "./domain";
+import type { Opening, SurfaceId, WallId } from "./domain";
 import {
   createDefaultProject,
   createOpeningProofProject,
@@ -37,6 +37,14 @@ import {
 } from "./smart-offer-interaction";
 import { createWorkSupabaseClient } from "./supabase";
 import { createSupabaseProjectReadRepository } from "./supabase-project-repository";
+import {
+  addOpening,
+  openingWallLabels,
+  removeOpening,
+  updateOpening,
+  validateRoomResize,
+  type OpeningMutationResult,
+} from "./opening-authoring";
 import { resolveWorkAccess } from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
 import {
@@ -259,6 +267,16 @@ app.innerHTML = `
           </div>
         </section>
 
+        <section class="section work-only openings-section">
+          <div class="section-title">Отвори</div>
+          <div id="openingsEditor"></div>
+          <div class="opening-add-actions">
+            <button id="addDoorButton" type="button">Добави врата</button>
+            <button id="addWindowButton" type="button">Добави прозорец</button>
+          </div>
+          <p id="openingsStatus" class="opening-status" role="status" aria-live="polite"></p>
+        </section>
+
         <section class="section">
           <div class="section-title">M² схема · същата геометрия</div>
           <div id="m2Schema"></div>
@@ -271,7 +289,7 @@ app.innerHTML = `
 
         <section class="section">
           <div class="section-title">Quantity source</div>
-          <div class="kpi"><span>Правило</span><strong>wall-area-v1</strong></div>
+          <div class="kpi"><span>Правило</span><strong id="finePuttyRuleId"></strong></div>
           <div class="kpi"><span>Цена</span><strong>DEV fixture</strong></div>
           <p style="color:#7688a0;font-size:11px;line-height:1.5;margin:10px 0 0">
             DEV цената е технически fixture, не production Price Book.
@@ -352,8 +370,11 @@ for (const input of [widthInput, lengthInput, heightInput]) {
   input.addEventListener("change", updateDimensions);
 }
 
+renderOpeningEditor();
 renderWallTargets();
 renderM2Schema(mustGet("m2Schema"), project);
+mustGet("finePuttyRuleId").textContent =
+  getFinePuttyAssignment(project).quantityRuleId;
 viewer.setProject(project);
 syncViewerFocus();
 renderOffer();
@@ -361,6 +382,13 @@ wireControls();
 setPreviewMode(previewMode);
 
 function wireControls(): void {
+  mustGet("addDoorButton").addEventListener("click", () => {
+    addOpeningFromWork("door");
+  });
+  mustGet("addWindowButton").addEventListener("click", () => {
+    addOpeningFromWork("window");
+  });
+
   mustGet("workModeBtn").addEventListener("click", () => setPreviewMode(false));
   mustGet("previewModeBtn").addEventListener("click", () => setPreviewMode(true));
   mustGet("exitPreviewBtn").addEventListener("click", () => setPreviewMode(false));
@@ -555,9 +583,23 @@ function updateDimensions(): void {
     length !== project.room.lengthM ||
     height !== project.room.heightM;
 
+  const openingError = validateRoomResize(project, {
+    widthM: width,
+    lengthM: length,
+    heightM: height,
+  });
+  if (openingError) {
+    setOpeningStatus(openingError, "error");
+    widthInput.value = String(project.room.widthM);
+    lengthInput.value = String(project.room.lengthM);
+    heightInput.value = String(project.room.heightM);
+    return;
+  }
+
   project.room.widthM = width;
   project.room.lengthM = length;
   project.room.heightM = height;
+  setOpeningStatus("", "idle");
 
   widthInput.value = String(width);
   lengthInput.value = String(length);
@@ -567,10 +609,183 @@ function updateDimensions(): void {
     markCurrentProjectDirty();
   }
 
+  renderOpeningEditor();
   renderM2Schema(mustGet("m2Schema"), project);
   viewer.setProject(project);
   syncViewerFocus();
   renderOffer();
+}
+
+function renderOpeningEditor(): void {
+  const host = mustGet("openingsEditor");
+  host.replaceChildren();
+
+  if (!project.room.openings.length) {
+    const empty = document.createElement("p");
+    empty.className = "opening-empty";
+    empty.textContent = "Няма добавени врати или прозорци.";
+    host.append(empty);
+    return;
+  }
+
+  project.room.openings.forEach((opening) => {
+    const card = document.createElement("div");
+    card.className = "opening-card";
+    card.dataset.openingId = opening.id;
+
+    const head = document.createElement("div");
+    head.className = "opening-card-head";
+
+    const title = document.createElement("strong");
+    title.textContent =
+      opening.kind === "door"
+        ? `Врата ${openingOrdinal(opening, "door")}`
+        : `Прозорец ${openingOrdinal(opening, "window")}`;
+
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "opening-remove";
+    removeButton.textContent = "Премахни";
+    removeButton.addEventListener("click", () => {
+      if (!currentCapabilities().canAuthorProject) return;
+      applyOpeningMutation(removeOpening(project, opening.id));
+    });
+
+    head.append(title, removeButton);
+    card.append(head);
+
+    const grid = document.createElement("div");
+    grid.className = "opening-fields";
+
+    const wallSelect = document.createElement("select");
+    wallSelect.dataset.openingId = opening.id;
+    wallSelect.dataset.openingField = "hostSurfaceId";
+    for (const wallId of wallIds) {
+      const option = document.createElement("option");
+      option.value = wallId;
+      option.textContent = openingWallLabels[wallId];
+      option.selected = wallId === opening.hostSurfaceId;
+      wallSelect.append(option);
+    }
+    wallSelect.addEventListener("change", () => {
+      if (!currentCapabilities().canAuthorProject) {
+        renderOpeningEditor();
+        return;
+      }
+      applyOpeningMutation(
+        updateOpening(project, opening.id, {
+          hostSurfaceId: wallSelect.value as WallId,
+        }),
+      );
+    });
+    grid.append(openingField("Стена", wallSelect));
+
+    grid.append(
+      openingNumberField(opening, "widthM", "Ширина, m", opening.widthM),
+      openingNumberField(opening, "heightM", "Височина, m", opening.heightM),
+      openingNumberField(opening, "offsetM", "Позиция, m", opening.offsetM),
+    );
+
+    if (opening.kind === "window") {
+      grid.append(
+        openingNumberField(
+          opening,
+          "sillM",
+          "От пода, m",
+          opening.sillM ?? 0,
+        ),
+      );
+    }
+
+    card.append(grid);
+    host.append(card);
+  });
+}
+
+function openingOrdinal(
+  opening: Opening,
+  kind: Opening["kind"],
+): number {
+  return (
+    project.room.openings
+      .filter((item) => item.kind === kind)
+      .findIndex((item) => item.id === opening.id) + 1
+  );
+}
+
+function openingField(
+  labelText: string,
+  control: HTMLElement,
+): HTMLLabelElement {
+  const label = document.createElement("label");
+  const text = document.createElement("span");
+  text.textContent = labelText;
+  label.append(text, control);
+  return label;
+}
+
+function openingNumberField(
+  opening: Opening,
+  field: "widthM" | "heightM" | "offsetM" | "sillM",
+  labelText: string,
+  value: number,
+): HTMLLabelElement {
+  const input = document.createElement("input");
+  input.type = "number";
+  input.min = "0";
+  input.step = "0.05";
+  input.value = String(value);
+  input.dataset.openingId = opening.id;
+  input.dataset.openingField = field;
+
+  input.addEventListener("change", () => {
+    if (!currentCapabilities().canAuthorProject) {
+      renderOpeningEditor();
+      return;
+    }
+
+    const nextValue = Number.parseFloat(input.value);
+    applyOpeningMutation(
+      updateOpening(project, opening.id, {
+        [field]: nextValue,
+      }),
+    );
+  });
+
+  return openingField(labelText, input);
+}
+
+function addOpeningFromWork(kind: Opening["kind"]): void {
+  if (!currentCapabilities().canAuthorProject) return;
+
+  const id = `room-1.${kind}-${crypto.randomUUID()}`;
+  applyOpeningMutation(addOpening(project, kind, id));
+}
+
+function applyOpeningMutation(result: OpeningMutationResult): void {
+  if (!result.ok) {
+    setOpeningStatus(result.message, "error");
+    renderOpeningEditor();
+    return;
+  }
+
+  project.room.openings = result.openings;
+  markCurrentProjectDirty();
+  setOpeningStatus("", "idle");
+  renderOpeningEditor();
+  renderM2Schema(mustGet("m2Schema"), project);
+  viewer.setProject(project);
+  syncViewerFocus();
+  renderOffer();
+}
+
+function setOpeningStatus(
+  message: string,
+  state: "idle" | "error",
+): void {
+  const status = mustGet("openingsStatus");
+  status.textContent = message;
+  status.dataset.state = state;
 }
 
 function renderWallTargets(): void {
