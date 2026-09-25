@@ -66,7 +66,7 @@ Current checkpoint:
 - **P3.2a — Opening domain + persistence foundation: PASS**
 - **P3.2b — Opening geometry proof: PASS**
 - **P3.2c — Fine Putty net wall quantity: PASS**
-- **P3.2d — Work opening controls + live persistence acceptance: ACTIVE**
+- **P3.2d — Work opening controls + live persistence acceptance: PRE-LIVE PASS / LIVE PENDING**
 
 P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
@@ -200,16 +200,26 @@ Important:
 
 ## 7. NEXT EXACT STEP
 
-**P3.2d pre-live verification gate.**
+**P3.2d — REAL AUTHENTICATED LIVE PERSISTENCE PROOF.**
 
-Required before real authenticated testing:
-1. P3.2d-specific browser QA passes;
-2. desktop/mobile opening-control screenshots pass visual review;
-3. Client opening controls remain hidden/read-only;
-4. dedicated P3.2 static preview publishes successfully;
-5. PR #12 diff remains within locked P3.2 scope.
+Pre-live exact checkpoint:
+- HEAD: `1842e808a730658860fb6a7172b1c1ee89f3085a`;
+- CI #297: **SUCCESS**;
+- static preview #161: **SUCCESS**;
+- dedicated desktop opening-controls visual review: **PASS**;
+- dedicated mobile opening-controls visual review: **PASS**;
+- Model → Offer click QA now scans the actually visible 3D canvas and is layout-robust;
+- existing Slice 2 and P3.1 QA projects verified unchanged in Supabase;
+- no `P3.2 QA Openings` project exists yet.
 
-Only then run a NEW authenticated project proof:
-`P3.2 QA Openings` → add door + window → edit → Save v1→v2 → reload/Open → direct Supabase verification.
+Required live proof:
+1. create a NEW project titled exactly `P3.2 QA Openings`;
+2. confirm it starts at `v1` with no openings;
+3. add one door and one window;
+4. edit at least one opening value so live 3D + Fine Putty quantity update;
+5. Save → expect `v2`;
+6. reload/Open the same project and confirm the openings and edited values remain;
+7. then verify the persisted row directly in Supabase, including `presentation = {}`.
 
-Do not modify the existing Slice 2 or P3.1 QA projects.
+Do not modify the existing `QA — P2.4b Create List Open` or `P3.1 QA Floor` projects.
+Do not merge PR #12 or start the next room block before this live proof passes.
