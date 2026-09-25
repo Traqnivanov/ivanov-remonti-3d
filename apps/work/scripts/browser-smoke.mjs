@@ -656,7 +656,7 @@ async function smokeViewerTouch(session) {
   );
   if (!rect) throw new Error("Mobile: 3D canvas is missing");
 
-  const before = await capturePage(session);
+  const before = await captureElement(session, "#viewer canvas");
   await session.call("Input.dispatchTouchEvent", {
     type: "touchStart",
     touchPoints: [{ x: rect.x, y: rect.y, radiusX: 8, radiusY: 8, force: 1, id: 1 }],
@@ -671,7 +671,7 @@ async function smokeViewerTouch(session) {
   });
   await delay(280);
 
-  const after = await capturePage(session);
+  const after = await captureElement(session, "#viewer canvas");
   assertScreenshotChanged(before, after, "Mobile: touch orbit did not change the rendered view");
 }
 
@@ -833,11 +833,11 @@ async function runWorkSmoke() {
     await assertEval(session, '!document.querySelector("#autoCutawayBtn").classList.contains("active")', "Work: auto cutaway did not turn off");
     await delay(200);
 
-    const manualBaseline = await capturePage(session);
+    const manualBaseline = await captureElement(session, "#viewer canvas");
     await evaluate(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').click()");
     await delay(200);
     await assertEval(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').classList.contains('active')", "Work: manual wall hide did not activate");
-    const wallHidden = await capturePage(session);
+    const wallHidden = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       manualBaseline,
       wallHidden,
@@ -846,11 +846,11 @@ async function runWorkSmoke() {
     await evaluate(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').click()");
     await delay(200);
 
-    const ceilingBaseline = await capturePage(session);
+    const ceilingBaseline = await captureElement(session, "#viewer canvas");
     await evaluate(session, "document.querySelector('[data-wall=\"room-1.ceiling\"]').click()");
     await delay(200);
     await assertEval(session, "document.querySelector('[data-wall=\"room-1.ceiling\"]').classList.contains('active')", "Work: manual ceiling hide did not activate");
-    const ceilingHidden = await capturePage(session);
+    const ceilingHidden = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       ceilingBaseline,
       ceilingHidden,
@@ -866,11 +866,11 @@ async function runWorkSmoke() {
       session,
       '({ quantity: document.querySelector("#quantityText").textContent, total: document.querySelector("#lineTotalText").textContent, info: document.querySelector("#infoWhat").textContent })',
     );
-    const focusedView = await capturePage(session);
+    const focusedView = await captureElement(session, "#viewer canvas");
     await evaluate(session, 'document.querySelector("#showResultBtn").click()');
     await assertEval(session, '!document.querySelector("#serviceRow").classList.contains("selected")', "Work: show whole result did not exit service focus");
     await delay(150);
-    const wholeResultView = await capturePage(session);
+    const wholeResultView = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       focusedView,
       wholeResultView,
