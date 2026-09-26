@@ -125,7 +125,8 @@ export function applyProjectHistoryEdit(
 
   if (
     matchesSavedRevision &&
-    (session.saveState === "clean" || session.saveState === "dirty")
+    session.saveState !== "saving" &&
+    session.saveState !== "conflict"
   ) {
     return {
       ...next,
