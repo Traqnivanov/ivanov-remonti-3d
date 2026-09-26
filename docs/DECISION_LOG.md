@@ -355,20 +355,24 @@ M² се свързва с новата програма чрез shared project
 
 ## 22.09.2026 — Не прескачаме към следваща видима функция само защото prototype-ът е незавършен
 
+**PROCESS RULE REMAINS ACTIVE; THE OLD SLICE ORDER BELOW IS SUPERSEDED.**
+
 **Owner-confirmed process direction:** след доказване на един vertical slice не се избира произволно следващата видима екстра.
 
 Преди нов subsystem:
 **затваряне на текущия checkpoint → audit → explicit merge/continue decision → следващ одобрен slice.**
 
-Текущият планиран ред след First Vertical Slice е:
-1. **Slice 2 — Persistence** — Supabase persistence, schema/version migration, Work Auth, Save/Open;
-2. **Slice 3 — Publishing** — Published Revision, minimized client payload, Link / Link + PIN, separate Client Viewer;
-3. **Slice 4 — Complete room offer** — multiple services, openings, operation-specific quantity rules, fuller client workflow.
+Historical plan at that point:
+1. **Slice 2 — Persistence**;
+2. **Slice 3 — Publishing**;
+3. **Slice 4 — Complete room offer**.
 
-Този ред не е необратима догма. Може да бъде сменен само при:
-**audit → по-добро доказано решение → impact/risk review → Owner decision.**
+**SUPERSEDED sequencing:** the later Owner-approved delivery direction, the continuity consolidation and the current `START_HERE.md` / `PROJECT_STATE.md` moved the active post-Persistence path to **one complete room before broad service-family expansion**. Publishing remains a required product capability, but the old instruction to do Publishing before Complete Room is no longer current.
 
-Следователно не се започват самоволно врати/прозорци, материали, Supabase или друга голяма система, докато текущият PR/checkpoint не е затворен според правилата.
+The durable process rule still applies:
+**audit → better proven sequencing → impact/risk review → Owner decision → source-of-truth sync → implementation.**
+
+No subsystem may be started merely because it appeared next in this historical list.
 
 ## 22.09.2026 — PR #3 няма implicit merge approval
 
@@ -601,3 +605,31 @@ Acceptance condition:
 **If Owner must explain again what the project is, how it is judged, where it is now, what is frozen or what comes next, continuity is not complete.**
 
 This process decision does not change P3.2 product scope or authorize a new room block.
+
+
+## 26.09.2026 — Post-Persistence active direction is one complete room
+
+**Reconciliation of already approved Owner direction; not a new feature decision.**
+
+The current active product path after the merged Persistence slice is:
+
+**continue the one-complete-room direction before broad service-family expansion.**
+
+This is supported by the Owner-approved `docs/DELIVERY_STRATEGY.md`, the continuity consolidation acceptance, `START_HERE.md`, and the current `PROJECT_STATE.md`.
+
+“One complete room” means an end-to-end useful room workflow, not merely four rendered walls. The current guardrail includes:
+- four walls + floor + ceiling;
+- door/window openings;
+- cutaway/visibility and surface selection;
+- real service operations linked to exact targets;
+- quantity + price truth;
+- materials/finishes;
+- core movable objects;
+- room totals;
+- a coherent Client/Final Result.
+
+P3.1 Floor Finish and P3.2 Door + Window Openings are completed parts of that direction.
+
+The exact bounded NEXT after P3.2 must be derived from the active dependency/product documents and current implementation gaps, then presented through the normal audit → proposal → Criteria Check → Owner approval process.
+
+Publishing/Link/PIN remains required by the product contracts, but the historical instruction that it must precede Complete Room is superseded.
