@@ -244,3 +244,83 @@ The application has five independent cores:
 
 This separation is what keeps the full vision feasible and prevents the product from becoming a construction-animation project.
 
+
+
+## 15. Owner-approved staged path after merged P3.2
+
+**Approved 26.09.2026 after full source-of-truth / implementation-gap audit.**
+
+The active staged direction from the current merged baseline is:
+
+1. **P3.3 — Generic Operation Authoring Core**
+   - remove proof-only assignment-specific coupling;
+   - generic operation/quantity dispatch;
+   - safe Work add/remove/include/target authoring;
+   - Undo/Redo/change boundary before authoring expands;
+   - prove the mechanism with one additional real operation from the Service Registry;
+   - preserve backward compatibility and existing Fine Putty/Laminate/Openings behavior.
+
+2. **P3.4 — Price Core + room/offer totals**
+   - versioned real Price Book;
+   - line totals and coherent room/offer totals;
+   - historical quote-price safety;
+   - audit `ivanov-tools/offer.html` as workflow reference before implementing matching quote concepts.
+
+3. **P3.5 — Real wall/ceiling finishing stack**
+   - separate real operations such as plaster, reinforced/base putty, gypsum putty, fine putty, sanding, primer and paint where supported;
+   - ceiling becomes a real service target;
+   - operation-specific opening deductions/dependencies;
+   - Client Info comes from approved Ivanov Remonti service/guide sources.
+
+4. **P3.6 — Object/Edit Core**
+   - canonical movable objects and persistence;
+   - outlets, switches, lighting, radiator and basic furniture proof;
+   - position/size/height/attachment/lock;
+   - drag/snap and edit behavior built on the safe Undo/Redo boundary.
+
+5. **P3.7 — Materials + Colors + Images + Assets**
+   - real paint color/palette flow;
+   - intentional user-uploaded materials/textures and reference images;
+   - scale/repeat/rotation/correction where required;
+   - reusable material/asset library;
+   - Supabase Storage as the approved initial asset-storage layer.
+
+6. **P3.8 — Complete Room Result + acceptance**
+   - close the approved one-complete-room direction end-to-end;
+   - real services, finishes, core objects, quantities, Price Book/totals, Info, offer↔model interaction, Save/Open and coherent Client/Final Result;
+   - mobile-first + desktop + persistence regression acceptance.
+
+7. **P4 — Protected Publishing / real Client Viewer**
+   - Published Revision/Snapshot;
+   - minimized client payload;
+   - separate protected read-only Client Viewer;
+   - Link / Link + PIN and protected asset delivery.
+   - This is after Complete Room under the current approved sequence; exact publishing UX decisions that remain open still require Owner approval.
+
+8. **P5 — Broader service-family expansion**
+   - drywall/insulation, reveals, electrical, bathroom/tile/waterproofing, plumbing, ceilings/LED, demolition/masonry and other approved registry families;
+   - each new family enters through its real service source, exact target, quantity rule, price rule, Info and presentation mode;
+   - do not parallel-build the catalog.
+
+9. **P6 — Ivanov Office workflow integration/reuse**
+   - inspect and reuse approved workflow knowledge from Offer / Clients / Contract / Advances when the matching Smart Offer capability is reached;
+   - do not reuse old Firebase/localStorage architecture.
+
+10. **P7 — Photo Assist**
+    - reference → assisted tracing → AI suggestions → calibrated model → Quote Ready;
+    - unconfirmed AI geometry never becomes quantity/price truth.
+
+11. **P8 — Secondary client outputs / advanced capability**
+    - PDF snapshot, high-quality/360 outputs, richer assets, advanced multi-room/geometry, approved automation and other later capabilities.
+
+12. **Production Protection Gate**
+    - repository/source protection;
+    - credentials/security/RLS/client-access review;
+    - asset/privacy checks;
+    - production hardening before the product is called production-ready.
+
+This roadmap is a **direction and dependency order, not an irreversible script**.
+
+The global **Uniqueness Interrupt Gate** applies to every phase and checkpoint. If a materially better mechanism or sequencing is discovered, stop the affected scope, compare it against the approved baseline, run impact/risk review, obtain Owner approval when required, sync the source-of-truth, and only then continue.
+
+Do not use the roadmap as permission to start later phases early or to bundle multiple independent systems into one task.
