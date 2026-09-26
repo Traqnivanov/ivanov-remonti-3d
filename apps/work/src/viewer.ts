@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ProjectState, SurfaceId, WallId } from "./domain";
+import { getWallOpeningRects } from "./opening-geometry";
 import { getAutoHiddenSurfaceIds, isSurfaceVisible } from "./viewer-visibility";
 import { calculateShowcaseFrame } from "./viewer-framing";
 
@@ -164,28 +165,114 @@ export class RoomViewer {
       new THREE.Vector3(0, height + WALL_THICKNESS / 2, 0),
     );
 
-    this.makeMesh(
+    this.makeWallMesh(
       "room-1.wall-front",
-      new THREE.BoxGeometry(width, height, WALL_THICKNESS),
+      width,
+      height,
       new THREE.Vector3(0, height / 2, length / 2),
     );
-    this.makeMesh(
+    this.makeWallMesh(
       "room-1.wall-back",
-      new THREE.BoxGeometry(width, height, WALL_THICKNESS),
+      width,
+      height,
       new THREE.Vector3(0, height / 2, -length / 2),
     );
-    this.makeMesh(
+    this.makeWallMesh(
       "room-1.wall-left",
-      new THREE.BoxGeometry(WALL_THICKNESS, height, length),
+      length,
+      height,
       new THREE.Vector3(-width / 2, height / 2, 0),
+      Math.PI / 2,
     );
-    this.makeMesh(
+    this.makeWallMesh(
       "room-1.wall-right",
-      new THREE.BoxGeometry(WALL_THICKNESS, height, length),
+      length,
+      height,
       new THREE.Vector3(width / 2, height / 2, 0),
+      Math.PI / 2,
     );
 
     this.applyMaterials();
+  }
+
+  private makeWallMesh(
+    id: WallId,
+    spanM: number,
+    heightM: number,
+    position: THREE.Vector3,
+    rotationY = 0,
+  ): THREE.Mesh {
+    const geometry = this.createWallGeometry(id, spanM, heightM);
+    const mesh = this.makeMesh(id, geometry, position);
+    mesh.rotation.y = rotationY;
+    return mesh;
+  }
+
+  private createWallGeometry(
+    wallId: WallId,
+    spanM: number,
+    heightM: number,
+  ): THREE.BufferGeometry {
+    if (!this.project) {
+      return new THREE.BoxGeometry(spanM, heightM, WALL_THICKNESS);
+    }
+
+    const openings = getWallOpeningRects(this.project, wallId);
+    if (!openings.length) {
+      return new THREE.BoxGeometry(spanM, heightM, WALL_THICKNESS);
+    }
+
+    const halfSpan = spanM / 2;
+    const halfHeight = heightM / 2;
+    const bottomOpenings = openings.filter(
+      (opening) => opening.bottomM <= 1e-9,
+    );
+    const interiorOpenings = openings.filter(
+      (opening) => opening.bottomM > 1e-9,
+    );
+
+    const shape = new THREE.Shape();
+    shape.moveTo(-halfSpan, -halfHeight);
+
+    for (const opening of bottomOpenings) {
+      const xStart = -halfSpan + opening.startM;
+      const xEnd = -halfSpan + opening.endM;
+      const yTop = -halfHeight + opening.topM;
+
+      shape.lineTo(xStart, -halfHeight);
+      shape.lineTo(xStart, yTop);
+      shape.lineTo(xEnd, yTop);
+      shape.lineTo(xEnd, -halfHeight);
+    }
+
+    shape.lineTo(halfSpan, -halfHeight);
+    shape.lineTo(halfSpan, halfHeight);
+    shape.lineTo(-halfSpan, halfHeight);
+    shape.lineTo(-halfSpan, -halfHeight);
+
+    for (const opening of interiorOpenings) {
+      const xStart = -halfSpan + opening.startM;
+      const xEnd = -halfSpan + opening.endM;
+      const yBottom = -halfHeight + opening.bottomM;
+      const yTop = -halfHeight + opening.topM;
+
+      const hole = new THREE.Path();
+      hole.moveTo(xStart, yBottom);
+      hole.lineTo(xStart, yTop);
+      hole.lineTo(xEnd, yTop);
+      hole.lineTo(xEnd, yBottom);
+      hole.lineTo(xStart, yBottom);
+      shape.holes.push(hole);
+    }
+
+    const geometry = new THREE.ExtrudeGeometry(shape, {
+      depth: WALL_THICKNESS,
+      bevelEnabled: false,
+      steps: 1,
+    });
+    geometry.translate(0, 0, -WALL_THICKNESS / 2);
+    geometry.computeVertexNormals();
+    return geometry;
   }
 
   private makeMesh(

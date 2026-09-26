@@ -206,10 +206,50 @@ async function assertEval(session, expression, message) {
   if (!ok) throw new Error(message);
 }
 
+async function waitForNextPaint(session) {
+  await evaluate(
+    session,
+    'new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))',
+  );
+}
+
 async function capturePage(session) {
   const result = await session.call("Page.captureScreenshot", {
     format: "png",
     fromSurface: true,
+  });
+  return result.data;
+}
+
+async function captureElement(session, selector) {
+  const rect = await evaluate(
+    session,
+    `(() => {
+      const element = document.querySelector(${JSON.stringify(selector)});
+      if (!element) return null;
+      const r = element.getBoundingClientRect();
+      return {
+        x: r.left + window.scrollX,
+        y: r.top + window.scrollY,
+        width: r.width,
+        height: r.height,
+      };
+    })()`,
+  );
+  if (!rect || rect.width < 1 || rect.height < 1) {
+    throw new Error("Cannot capture element: " + selector);
+  }
+  const result = await session.call("Page.captureScreenshot", {
+    format: "png",
+    fromSurface: true,
+    captureBeyondViewport: true,
+    clip: {
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      scale: 1,
+    },
   });
   return result.data;
 }
@@ -616,7 +656,7 @@ async function smokeViewerTouch(session) {
   );
   if (!rect) throw new Error("Mobile: 3D canvas is missing");
 
-  const before = await capturePage(session);
+  const before = await captureElement(session, "#viewer canvas");
   await session.call("Input.dispatchTouchEvent", {
     type: "touchStart",
     touchPoints: [{ x: rect.x, y: rect.y, radiusX: 8, radiusY: 8, force: 1, id: 1 }],
@@ -631,7 +671,7 @@ async function smokeViewerTouch(session) {
   });
   await delay(280);
 
-  const after = await capturePage(session);
+  const after = await captureElement(session, "#viewer canvas");
   assertScreenshotChanged(before, after, "Mobile: touch orbit did not change the rendered view");
 }
 
@@ -649,38 +689,74 @@ async function clickLinkedWallThroughCanvas(session) {
 
   const canvas = await evaluate(
     session,
-    '(() => { const el = document.querySelector("#viewer canvas"); const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })()',
+    `(() => {
+      const el = document.querySelector("#viewer canvas");
+      const r = el.getBoundingClientRect();
+      const visibleLeft = Math.max(0, r.left);
+      const visibleRight = Math.min(window.innerWidth, r.right);
+      const visibleTop = Math.max(0, r.top);
+      const visibleBottom = Math.min(window.innerHeight, r.bottom);
+      return {
+        left: r.left,
+        top: r.top,
+        width: r.width,
+        height: r.height,
+        visibleLeft,
+        visibleRight,
+        visibleTop,
+        visibleBottom,
+      };
+    })()`,
   );
 
-  const candidates = [
-    [0.58, 0.40],
-    [0.72, 0.46],
-    [0.35, 0.46],
-    [0.50, 0.32],
-  ];
-
-  for (const [fx, fy] of candidates) {
-    const x = canvas.left + canvas.width * fx;
-    const y = canvas.top + canvas.height * fy;
-
-    await session.call("Input.dispatchMouseEvent", {
-      type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1,
-    });
-    await session.call("Input.dispatchMouseEvent", {
-      type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1,
-    });
-    await delay(180);
-
-    const linked = await evaluate(
-      session,
-      'document.querySelector("#serviceRow").classList.contains("selected") && document.querySelector("#selectionChip").textContent.includes("Избрано:")',
+  const visibleWidth = canvas.visibleRight - canvas.visibleLeft;
+  const visibleHeight = canvas.visibleBottom - canvas.visibleTop;
+  if (visibleWidth < 120 || visibleHeight < 120) {
+    throw new Error(
+      "Work: 3D canvas has too little visible area for Model → Offer click QA",
     );
-    if (linked) return;
-
-    await evaluate(session, 'document.querySelector("#showResultBtn").click()');
   }
 
-  throw new Error("Work: clicking visible 3D geometry did not resolve a linked Fine Putty wall");
+  const scanFractions = [0.5, 0.35, 0.65, 0.2, 0.8];
+  let attemptedCanvasClicks = 0;
+
+  for (const fy of scanFractions) {
+    for (const fx of scanFractions) {
+      const x = canvas.visibleLeft + visibleWidth * fx;
+      const y = canvas.visibleTop + visibleHeight * fy;
+
+      const hitTarget = await evaluate(
+        session,
+        `(() => {
+          const hit = document.elementFromPoint(${x}, ${y});
+          return hit?.tagName ?? null;
+        })()`,
+      );
+      if (hitTarget !== "CANVAS") continue;
+
+      attemptedCanvasClicks += 1;
+      await session.call("Input.dispatchMouseEvent", {
+        type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1,
+      });
+      await session.call("Input.dispatchMouseEvent", {
+        type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1,
+      });
+      await delay(120);
+
+      const linked = await evaluate(
+        session,
+        'document.querySelector("#serviceRow").classList.contains("selected") && document.querySelector("#selectionChip").textContent.includes("Избрано:")',
+      );
+      if (linked) return;
+
+      await evaluate(session, 'document.querySelector("#showResultBtn").click()');
+    }
+  }
+
+  throw new Error(
+    "Work: clicking visible 3D geometry did not resolve a linked Fine Putty wall; canvas clicks attempted=" +
+      attemptedCanvasClicks,
+  );
 }
 
 function throwBrowserErrors(session) {
@@ -725,6 +801,11 @@ async function runWorkSmoke() {
   const session = await createSession();
   try {
     await authorizeQaWork(session);
+    await evaluate(session, 'document.querySelector("#showAllBtn").click()');
+    await delay(220);
+    await saveScreenshot(session, "/tmp/p32b-openings-desktop-work.png");
+    await evaluate(session, 'document.querySelector("#autoCutawayBtn").click()');
+    await delay(120);
     await saveScreenshot(session, "/tmp/vertical-slice-work.png");
 
     await openProjectDialogQa(session, { openCreate: true });
@@ -740,13 +821,14 @@ async function runWorkSmoke() {
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#quantityTextLaminate").textContent.includes("m²")', "Work P3.1c: Laminate offer row is missing");
 
-    const finePuttyFocusedView = await capturePage(session);
+    const finePuttyFocusedView = await captureElement(session, "#viewer canvas");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
     await delay(120);
     await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && !document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Laminate row did not become the focused offer position");
     await assertEval(session, 'document.querySelector("#selectionChip").textContent.includes("Ламинат")', "Work P3.1c: Laminate focus is not visible");
     await assertEval(session, 'document.querySelector("#quantityKpi").textContent.includes("20,16") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Work P3.1c: Laminate quantity/Info is not synchronized");
-    const laminateFocusedView = await capturePage(session);
+    await waitForNextPaint(session);
+    const laminateFocusedView = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       finePuttyFocusedView,
       laminateFocusedView,
@@ -755,9 +837,10 @@ async function runWorkSmoke() {
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
     await assertEval(session, 'document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Fine Putty focus could not be restored");
 
-    const beforeViewerInput = await capturePage(session);
+    const beforeViewerInput = await captureElement(session, "#viewer canvas");
     await smokeViewerInput(session);
-    const afterViewerInput = await capturePage(session);
+    await waitForNextPaint(session);
+    const afterViewerInput = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       beforeViewerInput,
       afterViewerInput,
@@ -779,6 +862,58 @@ async function runWorkSmoke() {
       "Work: authoring change did not mark project dirty",
     );
 
+    await assertEval(
+      session,
+      'document.querySelector("#finePuttyRuleId").textContent === "wall-net-area-openings-v1"',
+      "P3.2d: Work UI reports the wrong Fine Putty quantity rule",
+    );
+    await assertEval(
+      session,
+      `Boolean(document.querySelector('[data-opening-id="room-1.window-1"][data-opening-field="widthM"]')) && Boolean(document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]'))`,
+      "P3.2d: opening Work controls are missing",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#quantityText").textContent.includes("44,11")',
+      "P3.2d: Fine Putty net quantity did not follow the 4.3m room-width edit",
+    );
+    await evaluate(
+      session,
+      `(() => { const input = document.querySelector('[data-opening-id="room-1.window-1"][data-opening-field="widthM"]'); input.value = "1.3"; input.dispatchEvent(new Event("change", { bubbles: true })); })()`,
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#quantityText").textContent.includes("44,00")',
+      "P3.2d: window-width edit did not update Fine Putty net quantity to 44,00 m²",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Има промени")',
+      "P3.2d: opening edit did not keep the project dirty",
+    );
+
+    await evaluate(
+      session,
+      `(() => { const input = document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]'); input.value = "99"; input.dispatchEvent(new Event("change", { bubbles: true })); })()`,
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#openingsStatus").dataset.state === "error" && document.querySelector("#openingsStatus").textContent.length > 0',
+      "P3.2d: invalid opening edit was not rejected with a visible error",
+    );
+    await assertEval(
+      session,
+      `document.querySelector("#quantityText").textContent.includes("44,00") && document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]').value !== "99"`,
+      "P3.2d: invalid opening edit mutated canonical geometry or quantity",
+    );
+
+    await evaluate(
+      session,
+      'document.querySelector(".openings-section").scrollIntoView({ block: "center", behavior: "instant" })',
+    );
+    await delay(120);
+    await saveScreenshot(session, "/tmp/p32d-opening-controls-desktop.png");
+
     await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
     await delay(450);
 
@@ -786,11 +921,11 @@ async function runWorkSmoke() {
     await assertEval(session, '!document.querySelector("#autoCutawayBtn").classList.contains("active")', "Work: auto cutaway did not turn off");
     await delay(200);
 
-    const manualBaseline = await capturePage(session);
+    const manualBaseline = await captureElement(session, "#viewer canvas");
     await evaluate(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').click()");
     await delay(200);
     await assertEval(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').classList.contains('active')", "Work: manual wall hide did not activate");
-    const wallHidden = await capturePage(session);
+    const wallHidden = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       manualBaseline,
       wallHidden,
@@ -799,11 +934,11 @@ async function runWorkSmoke() {
     await evaluate(session, "document.querySelector('[data-wall=\"room-1.wall-right\"]').click()");
     await delay(200);
 
-    const ceilingBaseline = await capturePage(session);
+    const ceilingBaseline = await captureElement(session, "#viewer canvas");
     await evaluate(session, "document.querySelector('[data-wall=\"room-1.ceiling\"]').click()");
     await delay(200);
     await assertEval(session, "document.querySelector('[data-wall=\"room-1.ceiling\"]').classList.contains('active')", "Work: manual ceiling hide did not activate");
-    const ceilingHidden = await capturePage(session);
+    const ceilingHidden = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       ceilingBaseline,
       ceilingHidden,
@@ -819,11 +954,11 @@ async function runWorkSmoke() {
       session,
       '({ quantity: document.querySelector("#quantityText").textContent, total: document.querySelector("#lineTotalText").textContent, info: document.querySelector("#infoWhat").textContent })',
     );
-    const focusedView = await capturePage(session);
+    const focusedView = await captureElement(session, "#viewer canvas");
     await evaluate(session, 'document.querySelector("#showResultBtn").click()');
     await assertEval(session, '!document.querySelector("#serviceRow").classList.contains("selected")', "Work: show whole result did not exit service focus");
     await delay(150);
-    const wholeResultView = await capturePage(session);
+    const wholeResultView = await captureElement(session, "#viewer canvas");
     assertScreenshotChanged(
       focusedView,
       wholeResultView,
@@ -876,7 +1011,20 @@ async function runMobileWorkSmoke() {
       'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#serviceRowLaminate").getBoundingClientRect().height >= 44',
       "Mobile Work P3.1c: Laminate row is missing or too small for touch",
     );
+    await assertEval(
+      session,
+      'document.querySelectorAll(".opening-fields input, .opening-fields select, .opening-add-actions button, .opening-remove").length > 0 && Array.from(document.querySelectorAll(".opening-fields input, .opening-fields select, .opening-add-actions button, .opening-remove")).every((el) => el.getBoundingClientRect().height >= 44)',
+      "Mobile P3.2d: opening controls are missing or below the 44px touch target",
+    );
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-work.png");
+    await evaluate(
+      session,
+      'document.querySelector(".openings-section").scrollIntoView({ block: "start", behavior: "instant" })',
+    );
+    await delay(120);
+    await saveScreenshot(session, "/tmp/p32d-opening-controls-mobile.png");
+    await evaluate(session, 'window.scrollTo({ top: 0, behavior: "instant" })');
+    await delay(80);
 
     await renderProjectBarStateQa(session, "dirty");
     await assertEval(
@@ -959,6 +1107,11 @@ async function runMobileClientSmoke() {
       "Mobile Client P3.1c: Laminate row is missing or too small for touch",
     );
     await assertMobileLayout(session, "Client");
+    await evaluate(session, 'document.querySelector("#showAllBtn").click()');
+    await delay(220);
+    await saveScreenshot(session, "/tmp/p32b-openings-mobile-client.png");
+    await evaluate(session, 'document.querySelector("#autoCutawayBtn").click()');
+    await delay(120);
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-client.png");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
     await delay(160);
@@ -980,6 +1133,11 @@ async function runDirectClientSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector(".mode-switch")).display === "none"', "Client: Work/Preview mode switch is visible");
     await assertEval(session, '!document.querySelector("#projectBar")', "Client: Work project bar is present");
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display === "none"', "Client: owner-only return control is visible");
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector(".openings-section")).display === "none"',
+      "Client P3.2d: opening authoring controls leaked into Client mode",
+    );
     await assertEval(session, 'document.querySelector("#lineTotalText").textContent.includes("ТЕСТОВА ЦЕНА")', "Client: prototype price is not clearly marked as test price");
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate"))', "Client P3.1c: Laminate offer row is missing");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');

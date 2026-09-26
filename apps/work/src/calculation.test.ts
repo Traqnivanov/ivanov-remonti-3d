@@ -10,6 +10,7 @@ import {
 } from "./calculation";
 import {
   createDefaultProject,
+  createOpeningProofProject,
   getFinePuttyAssignment,
   getLaminateFlooringAssignment,
 } from "./domain";
@@ -37,7 +38,44 @@ describe("fine putty quantity", () => {
     );
   });
 
-  it("uses a separate DEV price-book abstraction", () => {
+  it("deducts only openings hosted on Fine Putty target walls", () => {
+    const project = createOpeningProofProject();
+    const result = calculateFinePuttyQuantity(project);
+
+    expect(result.ruleId).toBe("wall-net-area-openings-v1");
+    expect(result.value).toBeCloseTo(46.8 - 1.89 - 1.32, 8);
+    expect(result.sourceEntityIds).toEqual([
+      "room-1.wall-front",
+      "room-1.wall-back",
+      "room-1.wall-left",
+      "room-1.wall-right",
+      "room-1.door-1",
+      "room-1.window-1",
+    ]);
+  });
+
+  it("does not deduct an opening when its host wall is outside Fine Putty scope", () => {
+    const project = createOpeningProofProject();
+    getFinePuttyAssignment(project).targetEntityIds = ["room-1.wall-right"];
+
+    const result = calculateFinePuttyQuantity(project);
+
+    expect(result.value).toBeCloseTo(12.48 - 1.32, 8);
+    expect(result.sourceEntityIds).toEqual([
+      "room-1.wall-right",
+      "room-1.window-1",
+    ]);
+  });
+
+  it("keeps the old no-opening quantity exactly unchanged under the net-area rule", () => {
+    const project = createDefaultProject();
+    const result = calculateFinePuttyQuantity(project);
+
+    expect(result.ruleId).toBe("wall-net-area-openings-v1");
+    expect(result.value).toBeCloseTo(46.8, 8);
+  });
+
+    it("uses a separate DEV price-book abstraction", () => {
     const project = createDefaultProject();
     const quantity = calculateFinePuttyQuantity(project);
 
@@ -49,6 +87,14 @@ describe("fine putty quantity", () => {
 });
 
 describe("laminate flooring quantity", () => {
+  it("is unchanged by wall openings", () => {
+    const project = createOpeningProofProject();
+    const result = calculateLaminateFlooringQuantity(project);
+
+    expect(result.value).toBeCloseTo(20.16, 8);
+    expect(result.sourceEntityIds).toEqual(["room-1.floor"]);
+  });
+
   it("calculates the exact floor area from canonical room geometry", () => {
     const project = createDefaultProject();
     const result = calculateLaminateFlooringQuantity(project);

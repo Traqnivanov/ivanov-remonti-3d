@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** none
+**Current Work Issue:** #11 — **[CURRENT WORK] P3.2 — Door + Window Openings**
 
 This file answers only: **where is the project now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -12,12 +12,12 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 ## 1. Repository / active work
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
-- Stable product baseline: `main` after merged Slice 2 + continuity consolidation.
+- Stable product baseline: `main` after merged P3.1 + post-merge continuity cleanup (`e538d9ab85dacccb1decd174c3232345d87a91cc`).
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
-- Active branch: **none**
-- Active PR: **none**
-- Active Current Work: **none**
+- Active branch: `feat/p3-2-openings-net-wall-quantity`
+- Active PR: **#12 — DRAFT / OPEN**
+- Active Current Work: **Issue #11 — P3.2**
 - PR #10: **MERGED / CLOSED**
 - P3.1 merge commit: `0631821405b7013554963c80b0d8481da9ace579`
 - PR #8: **MERGED / CLOSED**
@@ -60,7 +60,16 @@ History: PR #4 / closed Issue #6.
 
 ### Current product implementation
 
-**P3.1 — Floor Finish vertical slice — MERGED / CLOSED**
+**P3.2 — Door + Window Openings — PASS / OWNER MERGE DECISION NEXT**
+
+Current checkpoint:
+- **P3.2a — Opening domain + persistence foundation: PASS**
+- **P3.2b — Opening geometry proof: PASS**
+- **P3.2c — Fine Putty net wall quantity: PASS**
+- **P3.2d — Work opening controls + live persistence acceptance: PASS**
+- **P3.2 overall acceptance: PASS — PR #12 remains DRAFT / OPEN pending explicit Owner merge approval**
+
+P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
 Current checkpoint:
 - **P3.1a — multi-service domain/runtime foundation: PASS**
@@ -80,7 +89,7 @@ Owner-approved P3.1 direction:
 
 Dedicated Supabase project remains the canonical persisted application truth.
 
-Two bounded QA projects now prove both backward compatibility and P3.1:
+Three bounded QA projects now prove backward compatibility, P3.1, and P3.2 live persistence:
 
 ### Existing Slice 2 QA project
 - title: `QA — P2.4b Create List Open`;
@@ -101,6 +110,21 @@ Two bounded QA projects now prove both backward compatibility and P3.1:
 - `presentation = {}`;
 - camera/zoom/selection/cutaway Viewer Session State: not persisted;
 - real authenticated Create → Save v1→v2 → reload → Open: PASS.
+
+### P3.2 QA project
+- title: `P3.2 QA Openings`;
+- project ID: `add1f9af-5e4a-4b60-b047-5fa20e2e8c31`;
+- `work_version = 2`;
+- geometry: `4.2 × 4.8 × 2.6 m`;
+- openings: exactly **1 door + 1 window**;
+- door: `0.9 × 2.1 m`, front wall;
+- window: `1.3 × 1.1 m`, sill `0.9 m`, right wall;
+- persisted total opening area: **3.32 m²**;
+- persisted Fine Putty net area recomputed directly from Supabase state: **43.48 m²**;
+- Fine Putty rule: `wall-net-area-openings-v1`;
+- `presentation = {}`;
+- authenticated UI proof: door + window → **43.59 m²** → window width `1.2 → 1.3` → **43.48 m²** → dirty → Save `v1 → v2` → reload/reopen: PASS;
+- older Slice 2 and P3.1 QA projects remained untouched.
 
 Current verified security posture remains unchanged:
 - RLS enabled on `projects` and `work_users`;
@@ -157,41 +181,61 @@ These do not block planning of the next slice, but must not be forgotten:
 
 ## 6. Current Work
 
-**None.**
+**Issue #11 — P3.2 Door + Window Openings**
 
-P3.1 — Floor Finish vertical slice is complete after merged PR #10.
+Active branch:
+- `feat/p3-2-openings-net-wall-quantity`
 
-Closed result:
-- multi-service runtime foundation: PASS;
-- Fine Putty regression baseline: PASS;
-- Laminate floor assignment + exact floor quantity: PASS;
-- separate EUR DEV pricing fixture: PASS;
-- Offer → Model / Model → Offer: PASS;
-- client Info + focused quantity/price: PASS;
-- corrected Laminate visual proof: PASS;
-- real authenticated Save/reload/Open: PASS;
-- backward compatibility with old Fine Putty-only project: PASS;
-- Viewer Session separation: PASS;
-- final branch CI #277: SUCCESS;
-- final static preview #157: SUCCESS;
-- merge commit: `0631821405b7013554963c80b0d8481da9ace579`.
+Active PR:
+- **#12 — DRAFT / OPEN**
 
-Detailed history remains in PR #10 / Issue #9 / Git.
+Checkpoint status:
+- P3.2a Opening domain + persistence foundation: **PASS**;
+- P3.2b Opening geometry proof: **PASS**;
+- P3.2c Fine Putty net wall quantity: **PASS**;
+- P3.2d Work opening controls + live persistence acceptance: **PASS**;
+- P3.2 overall: **PASS — OWNER MERGE DECISION NEXT**.
+
+Current P3.2d implementation:
+- Work-only opening editor renders canonical openings;
+- add/remove door or window with stable IDs;
+- edit host wall / width / height / offset / window sill;
+- invalid edits are rejected instead of silently moving/shrinking geometry;
+- room resize is rejected if it would invalidate an opening;
+- valid opening edits mark Project State dirty and update 3D + Fine Putty net quantity;
+- Client remains read-only;
+- opening controls are mobile touch-sized;
+- Work UI now reports the canonical Fine Putty rule `wall-net-area-openings-v1`;
+- viewer visual regression tests were hardened to compare the actual 3D canvas.
+
+Important:
+- real Work default projects still start with `openings: []`;
+- openings are added only by explicit Work action;
+- final authenticated P3.2 live persistence acceptance has **PASSED**;
+- PR #12 remains **DRAFT / OPEN** until explicit Owner merge approval.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**No active implementation task.**
+**P3.2 IS CLOSED / PASS. OWNER MERGE DECISION IS NEXT.**
 
-The broader approved direction remains **one complete room**.
+Verified final live acceptance:
+- project: `P3.2 QA Openings`;
+- project ID: `add1f9af-5e4a-4b60-b047-5fa20e2e8c31`;
+- authenticated UI: door + window → **43.59 m²**;
+- window width `1.2 → 1.3 m` → **43.48 m²**;
+- dirty state: PASS;
+- Save `v1 → v2`: PASS;
+- reload/reopen same project: PASS;
+- direct Supabase verification: PASS;
+- persisted geometry: `4.2 × 4.8 × 2.6 m`;
+- persisted openings: one door + one window;
+- persisted Fine Putty net area recomputed from canonical DB state: **43.48 m²**;
+- `presentation = {}`;
+- older QA projects remain untouched.
 
-Before the next implementation block:
-1. Work Controller audits the remaining complete-room gaps against the newly merged P3.1 baseline;
-2. identify the smallest logically complete next block;
-3. make one concrete proposal;
-4. run Criteria Check;
-5. obtain explicit Owner approval where required;
-6. only then create the next Current Work Issue and implementation branch.
-
-Do not jump directly into broad services/assets/AI expansion and do not implement from historical assumptions.
+**NEXT:**
+- Owner reviews P3.2 result and decides whether PR #12 may merge.
+- Do **not** merge PR #12 without explicit Owner approval.
+- Do **not** start the next complete-room block before that Owner decision.

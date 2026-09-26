@@ -13,6 +13,16 @@ export type Surface = {
   label: string;
 };
 
+export type Opening = {
+  id: string;
+  kind: "door" | "window";
+  hostSurfaceId: WallId;
+  widthM: number;
+  heightM: number;
+  offsetM: number;
+  sillM?: number;
+};
+
 export type Room = {
   id: "room-1";
   name: string;
@@ -20,6 +30,7 @@ export type Room = {
   lengthM: number;
   heightM: number;
   surfaces: Surface[];
+  openings: Opening[];
 };
 
 export type ClientInfo = {
@@ -53,7 +64,7 @@ export type FinePuttyServiceAssignment = ServiceAssignment & {
   serviceCode: "fine-putty";
   label: "Фина шпакловка";
   targetEntityIds: WallId[];
-  quantityRuleId: "wall-area-v1";
+  quantityRuleId: "wall-net-area-openings-v1";
   priceBookItemId: "dev-fine-putty";
   presentationMode: "highlight";
   clientInfo: ClientInfo;
@@ -105,7 +116,7 @@ export function getFinePuttyAssignment(
     !assignment ||
     assignment.serviceCode !== "fine-putty" ||
     assignment.label !== "Фина шпакловка" ||
-    assignment.quantityRuleId !== "wall-area-v1" ||
+    assignment.quantityRuleId !== "wall-net-area-openings-v1" ||
     assignment.priceBookItemId !== "dev-fine-putty" ||
     assignment.presentationMode !== "highlight" ||
     !assignment.clientInfo ||
@@ -171,6 +182,32 @@ export function getLaminateFlooringAssignment(
   return assignment;
 }
 
+export function createOpeningProofProject(
+  projectId = "prototype-room-1",
+): ProjectState {
+  const project = createDefaultProject(projectId);
+  project.room.openings = [
+    {
+      id: "room-1.door-1",
+      kind: "door",
+      hostSurfaceId: "room-1.wall-front",
+      widthM: 0.9,
+      heightM: 2.1,
+      offsetM: 0.55,
+    },
+    {
+      id: "room-1.window-1",
+      kind: "window",
+      hostSurfaceId: "room-1.wall-right",
+      widthM: 1.2,
+      heightM: 1.1,
+      offsetM: 1.4,
+      sillM: 0.9,
+    },
+  ];
+  return project;
+}
+
 export function createDefaultProject(projectId = "prototype-room-1"): ProjectState {
   return {
     schemaVersion: 1,
@@ -189,6 +226,7 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
         { id: "room-1.floor", kind: "floor", label: "Под" },
         { id: "room-1.ceiling", kind: "ceiling", label: "Таван" },
       ],
+      openings: [],
     },
     serviceAssignments: [
       {
@@ -202,7 +240,7 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
           "room-1.wall-right",
         ],
         included: true,
-        quantityRuleId: "wall-area-v1",
+        quantityRuleId: "wall-net-area-openings-v1",
         priceBookItemId: "dev-fine-putty",
         presentationMode: "highlight",
         clientInfo: {

@@ -3,16 +3,15 @@ import {
   getLaminateFlooringAssignment,
   type ClientInfo,
   type ProjectState,
-  type SurfaceId,
 } from "./domain";
-import { getWallAreaM2, summarizeRoomGeometry } from "./geometry";
+import { getWallNetAreaM2, summarizeRoomGeometry } from "./geometry";
 
 export type QuantityResult = {
   ruleId: string;
   ruleVersion: "1.0.0";
   unit: "m2";
   value: number;
-  sourceEntityIds: SurfaceId[];
+  sourceEntityIds: string[];
   usedOverride: false;
 };
 
@@ -58,16 +57,19 @@ export function calculateFinePuttyQuantity(project: ProjectState): QuantityResul
     : [];
 
   const value = sourceEntityIds.reduce(
-    (sum, wallId) => sum + getWallAreaM2(project, wallId),
+    (sum, wallId) => sum + getWallNetAreaM2(project, wallId),
     0,
   );
+  const deductedOpeningIds = project.room.openings
+    .filter((opening) => sourceEntityIds.includes(opening.hostSurfaceId))
+    .map((opening) => opening.id);
 
   return {
-    ruleId: "wall-area-v1",
+    ruleId: "wall-net-area-openings-v1",
     ruleVersion: "1.0.0",
     unit: "m2",
     value,
-    sourceEntityIds,
+    sourceEntityIds: [...sourceEntityIds, ...deductedOpeningIds],
     usedOverride: false,
   };
 }
