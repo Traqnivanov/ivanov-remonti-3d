@@ -486,21 +486,24 @@ Client delivery uses **Published Revisions**, not the live Work draft.
 
 Infrastructure decisions remain subject to the Living Product rule, but may not be changed silently. Any provider/data-model change requires architecture impact/risk review.
 
-## 26. Legacy calculator integration boundary
+## 26. Legacy calculation integration boundary
 
-Legacy Ivanov calculators are knowledge/reference sources, not runtime application dependencies.
+For calculation/M² reuse, the only current legacy source is **`Traqnivanov/ivanov-tools/kalkulator-combined.html` — Калкулатор M²**.
+
+It is a knowledge/reference and verification source, not a runtime application dependency.
 
 Do not:
-- iframe/embed the old HTML tools;
+- iframe/embed the old M² HTML tool;
+- use `calculator.html` or `room.html` as formula/calculation sources or fallback;
 - make 3D depend on legacy DOM;
-- keep separate duplicate room state for calculators;
+- keep separate duplicate room state for M²;
 - import old Firebase/localStorage workflows.
 
 Correct direction:
 
-**shared domain project → independent 3D / 2D technical / calculation / offer consumers**.
+**shared domain project → independent 3D / 2D M² technical / calculation / offer consumers**.
 
-Complex service calculators are modular and loaded only when needed.
+Only the M² capabilities needed by an approved current slice are audited, isolated, tested and migrated. Other Ivanov Tools can be reviewed separately as non-calculation workflow references under §19.
 
 
 ## 27. Adaptive Work Sizing — задължително за всички чатове
