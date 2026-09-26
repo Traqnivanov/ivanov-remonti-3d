@@ -28,7 +28,6 @@ import {
   markProjectHistoryRevisionSaved,
   redoProjectState,
   undoProjectState,
-  type ProjectHistory,
 } from "./project-history";
 import {
   calculateSupportedOfferLine,
