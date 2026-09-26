@@ -2,23 +2,62 @@
 
 ## 1. Източник и правило
 
-Основният списък услуги е извлечен от текущия `main` на **Traqnivanov/Remonti-** — главния сайт на Ivanov Remonti, включително:
+### 1.1 Source authority
 
-- `index.html`
-- `gipsokarton.html`
-- `shpaklovka.html`
-- `boyadisvane.html`
-- `obrashchane.html`
-- `lom/stroitelni-uslugi.html`
-- `lom/vik.html`
+Основният източник за **реалните услуги на Ivanov Remonti** е текущият `main` на **`Traqnivanov/Remonti-`**.
+
+Primary service/content sources include:
+- `index.html` — Sofia/main service catalog and additional service families;
+- `gipsokarton.html`;
+- `shpaklovka.html`;
+- `boyadisvane.html`;
+- `obrashchane.html`;
+- `lom/stroitelni-uslugi.html`;
+- `lom/vik.html`;
+- the relevant `narachnik/*.html` guides for deeper service explanation and working logic.
+
+The source roles are strict:
+
+- **Site/service pages** → what Ivanov Remonti actually offers and the factual service scope.
+- **Relevant `narachnik/` guide** → deeper explanation for Smart Offer ⓘ Info: what the service is, why it is done, dependencies/common mistakes where supported, and what result the client receives.
+- **This registry** → normalized Smart Offer operation taxonomy, units, targets, dependencies and presentation mode.
+- **`Traqnivanov/ivanov-tools/kalkulator-combined.html`** → audited reference for M²/formulas/technical-schema workflows only; it is not the service catalog and is not a pricing authority.
+- **Versioned Price Book** → canonical Smart Offer price authority.
+
+Client Info source order is:
+
+**relevant service page → relevant guide → main-site brand/tone → explicit project-specific confirmed note**.
+
+A project-specific reason such as “защо е включено тук” must be explicitly entered/confirmed; it must not be invented from generic guide text.
+
+### 1.2 Taxonomy rule
+
+A public service family is **not automatically one Smart Offer operation**.
+
+Example: **„Шпакловка“ is a family**, and the system keeps distinct operations when the source/Owner distinguishes them, including:
+- фина шпакловка;
+- гипсова шпакловка;
+- основна/укрепваща шпакловка;
+- шпакловка на фуги на гипсокартон;
+- шлайфане;
+- грунд;
+- preparation/partial base repair where applicable.
+
+Likewise:
+- ordinary plaster ≠ putty;
+- decorative plaster ≠ ordinary plaster;
+- drywall construction ≠ drywall joint finishing;
+- a broad family such as “цялостен ремонт” is a recipe/group of operations, not one vague quote operation.
+
+If source wording is ambiguous or two sources materially conflict, **do not merge or reinterpret silently — stop and ask Owner**.
 
 Този документ разделя:
 
-- **Потвърдена услуга** — реално присъства в сайта/repo.
-- **Предложена вътрешна разбивка** — как услугата да се моделира в 3D програмата.
+- **Потвърдена услуга** — реално присъства в сайта/repo or is explicitly Owner-confirmed.
+- **Предложена вътрешна разбивка** — how the service may be modeled inside Smart Offer; it is not automatically Owner-approved fact until accepted.
 - **Поддържащ модул** — нужен за реалния ремонт/визуализация, но не непременно отделна основна рекламна услуга.
 
-Цените по-долу са **snapshot от текущия source repo**, не вечни правила. В програмата влизат в отделен editable/versioned Price Book.
+Цените по-долу са **snapshot/reference от source repo**, не вечни правила и не runtime source of truth. В програмата current/production pricing влиза само през отделния editable/versioned Price Book.
 
 ## 2. Потвърдени основни услуги
 
