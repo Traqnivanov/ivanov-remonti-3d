@@ -909,6 +909,12 @@ async function runWorkSmoke() {
       `Boolean(document.querySelector("#addGypsumPuttyButton")) && !document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')`,
       "P3.3c: removing gypsum putty did not remove the Work assignment and offer line",
     );
+    await evaluate(session, 'document.querySelector("#serviceRow").click()');
+    await assertEval(
+      session,
+      'document.querySelector("#serviceRow").classList.contains("selected")',
+      "P3.3c: Fine Putty focus was not restored after the isolated gypsum proof",
+    );
 
     await evaluate(
       session,
