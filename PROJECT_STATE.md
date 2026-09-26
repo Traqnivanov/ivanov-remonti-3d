@@ -12,7 +12,7 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 ## 1. Repository / active work
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
-- Stable product baseline: `main` after merged Slice 2 + continuity consolidation.
+- Stable product baseline: `main` after merged P3.1 + post-merge continuity cleanup (`e538d9ab85dacccb1decd174c3232345d87a91cc`).
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
 - Active branch: `feat/p3-2-openings-net-wall-quantity`
