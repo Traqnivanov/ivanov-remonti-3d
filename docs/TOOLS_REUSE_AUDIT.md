@@ -19,9 +19,11 @@ We will:
 
 This prevents the new program from breaking when an old tool changes and prevents old tools from being touched by the 3D project.
 
-## 2. Useful source tools
+## 2. Current calculation source
 
-### `kalkulator-combined.html`
+### `kalkulator-combined.html` — ONLY ACTIVE CALCULATOR SOURCE
+
+For Smart Offer calculation / M² / material-estimation migration, this is the **only currently approved legacy calculator source**.
 
 Useful logic already present:
 
@@ -37,36 +39,18 @@ Useful logic already present:
 - plasterboard sheet layout helpers;
 - manual override of calculated net m².
 
-### `calculator.html`
+### Historical audit only — NOT active sources
 
-Useful logic already present:
+`calculator.html` and `room.html` were inspected historically, but by explicit Owner correction they are **NOT used as calculation/formula sources for Smart Offer**.
 
-- ceilings, wall linings and partition areas;
-- plasterboard quantity with waste factor;
-- UD/CD and UW/CW profile estimates;
-- hangers;
-- screws;
-- dowels;
-- tape;
-- jointing compound;
-- finishing compound;
-- insulation;
-- adhesive and foam;
-- putty service stacks by surface;
-- material packaging rounding;
-- manual quantity overrides.
+Rules:
+- do not extract formulas from them;
+- do not use them to resolve calculation ambiguity;
+- do not copy their service taxonomy;
+- do not integrate or embed them;
+- do not treat them as fallback if `kalkulator-combined.html` lacks something.
 
-### `room.html`
-
-Useful architectural idea already present:
-
-- surface-based room model;
-- each surface can have construction/finishing services;
-- partition walls are double-sided;
-- operation quantity × unit labor price;
-- material calculation derived from selected surface work;
-- project save/open;
-- quote/PDF workflow.
+If a future need appears that only one of those files seems to solve, STOP and ask Owner before using it.
 
 ## 3. What we will reuse
 
@@ -193,7 +177,7 @@ Example:
 
 ```
 drywall.board.area.v1
-source: audited calculator.html + field validation
+source: audited kalkulator-combined.html + field validation
 unit: m²
 defaultWaste: 10%
 status: approved
