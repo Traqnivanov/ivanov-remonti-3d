@@ -2,11 +2,18 @@ import type { ProjectState } from "./domain";
 
 export const DEFAULT_PROJECT_HISTORY_LIMIT = 50;
 
+export type ProjectHistoryEntry = {
+  readonly revision: number;
+  readonly project: ProjectState;
+};
+
 export type ProjectHistory = {
-  readonly past: readonly ProjectState[];
-  readonly current: ProjectState;
-  readonly future: readonly ProjectState[];
+  readonly past: readonly ProjectHistoryEntry[];
+  readonly current: ProjectHistoryEntry;
+  readonly future: readonly ProjectHistoryEntry[];
   readonly limit: number;
+  readonly nextRevision: number;
+  readonly savedRevision: number;
 };
 
 export function createProjectHistory(
@@ -19,14 +26,41 @@ export function createProjectHistory(
 
   return {
     past: [],
-    current: cloneProjectState(project),
+    current: {
+      revision: 0,
+      project: cloneProjectState(project),
+    },
     future: [],
     limit,
+    nextRevision: 1,
+    savedRevision: 0,
   };
 }
 
 export function getCurrentProjectState(history: ProjectHistory): ProjectState {
-  return cloneProjectState(history.current);
+  return cloneProjectState(history.current.project);
+}
+
+export function getCurrentProjectRevision(history: ProjectHistory): number {
+  return history.current.revision;
+}
+
+export function isCurrentProjectSaved(history: ProjectHistory): boolean {
+  return history.current.revision === history.savedRevision;
+}
+
+export function markProjectHistoryRevisionSaved(
+  history: ProjectHistory,
+  revision = history.current.revision,
+): ProjectHistory {
+  if (!Number.isInteger(revision) || revision < 0) {
+    throw new Error("Saved project history revision must be a non-negative integer.");
+  }
+
+  return {
+    ...history,
+    savedRevision: revision,
+  };
 }
 
 export function canUndoProject(history: ProjectHistory): boolean {
@@ -41,7 +75,7 @@ export function commitProjectState(
   history: ProjectHistory,
   nextProject: ProjectState,
 ): ProjectHistory {
-  const nextPast = [...history.past, cloneProjectState(history.current)];
+  const nextPast = [...history.past, cloneEntry(history.current)];
   const boundedPast =
     nextPast.length > history.limit
       ? nextPast.slice(nextPast.length - history.limit)
@@ -49,9 +83,14 @@ export function commitProjectState(
 
   return {
     past: boundedPast,
-    current: cloneProjectState(nextProject),
+    current: {
+      revision: history.nextRevision,
+      project: cloneProjectState(nextProject),
+    },
     future: [],
     limit: history.limit,
+    nextRevision: history.nextRevision + 1,
+    savedRevision: history.savedRevision,
   };
 }
 
@@ -60,13 +99,15 @@ export function undoProjectState(history: ProjectHistory): ProjectHistory {
   if (!previous) return history;
 
   return {
-    past: history.past.slice(0, -1),
-    current: cloneProjectState(previous),
-    future: [
-      cloneProjectState(history.current),
-      ...history.future.map(cloneProjectState),
-    ].slice(0, history.limit),
+    past: history.past.slice(0, -1).map(cloneEntry),
+    current: cloneEntry(previous),
+    future: [cloneEntry(history.current), ...history.future.map(cloneEntry)].slice(
+      0,
+      history.limit,
+    ),
     limit: history.limit,
+    nextRevision: history.nextRevision,
+    savedRevision: history.savedRevision,
   };
 }
 
@@ -75,13 +116,21 @@ export function redoProjectState(history: ProjectHistory): ProjectHistory {
   if (!next) return history;
 
   return {
-    past: [
-      ...history.past.map(cloneProjectState),
-      cloneProjectState(history.current),
-    ].slice(-history.limit),
-    current: cloneProjectState(next),
-    future: history.future.slice(1).map(cloneProjectState),
+    past: [...history.past.map(cloneEntry), cloneEntry(history.current)].slice(
+      -history.limit,
+    ),
+    current: cloneEntry(next),
+    future: history.future.slice(1).map(cloneEntry),
     limit: history.limit,
+    nextRevision: history.nextRevision,
+    savedRevision: history.savedRevision,
+  };
+}
+
+function cloneEntry(entry: ProjectHistoryEntry): ProjectHistoryEntry {
+  return {
+    revision: entry.revision,
+    project: cloneProjectState(entry.project),
   };
 }
 
