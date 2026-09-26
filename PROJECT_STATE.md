@@ -16,8 +16,8 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - P3.2 merge commit: `f55a0bcea1c298bdf773aa2ec970f0df7a13c896`
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
-- Active feature branch: **none**
-- Active PR: **none**
+- Active feature branch: none yet for P3.3c
+- Active PR: none yet for P3.3c
 - Active Current Work Issue: **#13 — P3.3 Generic Operation Authoring Core**
 - PR #12: **MERGED / CLOSED**
 - PR #10: **MERGED / CLOSED**
@@ -211,15 +211,17 @@ The global **Uniqueness Interrupt Gate** applies at every P3.3 checkpoint. If a 
 
 ## 7. NEXT EXACT STEP
 
-**P3.3a — generic operation + quantity boundary.**
+**P3.3c — generic Work operation authoring + third real operation.**
+
+P3.3a and P3.3b are now merged into `main`.
 
 Exact next:
-1. perform a short focused architecture audit of the current operation/calculation boundary only;
-2. derive the smallest generic operation/rule-resolution and quantity-unit contract that removes assignment-ID-specific hardcoding without changing existing numerical truth;
-3. record the P3.3a concrete shape + visible Criteria Check in Issue #13;
-4. run the **Uniqueness Interrupt Gate** before code;
-5. if no stronger material product mechanism is found, implement P3.3a on a dedicated feature branch with focused tests and full regression;
-6. do not start P3.3b until P3.3a is verified.
+1. audit the approved source definition for **Гипсова шпакловка** only;
+2. define the smallest generic Work flow to add/remove/include the operation and choose exact wall targets;
+3. reuse the generic quantity rule and separate price reference; no new assignment-specific calculation branch;
+4. source Client Info from the approved Ivanov Remonti page/guide;
+5. verify Undo/Redo + Save/Open + Offer↔Model behavior;
+6. mobile-first QA;
+7. do not expand into the broader finishing catalog in this block.
 
-No new Owner decision is required for routine engineering inside the approved P3.3 direction.  
-If the uniqueness review finds a materially stronger product/UX/architecture/quantity-price mechanism, **STOP and return to Owner before implementing that changed direction.**
+Uniqueness Interrupt Gate remains active throughout P3.3c.
