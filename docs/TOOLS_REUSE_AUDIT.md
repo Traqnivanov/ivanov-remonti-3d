@@ -388,3 +388,173 @@ Current rule:
 - keep those files untouched unless a later explicit Owner decision expands scope.
 
 Any earlier wording suggesting that both calculators are planned for integration is superseded by this correction.
+
+
+## 16. Non-calculation Ivanov Tools capability map
+
+This section is a **capability/reuse audit**, not authorization to integrate every old tool.
+
+Important boundary:
+- for **calculation / M² / material formulas**, the only active legacy source remains `kalkulator-combined.html`;
+- the tools below may still contain useful **workflow, document, client-management or communication patterns**, but they do not become calculation sources;
+- old Firebase/localStorage architecture is not reused as Smart Offer runtime architecture;
+- Smart Offer keeps Supabase as canonical application truth and EUR-only pricing.
+
+### `offer.html` — STRONG FUTURE REUSE / workflow reference
+
+Observed capabilities:
+- client/offer metadata;
+- service picker and quote positions;
+- per-line quantity/price/total;
+- grand total;
+- offer history;
+- PDF/print generation;
+- settings/services management;
+- links/actions toward Contract and Advances.
+
+Useful for Smart Offer:
+- quote/document field structure;
+- final offer totals and grouping;
+- offer history/revision UX ideas;
+- PDF snapshot/export structure;
+- transition from accepted offer toward contract/payment workflow.
+
+Do **not** copy directly:
+- Firebase/localStorage persistence;
+- BGN display/conversion remnants;
+- manual pricing assumptions that conflict with the new versioned Price Book;
+- old calculator/room navigation dependencies.
+
+Recommended timing:
+- audit/reference **now** so the new Smart Offer does not rebuild incompatible quote concepts;
+- implementation/reuse after the complete-room quote core and Price Book rules are sufficiently stable;
+- PDF/export belongs later than the interactive Smart Offer core, not at the beginning.
+
+### `clients.html` — FUTURE CLIENT / PROJECT LINK
+
+Observed capabilities:
+- client list;
+- search;
+- create/edit/delete client;
+- status/tool links;
+- Firebase-backed client records.
+
+Useful for Smart Offer:
+- client identity and project-to-client association;
+- avoiding duplicate client entry across offer/contract/payment workflows.
+
+Recommended timing:
+- not required for the next room-geometry/service slice;
+- should be considered before full client delivery / contract / payment workflow is connected.
+
+Do not copy Firebase persistence; Smart Offer client/project identity must use the approved Supabase architecture.
+
+### `contract.html` — POST-OFFER WORKFLOW REFERENCE
+
+Observed capabilities:
+- construction contract generation;
+- parties;
+- object and term;
+- included activities;
+- free/additional services;
+- payment schedule;
+- guarantee/obligations;
+- saved contract history / print.
+
+Useful for Smart Offer:
+- future transition **accepted Smart Offer → contract**;
+- carrying accepted scope and totals without retyping.
+
+Recommended timing:
+- after quote scope/Price Book/client identity are stable;
+- not part of current complete-room 3D slice.
+
+### `avansov-otchet.html` — POST-CONTRACT FINANCE REFERENCE
+
+Observed capabilities:
+- clients;
+- total service value;
+- advance payments;
+- remaining balance;
+- status/notes;
+- PDF;
+- Firebase-backed records.
+
+Useful for Smart Offer ecosystem:
+- future **contracted job → advances / remaining payments** workflow.
+
+Recommended timing:
+- later operational phase after accepted offer/contract;
+- not part of the current Smart Offer room core.
+
+### `profiles.html` — POTENTIALLY USEFUL, CURRENTLY NOT AN APPROVED SOURCE
+
+Observed capabilities:
+- UD/CD profile calculations and positions;
+- cutting plans;
+- ceiling/wall SVG schemes;
+- reads `ir_profiles_data` and links back to the old `calculator.html` flow.
+
+Because it is coupled to the currently excluded `calculator.html` workflow:
+- do **not** use its formulas or integrate it under the current rules;
+- if its profile/cutting-plan capability becomes valuable for the drywall module, perform a separate audit and ask Owner before reuse.
+
+### `naruchnik.html` / `naruchnik-ai.html` — INTERNAL CLIENT-COMMUNICATION TOOL, NOT SERVICE-INFO AUTHORITY
+
+Observed capabilities:
+- client-conversation/psychology guidance;
+- notes/history/outcomes;
+- client context;
+- AI assistant behavior;
+- old Firebase + direct Anthropic browser-key architecture.
+
+Potential future value:
+- internal Work-side communication support;
+- sales/client-conversation guidance;
+- learning from outcomes.
+
+It is **not** the factual source for Smart Offer service ⓘ Info.
+Service Info authority remains the real service pages + `Remonti-/narachnik/` service guides.
+
+Do not reuse the old direct-browser API-key/Firebase architecture.
+
+### `services.js` — LEGACY PRICE/SERVICE DATA, NOT CANONICAL
+
+May be useful only as historical evidence/comparison.
+Do not use it as:
+- service truth;
+- Price Book truth;
+- current currency logic.
+
+Current service truth comes from `Traqnivanov/Remonti-` + Service Operation Registry.
+Current prices come from the versioned Price Book and are EUR-only.
+
+### `receipts.html`
+
+The current file does not provide a usable implemented capability in this audit.
+Do not depend on it for Smart Offer planning.
+
+### Other repo infrastructure
+
+`auth-guard.js`, service worker, analytics and Cloudflare/Firebase plumbing are part of the old Office ecosystem.
+They are not automatically reusable architecture for Smart Offer.
+The approved Smart Offer Auth/data/security architecture remains authoritative.
+
+### Recommended sequencing principle
+
+Do not wait until the end to look at Ivanov Tools.
+
+Use the repo as a **pre-implementation dependency check** whenever Smart Offer reaches a matching capability:
+
+1. **room geometry / M² / material quantities** → only `kalkulator-combined.html`;
+2. **service meaning / client Info** → `Remonti-` service pages + real service guides;
+3. **quote totals/history/PDF concepts** → audit `offer.html` before implementing that block;
+4. **client identity** → audit `clients.html` before implementing client/project linking;
+5. **contract generation** → audit `contract.html` before implementing accepted-offer → contract;
+6. **advances/payments** → audit `avansov-otchet.html` before implementing post-contract finance;
+7. **drywall profile/cutting plan** → `profiles.html` only after separate Owner approval because of its excluded-calculator coupling;
+8. **client-conversation assistant** → `naruchnik*.html` only if/when an internal communication-support module is intentionally added.
+
+Principle:
+
+**Do not port Ivanov Tools wholesale. Before building a Smart Offer capability from zero, first check whether an existing Ivanov tool already contains useful proven workflow knowledge — then migrate only the approved logic into the new architecture.**
