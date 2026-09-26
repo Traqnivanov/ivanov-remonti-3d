@@ -140,6 +140,32 @@ Principle:
 
 **Not different for the sake of being different. Distinctive because it solves the problem better.**
 
+### Uniqueness Interrupt Gate — always active during work
+
+Owner-approved decisions are the **current approved baseline**, not untouchable forever.
+
+The Uniqueness / distinctive-product criterion applies:
+- before a task is approved;
+- while the task is being implemented;
+- at each meaningful checkpoint/review;
+- before merge/closure when new evidence exists.
+
+If the Work Controller discovers a **materially stronger mechanism, logic, sequence or interaction** that solves the same problem better, the affected work must **STOP before the weaker approved approach becomes more deeply embedded**.
+
+Required flow:
+
+**detect stronger option → compare with current approved baseline → explain concrete user/product benefit → impact/risk/dependencies → Owner decision when product behavior/direction changes → mark old decision superseded and sync source-of-truth → resume**
+
+Rules:
+- an approved/locked decision remains active until it is explicitly replaced;
+- no Work Controller or OBK may silently substitute a new product decision;
+- routine technical improvement that preserves approved product meaning may be handled by the Work Controller and recorded at the checkpoint;
+- if the stronger option changes UX, workflow, architecture, quantity/price truth, security/privacy, service meaning or other material product behavior, Owner approval is required before implementation;
+- the interrupt applies only to the affected scope; it is **not** permission to restart the project or reopen unrelated accepted work;
+- “we already approved it” is never sufficient reason to continue a demonstrably weaker solution.
+
+This is the operational meaning of the Living Product + Ivanov Unique rules.
+
 ---
 
 ## 2. Authority
