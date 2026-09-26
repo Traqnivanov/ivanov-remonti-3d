@@ -19,6 +19,39 @@ Every new chat must use these roles consistently:
 
 Evidence proves what happened; it does not replace the active product/source-of-truth documents.
 
+### External product-source contract — always active
+
+The Smart Offer uses several existing Ivanov Remonti sources, but they have **different authority** and must not be mixed:
+
+- **Real service catalog / service truth:** `Traqnivanov/Remonti-` on `main`.
+  - The Sofia/main site and its service pages are the primary source for the real Ivanov Remonti services and their scope.
+  - Relevant Lom pages are additional confirmed service/content sources where applicable.
+  - Do not invent a new service, merge distinct services, or rename their meaning from memory.
+
+- **Service taxonomy inside Smart Offer:** `docs/SERVICE_OPERATION_REGISTRY.md`.
+  - It normalizes the real site services into explicit operations, units, targets, quantity rules, dependencies and presentation modes.
+  - A broad public label may contain several distinct operations. Example: **„Шпакловка“ is a service family, not one operation**. Fine putty, gypsum putty, reinforced/base putty, drywall joint treatment, sanding, primer/preparation and related steps remain distinct where the sources/Owner distinguish them.
+  - Ordinary plaster, putty and decorative plaster are not interchangeable categories.
+
+- **Client-facing ⓘ Info / explanation:** use existing Ivanov Remonti content instead of inventing copy.
+  - Source order: **relevant current service page → relevant `narachnik/` guide → main-site brand/tone → explicit project-specific Owner/Work note**.
+  - The guides are the deeper source for what the service is, why it is done, important dependencies/common mistakes and what the client receives.
+  - Do not invent a diagnosis, technical fact or project-specific reason that is not supported or explicitly confirmed.
+
+- **Geometry / M² / material-calculation reference:** `Traqnivanov/ivanov-tools/kalkulator-combined.html` (**Калкулатор M²**) is the **only current legacy-tool integration/reference source**.
+  - Reuse approved formulas, technical-schema ideas and workflows only after audit + manual verification + tests.
+  - Do not embed the old HTML or create a second project state.
+  - `calculator.html` and `room.html` remain outside current integration scope unless Owner explicitly changes that decision.
+
+- **Prices:** current Smart Offer prices come only from the separate versioned **Price Book**.
+  - Prices visible in the website, guides or old tools are evidence/snapshots/reference, not the canonical runtime price authority.
+
+Source-to-product flow:
+
+**Remonti- service truth + narachnik Info → Service Operation Registry → shared project geometry → audited M²/quantity logic → Price Book → Smart Offer.**
+
+If the site, guide, registry or calculator source is ambiguous or conflicts on a material service distinction/formula, **STOP and ask Owner; do not silently reconcile it.**
+
 ---
 
 ## 1. Project identity
