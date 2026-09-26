@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateAssignmentQuantity,
   calculateFinePuttyQuantity,
   calculateLaminateFlooringQuantity,
   calculateLineTotalEur,
@@ -7,6 +8,8 @@ import {
   calculateSupportedOfferLines,
   devLaminateFlooringPriceBookItem,
   devPriceBookItem,
+  type PriceBookItem,
+  type QuantityResult,
 } from "./calculation";
 import {
   createDefaultProject,
@@ -75,7 +78,7 @@ describe("fine putty quantity", () => {
     expect(result.value).toBeCloseTo(46.8, 8);
   });
 
-    it("uses a separate DEV price-book abstraction", () => {
+  it("uses a separate DEV price-book abstraction", () => {
     const project = createDefaultProject();
     const quantity = calculateFinePuttyQuantity(project);
 
@@ -140,12 +143,77 @@ describe("laminate flooring quantity", () => {
 
     expect(devLaminateFlooringPriceBookItem.id).toBe("dev-laminate-flooring");
     expect(devLaminateFlooringPriceBookItem.devOnly).toBe(true);
-    expect(calculateLineTotalEur(
-      quantity,
-      devLaminateFlooringPriceBookItem,
-    )).toBeCloseTo(
+    expect(
+      calculateLineTotalEur(quantity, devLaminateFlooringPriceBookItem),
+    ).toBeCloseTo(
       quantity.value * devLaminateFlooringPriceBookItem.unitPriceEur,
       8,
+    );
+  });
+});
+
+describe("generic operation quantity boundary", () => {
+  it("calculates by quantity rule instead of literal assignment id", () => {
+    const project = createOpeningProofProject();
+    const assignment = {
+      ...getFinePuttyAssignment(project),
+      id: "assignment-another-wall-operation",
+      serviceCode: "another-wall-operation",
+      label: "Another wall operation",
+    };
+
+    const result = calculateAssignmentQuantity(project, assignment);
+
+    expect(result?.ruleId).toBe("wall-net-area-openings-v1");
+    expect(result?.value).toBeCloseTo(46.8 - 1.89 - 1.32, 8);
+  });
+
+  it("rejects a known wall rule when it targets a non-wall surface", () => {
+    const project = createDefaultProject();
+    const assignment = {
+      ...getFinePuttyAssignment(project),
+      id: "assignment-invalid-wall-rule",
+      targetEntityIds: ["room-1.floor"] as const,
+    };
+
+    expect(() =>
+      calculateAssignmentQuantity(project, {
+        ...assignment,
+        targetEntityIds: [...assignment.targetEntityIds],
+      }),
+    ).toThrow("wall-net-area-openings-v1 requires one or more wall targets.");
+  });
+
+  it("returns null for an unsupported quantity rule", () => {
+    const project = createDefaultProject();
+    const assignment = {
+      ...getFinePuttyAssignment(project),
+      id: "assignment-unknown-rule",
+      quantityRuleId: "unknown-rule",
+    };
+
+    expect(calculateAssignmentQuantity(project, assignment)).toBeNull();
+  });
+
+  it("rejects quantity and price units that do not match", () => {
+    const quantity: QuantityResult = {
+      ruleId: "test-rule",
+      ruleVersion: "1.0.0",
+      unit: "m2",
+      value: 10,
+      sourceEntityIds: [],
+      usedOverride: false,
+    };
+    const price: PriceBookItem = {
+      id: "test-price",
+      label: "Test",
+      unit: "lm",
+      unitPriceEur: 2,
+      devOnly: true,
+    };
+
+    expect(() => calculateLineTotalEur(quantity, price)).toThrow(
+      "Quantity unit m2 does not match price unit lm.",
     );
   });
 });
@@ -169,6 +237,30 @@ describe("supported offer line bridge", () => {
     );
   });
 
+  it("supports a different assignment id when rule and price references are supported", () => {
+    const project = createDefaultProject();
+    const source = getFinePuttyAssignment(project);
+    project.serviceAssignments.push({
+      ...source,
+      id: "assignment-second-wall-operation",
+      serviceCode: "second-wall-operation",
+      label: "Second wall operation",
+    });
+
+    const line = calculateSupportedOfferLine(
+      project,
+      "assignment-second-wall-operation",
+    );
+
+    expect(line?.assignmentId).toBe("assignment-second-wall-operation");
+    expect(line?.quantity.ruleId).toBe("wall-net-area-openings-v1");
+    expect(line?.price.id).toBe("dev-fine-putty");
+    expect(line?.quantity.value).toBeCloseTo(
+      calculateFinePuttyQuantity(project).value,
+      8,
+    );
+  });
+
   it("does not invent a line for an unsupported assignment", () => {
     const project = createDefaultProject();
     project.serviceAssignments.push({
@@ -182,5 +274,19 @@ describe("supported offer line bridge", () => {
     });
 
     expect(calculateSupportedOfferLine(project, "assignment-unknown")).toBeNull();
+  });
+
+  it("does not invent a line when the price reference is unsupported", () => {
+    const project = createDefaultProject();
+    const source = getFinePuttyAssignment(project);
+    project.serviceAssignments.push({
+      ...source,
+      id: "assignment-unknown-price",
+      priceBookItemId: "unknown-price",
+    });
+
+    expect(
+      calculateSupportedOfferLine(project, "assignment-unknown-price"),
+    ).toBeNull();
   });
 });
