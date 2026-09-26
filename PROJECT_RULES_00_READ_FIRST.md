@@ -366,15 +366,27 @@ AI/photoreal render може да подобрява визията, но ням
 
 ## 19. Reuse на съществуващите Ivanov Tools
 
-`Traqnivanov/ivanov-tools` може да се използва като **read-only reference** за вече разработени калкулатори, формули, material norms и workflow идеи.
+`Traqnivanov/ivanov-tools` е **read-only external reference**, но различните инструменти имат различна допустима роля.
 
-Забранено е новият 3D Visualizer да зависи runtime от старите HTML страници.
+### Calculation / M² boundary
+За **M², geometry/material calculations и formula migration** единственият текущо одобрен legacy source е:
 
-Правило:
+`kalkulator-combined.html` — **Калкулатор M²**.
 
-`audit old formula → isolate → document assumptions → test → approve → port to new calculation-core`.
+`calculator.html` и `room.html` не се използват като calculation/formula sources, fallback или service-taxonomy source, освен ако Owner изрично не отвори отново този scope.
 
-Цените никога не се пренасят като част от формулата. Те идват от отделния Price Book.
+Правило за M² formula reuse:
+
+`audit M² formula → isolate → document assumptions → manual verification → test → approve → port to new calculation-core`.
+
+### Other Ivanov Tools
+Други инструменти като Offer / Clients / Contract / Advances могат да се одитират като **workflow reference**, когато Smart Offer стигне до съответната функция. Те не стават автоматично calculation source и старите им Firebase/localStorage архитектури не се пренасят.
+
+Забранено е новият Smart Offer да зависи runtime от старите HTML страници.
+
+Цените никога не се пренасят като част от формулата или от стар tool. Те идват от отделния versioned Price Book.
+
+Подробната capability карта е в `docs/TOOLS_REUSE_AUDIT.md`.
 
 
 ## 20. Source content за клиентското Info
