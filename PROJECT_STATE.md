@@ -60,13 +60,14 @@ History: PR #4 / closed Issue #6.
 
 ### Current product implementation
 
-**P3.2 — Door + Window Openings — ACTIVE**
+**P3.2 — Door + Window Openings — PASS / OWNER MERGE DECISION NEXT**
 
 Current checkpoint:
 - **P3.2a — Opening domain + persistence foundation: PASS**
 - **P3.2b — Opening geometry proof: PASS**
 - **P3.2c — Fine Putty net wall quantity: PASS**
-- **P3.2d — Work opening controls + live persistence acceptance: PRE-LIVE PASS / LIVE PENDING**
+- **P3.2d — Work opening controls + live persistence acceptance: PASS**
+- **P3.2 overall acceptance: PASS — PR #12 remains DRAFT / OPEN pending explicit Owner merge approval**
 
 P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
@@ -88,7 +89,7 @@ Owner-approved P3.1 direction:
 
 Dedicated Supabase project remains the canonical persisted application truth.
 
-Two bounded QA projects now prove both backward compatibility and P3.1:
+Three bounded QA projects now prove backward compatibility, P3.1, and P3.2 live persistence:
 
 ### Existing Slice 2 QA project
 - title: `QA — P2.4b Create List Open`;
@@ -109,6 +110,21 @@ Two bounded QA projects now prove both backward compatibility and P3.1:
 - `presentation = {}`;
 - camera/zoom/selection/cutaway Viewer Session State: not persisted;
 - real authenticated Create → Save v1→v2 → reload → Open: PASS.
+
+### P3.2 QA project
+- title: `P3.2 QA Openings`;
+- project ID: `add1f9af-5e4a-4b60-b047-5fa20e2e8c31`;
+- `work_version = 2`;
+- geometry: `4.2 × 4.8 × 2.6 m`;
+- openings: exactly **1 door + 1 window**;
+- door: `0.9 × 2.1 m`, front wall;
+- window: `1.3 × 1.1 m`, sill `0.9 m`, right wall;
+- persisted total opening area: **3.32 m²**;
+- persisted Fine Putty net area recomputed directly from Supabase state: **43.48 m²**;
+- Fine Putty rule: `wall-net-area-openings-v1`;
+- `presentation = {}`;
+- authenticated UI proof: door + window → **43.59 m²** → window width `1.2 → 1.3` → **43.48 m²** → dirty → Save `v1 → v2` → reload/reopen: PASS;
+- older Slice 2 and P3.1 QA projects remained untouched.
 
 Current verified security posture remains unchanged:
 - RLS enabled on `projects` and `work_users`;
@@ -177,7 +193,8 @@ Checkpoint status:
 - P3.2a Opening domain + persistence foundation: **PASS**;
 - P3.2b Opening geometry proof: **PASS**;
 - P3.2c Fine Putty net wall quantity: **PASS**;
-- P3.2d Work opening controls + live persistence acceptance: **ACTIVE**.
+- P3.2d Work opening controls + live persistence acceptance: **PASS**;
+- P3.2 overall: **PASS — OWNER MERGE DECISION NEXT**.
 
 Current P3.2d implementation:
 - Work-only opening editor renders canonical openings;
@@ -194,33 +211,31 @@ Current P3.2d implementation:
 Important:
 - real Work default projects still start with `openings: []`;
 - openings are added only by explicit Work action;
-- no P3.2 live persistence acceptance has passed yet.
+- final authenticated P3.2 live persistence acceptance has **PASSED**;
+- PR #12 remains **DRAFT / OPEN** until explicit Owner merge approval.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**P3.2d — LIVE AUTHENTICATED PROOF CONTINUES IN NEXT CHAT.**
+**P3.2 IS CLOSED / PASS. OWNER MERGE DECISION IS NEXT.**
 
-Verified live checkpoint:
-- new project: `P3.2 QA Openings`;
+Verified final live acceptance:
+- project: `P3.2 QA Openings`;
 - project ID: `add1f9af-5e4a-4b60-b047-5fa20e2e8c31`;
-- `work_version = 1`;
-- geometry: `4.2 × 4.8 × 2.6 m`;
-- `openings = []`;
+- authenticated UI: door + window → **43.59 m²**;
+- window width `1.2 → 1.3 m` → **43.48 m²**;
+- dirty state: PASS;
+- Save `v1 → v2`: PASS;
+- reload/reopen same project: PASS;
+- direct Supabase verification: PASS;
+- persisted geometry: `4.2 × 4.8 × 2.6 m`;
+- persisted openings: one door + one window;
+- persisted Fine Putty net area recomputed from canonical DB state: **43.48 m²**;
 - `presentation = {}`;
-- 2 service assignments;
 - older QA projects remain untouched.
 
-Next exact live action:
-1. add one door;
-2. add one window;
-3. confirm Fine Putty becomes **43.59 m²**;
-4. change window width **1.2 → 1.3 m**;
-5. confirm Fine Putty becomes **43.48 m²** and project is dirty;
-6. Save `v1 → v2`;
-7. reload/Open the same project;
-8. Work Controller verifies the persisted row directly in Supabase.
-
-Do not modify the older Slice 2 or P3.1 QA projects.
-Do not merge PR #12 or start another complete-room block before this live proof passes.
+**NEXT:**
+- Owner reviews P3.2 result and decides whether PR #12 may merge.
+- Do **not** merge PR #12 without explicit Owner approval.
+- Do **not** start the next complete-room block before that Owner decision.
