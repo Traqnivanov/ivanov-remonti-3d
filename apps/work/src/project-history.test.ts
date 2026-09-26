@@ -9,19 +9,24 @@ import {
   canUndoProject,
   commitProjectState,
   createProjectHistory,
+  getCurrentProjectRevision,
   getCurrentProjectState,
+  isCurrentProjectSaved,
+  markProjectHistoryRevisionSaved,
   redoProjectState,
   undoProjectState,
 } from "./project-history";
 
 describe("project history", () => {
-  it("starts from a detached canonical project snapshot", () => {
+  it("starts from a detached canonical project snapshot marked as saved", () => {
     const project = createDefaultProject("history-start");
     const history = createProjectHistory(project);
 
     project.room.widthM = 9;
 
     expect(getCurrentProjectState(history).room.widthM).toBe(4.2);
+    expect(getCurrentProjectRevision(history)).toBe(0);
+    expect(isCurrentProjectSaved(history)).toBe(true);
     expect(canUndoProject(history)).toBe(false);
     expect(canRedoProject(history)).toBe(false);
   });
@@ -35,14 +40,38 @@ describe("project history", () => {
     history = commitProjectState(history, edited);
 
     expect(getCurrentProjectState(history).room.widthM).toBe(5.4);
+    expect(getCurrentProjectRevision(history)).toBe(1);
+    expect(isCurrentProjectSaved(history)).toBe(false);
     expect(canUndoProject(history)).toBe(true);
 
     history = undoProjectState(history);
     expect(getCurrentProjectState(history).room.widthM).toBe(4.2);
+    expect(isCurrentProjectSaved(history)).toBe(true);
     expect(canRedoProject(history)).toBe(true);
 
     history = redoProjectState(history);
     expect(getCurrentProjectState(history).room.widthM).toBe(5.4);
+    expect(isCurrentProjectSaved(history)).toBe(false);
+  });
+
+  it("can mark the exact saved revision even when newer local edits exist", () => {
+    let history = createProjectHistory(createDefaultProject("history-save"));
+
+    const first = getCurrentProjectState(history);
+    first.room.widthM = 5;
+    history = commitProjectState(history, first);
+    const savingRevision = getCurrentProjectRevision(history);
+
+    const second = getCurrentProjectState(history);
+    second.room.heightM = 3;
+    history = commitProjectState(history, second);
+
+    history = markProjectHistoryRevisionSaved(history, savingRevision);
+    expect(isCurrentProjectSaved(history)).toBe(false);
+
+    history = undoProjectState(history);
+    expect(getCurrentProjectRevision(history)).toBe(savingRevision);
+    expect(isCurrentProjectSaved(history)).toBe(true);
   });
 
   it("restores openings and service targets as canonical project truth", () => {
@@ -132,9 +161,14 @@ describe("project history", () => {
     expect(getCurrentProjectState(history).room.widthM).toBe(5);
   });
 
-  it("rejects an invalid history limit", () => {
+  it("rejects invalid history and saved revision values", () => {
+    const project = createDefaultProject("history-invalid");
+
+    expect(() => createProjectHistory(project, 0)).toThrow(
+      "Project history limit must be a positive integer.",
+    );
     expect(() =>
-      createProjectHistory(createDefaultProject("history-invalid"), 0),
-    ).toThrow("Project history limit must be a positive integer.");
+      markProjectHistoryRevisionSaved(createProjectHistory(project), -1),
+    ).toThrow("Saved project history revision must be a non-negative integer.");
   });
 });
