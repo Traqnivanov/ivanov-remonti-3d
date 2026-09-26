@@ -875,38 +875,38 @@ async function runWorkSmoke() {
     await delay(100);
     await assertEval(
       session,
-      'Boolean(document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")',
+      `Boolean(document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")`,
       "P3.3c: adding gypsum putty did not create a calculated focused offer line",
     );
     await evaluate(
       session,
-      '(() => { const input = document.querySelector('[data-operation-target="room-1.wall-front"]'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      `(() => { const input = document.querySelector('[data-operation-target="room-1.wall-front"]'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()`,
     );
     await delay(80);
     await assertEval(
       session,
-      'document.querySelector("#quantityKpi").textContent.includes("34,56") && !document.querySelector('[data-operation-target="room-1.wall-front"]').checked',
+      `document.querySelector("#quantityKpi").textContent.includes("34,56") && !document.querySelector('[data-operation-target="room-1.wall-front"]').checked`,
       "P3.3c: exact gypsum putty wall targeting did not update net quantity",
     );
     await evaluate(session, 'document.querySelector("#undoProjectButton").click()');
     await delay(80);
     await assertEval(
       session,
-      'document.querySelector("#quantityKpi").textContent.includes("43,59") && document.querySelector('[data-operation-target="room-1.wall-front"]').checked',
+      `document.querySelector("#quantityKpi").textContent.includes("43,59") && document.querySelector('[data-operation-target="room-1.wall-front"]').checked`,
       "P3.3c: Undo did not restore gypsum putty targets and quantity",
     );
     await evaluate(session, 'document.querySelector("#redoProjectButton").click()');
     await delay(80);
     await assertEval(
       session,
-      'document.querySelector("#quantityKpi").textContent.includes("34,56") && !document.querySelector('[data-operation-target="room-1.wall-front"]').checked',
+      `document.querySelector("#quantityKpi").textContent.includes("34,56") && !document.querySelector('[data-operation-target="room-1.wall-front"]').checked`,
       "P3.3c: Redo did not restore gypsum putty target edit",
     );
     await evaluate(session, 'document.querySelector("#removeGypsumPuttyButton").click()');
     await delay(80);
     await assertEval(
       session,
-      'Boolean(document.querySelector("#addGypsumPuttyButton")) && !document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')',
+      `Boolean(document.querySelector("#addGypsumPuttyButton")) && !document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')`,
       "P3.3c: removing gypsum putty did not remove the Work assignment and offer line",
     );
 
