@@ -5,6 +5,20 @@
 This file contains the durable operating rules and the map to the project's source-of-truth documents.  
 It does **not** contain the current task history. Current truth lives in `PROJECT_STATE.md`.
 
+### Canonical source map
+
+Every new chat must use these roles consistently:
+
+- **ENTRY / READ FIRST:** `START_HERE.md`
+- **CURRENT STATE:** `PROJECT_STATE.md`
+- **MASTER / durable product truth:** `docs/MASTER_SPEC.md` + only the task-relevant active contracts
+- **DECISION HISTORY:** `docs/DECISION_LOG.md`
+- **DEPENDENCIES:** the dependency document map in this file + task-relevant contracts
+- **WORK CONTROL:** the single active **[CURRENT WORK]** Issue linked from `PROJECT_STATE.md`
+- **EVIDENCE:** Git commits, branch/PR state, CI, tests, previews and QA
+
+Evidence proves what happened; it does not replace the active product/source-of-truth documents.
+
 ---
 
 ## 1. Project identity
@@ -58,6 +72,40 @@ The next major product direction after the accepted Persistence slice is the alr
 That complete-room direction means proving the real workflow across the room: four walls + floor + ceiling + openings + visibility/cutaway + surface selection + real services + materials/finishes + core movable objects + room totals + client result.
 
 Do not jump from a proven core directly into a huge catalog of services/assets/AI features before that end-to-end room workflow is useful.
+
+### Universal Owner criteria — always active
+
+For every material decision, apply the universal Owner criteria **plus** any task-specific criteria:
+
+- **Human value** — what concrete benefit does the person/client receive?
+- **Product logic** — does the change fit the rest of the system coherently?
+- **Clarity** — is the meaning/action understandable quickly?
+- **Simplicity** — is there a simpler way to achieve the same or better result?
+- **Uniqueness / distinctive product logic** — is there a naturally stronger, recognizable mechanism/flow/structure when that creates real value?
+- **UX / mobile / accessibility** — does it work in the real conditions that matter for this product?
+- **Trust / privacy / safety / legality** — does it create avoidable risk?
+- **Scalability / maintainability** — does it support the future product or create a dead-end?
+- **Technical cost** — is the complexity/performance/maintenance cost justified?
+
+### Mandatory uniqueness test
+
+Uniqueness is a core Owner criterion, but **never difference for its own sake**.
+
+For material product/UX decisions ask:
+1. What is the standard solution?
+2. Is there a naturally stronger solution for this product?
+3. Where exactly is the distinctive logic/mechanism/flow?
+4. What real benefit does that distinctiveness create?
+5. If logo, colors and name are removed, does a recognizable product logic remain?
+6. Is the standard solution actually clearer/better here?
+
+Uniqueness may live in the mechanism, the way functions combine, workflow, business logic, context use, interaction model, visual system or how information leads to action.
+
+If uniqueness adds no real value, do **not** add it.
+
+Principle:
+
+**Not different for the sake of being different. Distinctive because it solves the problem better.**
 
 ---
 
@@ -113,14 +161,33 @@ Read in this order:
 4. verify the actual Git branch / HEAD / PR state
 5. read only the dependency documents required for the current task
 
-Then state briefly:
+Before substantive work, the new chat must be able to state this compact startup report:
+
+```text
+ROLE:
+FINAL PRODUCT GOAL:
+OWNER CRITERIA:
+CURRENT CHECKPOINT:
+LAST VALID IMPORTANT DECISION:
+CURRENT NEXT:
+OPEN:
+FROZEN / DO NOT TOUCH:
+AUTHORITY LIMIT:
+STRATEGIC DUTY:
+```
+
+The report must make clear:
 - where the project is now;
 - what is official/stable;
 - what is temporary/current work;
-- what is unverified or blocked;
-- **NEXT EXACT STEP**.
+- what is verified vs unverified/blocked;
+- the exact NEXT;
+- what must not be touched;
+- whether a new Owner decision is required.
 
-If the repo/Issue contradicts `PROJECT_STATE.md`, stop and reconcile before implementation.
+If the chat cannot formulate this from the project sources, it is **not ready to work**.
+
+If the repo/Issue contradicts `PROJECT_STATE.md`, **STOP — reconcile before implementation; do not guess.**
 
 ---
 
@@ -191,6 +258,30 @@ For a material product change:
 
 **audit → concrete proposal → Criteria Check → Owner approval → implementation → technical verification → exact preview → visual verification → record result → NEXT**
 
+Checkpoint lifecycle:
+
+**OPEN → WORKING → DECISION / VERIFIED RESULT → CLOSED → SYNC → NEXT**
+
+During **WORKING**, ideas, rejected variants, experiments, screenshots, failures and temporary hypotheses are evidence/work material. They do not automatically become canonical truth.
+
+### Proactive strategic duty
+
+The Work Controller must not blindly execute NEXT when the work is drifting from the Owner goal.
+
+Report when you find:
+- a meaningful logical conflict;
+- drift from the final product goal;
+- privacy/security/legal risk;
+- architecture/scalability dead-end;
+- a missed dependency;
+- an older decision made invalid by a newer direction;
+- a significantly stronger solution that materially improves the product.
+
+Severity:
+- **Minor** — does not change the direction; continue and record if useful.
+- **Important** — meaningful but can normally be reported at the checkpoint.
+- **Critical** — risks wrong direction, serious rework, security/privacy/legal harm or violation of an Owner-approved decision; stop the affected work and report immediately.
+
 ### NO ASSUMPTION → NO IMPLEMENTATION
 
 If there is more than one reasonable product/UX interpretation, the Work Controller or OBK does not choose silently.
@@ -208,9 +299,12 @@ For every material proposed change, record each applicable criterion as:
 **PASS / PARTIAL-RISK / NOT APPLICABLE**
 
 Check:
-- concrete benefit for the user/client;
-- understandable within roughly 3 seconds;
+- **Human value** — concrete benefit for the user/client;
+- **Product logic** — coherent fit with the whole Smart Offer system;
+- **Clarity** — understandable within roughly 3 seconds where applicable;
 - primary action is clear;
+- **Simplicity** — no unnecessary complexity;
+- **Uniqueness / distinctive logic** — the mandatory uniqueness test above has been considered;
 - Smart Offer North Star is preserved;
 - Work / Client capability boundary is preserved;
 - mobile usability;
@@ -219,7 +313,8 @@ Check:
 - Project State vs Viewer Session State integrity;
 - quantity / price truth integrity where applicable;
 - privacy / RLS / security / data exposure;
-- performance;
+- **Scalability / maintainability**;
+- **Technical cost / performance**;
 - side effects / regression risk;
 - recovery / error / stale-conflict states;
 - whether the proposal requires a new product decision.
@@ -377,6 +472,27 @@ Keep them for traceability unless a separate cleanup explicitly proves they are 
 
 ## 14. Documentation update rule after a completed task
 
+### Documentation Write Gate
+
+Make an official canonical record when:
+- Owner made an important decision;
+- a checkpoint closed;
+- a meaningful test produced a verified result;
+- an older decision was replaced/clarified;
+- a significant blocker changed NEXT;
+- an important implementation was completed or verified;
+- without the record, a future chat could reasonably make the wrong decision.
+
+Before writing canonical information ask:
+
+> **If this is not recorded, is there a real risk that the next chat makes a wrong decision?**
+
+If no, it probably belongs in Git/Issue/QA history or needs no durable record.
+
+Principle:
+
+**Do not record the conversation. Record the result of the conversation.**
+
 Update only what actually changed:
 
 1. Current Work Issue — complete the temporary task record and close it when done;
@@ -399,6 +515,16 @@ Do not create:
 - duplicate state documents;
 - “current thoughts” sections in permanent contracts.
 
+### Sync Gate — mandatory after an important completed checkpoint
+
+Synchronize, as applicable:
+
+**CURRENT STATE → MASTER/contracts → DEPENDENCIES → WORK CONTROL → ACTIVE ISSUE/PR → stale NEXT / superseded-decision check**
+
+All active sources must point to one current truth before the next major checkpoint opens.
+
+Do not leave two contradictory decisions looking simultaneously active. Mark older truth explicitly as **SUPERSEDED BY** or **CLARIFIED BY** when needed.
+
 ---
 
 ## 15. Continuity acceptance test
@@ -407,9 +533,23 @@ Before a work block is considered safely handed off, ask:
 
 > If this chat disappeared now, could a completely new chat read `START_HERE.md` + `PROJECT_STATE.md` + the active Current Work Issue (if one exists), verify Git, and continue correctly without Owner retelling the project?
 
+The new chat must be able to reconstruct, without guessing:
+- ROLE;
+- FINAL PRODUCT GOAL;
+- OWNER CRITERIA, including uniqueness;
+- CURRENT CHECKPOINT;
+- LAST VALID IMPORTANT DECISION;
+- CURRENT NEXT;
+- OPEN / unverified items;
+- FROZEN / DO NOT TOUCH areas;
+- AUTHORITY LIMIT;
+- STRATEGIC DUTY and any Critical risk.
+
 The new chat should understand **the whole path without reading the whole history**.
 
 It should not need to read every master/contract. It reads only the dependency document(s) required by the active task.
+
+Handoff is performed by synchronizing the canonical sources above; do **not** create a new one-off handoff file for every chat.
 
 If this is not true, continuity is not complete.
 
