@@ -313,13 +313,7 @@ Owner изрично потвърди, че полезните функции н
 - парчета / остатъци / резерв;
 - количества за боя, шпакловка, лепило, бетон/замазка и ГК материали.
 
-`calculator.html` и `room.html` добавят още:
-- surface-based избор;
-- ГК предстени/прегради/тавани;
-- профили, окачвачи, винтове, дюбели, ленти, вата;
-- материални спецификации;
-- ръчни quantity overrides;
-- project/quote workflow идеи.
+**Historical audit note — NOT an active source:** `calculator.html` and `room.html` were also inspected earlier, but their capabilities are excluded from the current calculation/reuse source set by the later Owner correction in §15. Do not port formulas, service logic or fallback behavior from them unless Owner explicitly reopens that scope.
 
 ### Integration rule
 
