@@ -25,7 +25,11 @@ export function renderProjectBar(
   session: ProjectSession,
   options: {
     persistenceEnabled: boolean;
+    canUndo: boolean;
+    canRedo: boolean;
     onProjects: () => void;
+    onUndo: () => void;
+    onRedo: () => void;
     onSave: () => void;
     onReloadLatest: () => void;
   },
@@ -35,6 +39,14 @@ export function renderProjectBar(
   const projectsButton = mustGet<HTMLButtonElement>(
     mount,
     "projectsButton",
+  );
+  const undoButton = mustGet<HTMLButtonElement>(
+    mount,
+    "undoProjectButton",
+  );
+  const redoButton = mustGet<HTMLButtonElement>(
+    mount,
+    "redoProjectButton",
   );
   const saveButton = mustGet<HTMLButtonElement>(
     mount,
@@ -58,6 +70,12 @@ export function renderProjectBar(
 
   projectsButton.disabled = !options.persistenceEnabled || busy;
   projectsButton.onclick = options.onProjects;
+
+  undoButton.disabled = !options.canUndo || busy || conflict;
+  undoButton.onclick = options.onUndo;
+
+  redoButton.disabled = !options.canRedo || busy || conflict;
+  redoButton.onclick = options.onRedo;
 
   saveButton.hidden = conflict;
   saveButton.disabled =

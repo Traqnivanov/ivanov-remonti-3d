@@ -1,5 +1,5 @@
 import "./styles.css";
-import type { Opening, SurfaceId, WallId } from "./domain";
+import type { Opening, ProjectState, SurfaceId, WallId } from "./domain";
 import {
   createDefaultProject,
   createOpeningProofProject,
@@ -8,15 +8,27 @@ import {
 } from "./domain";
 import type { ProjectRepository } from "./project-repository";
 import {
+  applyProjectHistoryEdit,
   applyProjectSaveFailure,
   applyProjectSaveSuccess,
   beginProjectSave,
   createProjectSession,
   loadProjectStartup,
-  markProjectDirty,
   shouldWarnBeforeProjectSwitch,
   type ProjectSession,
 } from "./project-session";
+import {
+  canRedoProject,
+  canUndoProject,
+  commitProjectState,
+  createProjectHistory,
+  getCurrentProjectRevision,
+  getCurrentProjectState,
+  isCurrentProjectSaved,
+  markProjectHistoryRevisionSaved,
+  redoProjectState,
+  undoProjectState,
+} from "./project-history";
 import {
   calculateSupportedOfferLine,
   calculateSupportedOfferLines,
@@ -209,9 +221,12 @@ function startSmartOfferApp(
 activeViewer?.dispose();
 activeViewer = null;
 
-const project = options.project;
+let projectHistory = createProjectHistory(options.project);
+let project = getCurrentProjectState(projectHistory);
 const appEntry = options.appEntry;
-let projectSession = options.session;
+let projectSession = options.session
+  ? { ...options.session, project }
+  : null;
 const projectRepository = options.repository;
 let previewMode = appEntry === "direct-client";
 let offerInteraction = createInitialOfferInteraction();
@@ -246,6 +261,8 @@ app.innerHTML = `
       </div>
       <div class="project-bar-actions">
         <button id="projectsButton" type="button">Проекти</button>
+        <button id="undoProjectButton" type="button" title="Отмени последната промяна">Отмени</button>
+        <button id="redoProjectButton" type="button" title="Повтори отменената промяна">Повтори</button>
         <button id="saveProjectButton" type="button">Запази</button>
         <button id="reloadProjectButton" type="button" hidden>Зареди последната версия</button>
       </div>
@@ -445,9 +462,13 @@ function syncProjectBar(): void {
 
   renderProjectBar(app, projectSession, {
     persistenceEnabled: projectRepository !== null,
+    canUndo: canUndoProject(projectHistory),
+    canRedo: canRedoProject(projectHistory),
     onProjects: () => {
       void openProjectChooser();
     },
+    onUndo: undoCurrentProject,
+    onRedo: redoCurrentProject,
     onSave: () => {
       void saveCurrentProject();
     },
@@ -488,10 +509,66 @@ async function confirmDiscardIfNeeded(): Promise<boolean> {
   return confirmDiscardUnsavedChanges(app);
 }
 
-function markCurrentProjectDirty(): void {
-  if (appEntry !== "work" || !projectSession) return;
+function commitCanonicalProject(nextProject: ProjectState): void {
+  projectHistory = commitProjectState(projectHistory, nextProject);
+  project = getCurrentProjectState(projectHistory);
 
-  projectSession = markProjectDirty(projectSession);
+  if (appEntry === "work" && projectSession) {
+    projectSession = applyProjectHistoryEdit(
+      projectSession,
+      project,
+      isCurrentProjectSaved(projectHistory),
+    );
+  }
+
+  renderCanonicalProjectState();
+}
+
+function undoCurrentProject(): void {
+  navigateProjectHistory("undo");
+}
+
+function redoCurrentProject(): void {
+  navigateProjectHistory("redo");
+}
+
+function navigateProjectHistory(direction: "undo" | "redo"): void {
+  if (!currentCapabilities().canAuthorProject || !projectSession) return;
+  if (
+    projectSession.saveState === "saving" ||
+    projectSession.saveState === "conflict"
+  ) {
+    return;
+  }
+
+  const nextHistory =
+    direction === "undo"
+      ? undoProjectState(projectHistory)
+      : redoProjectState(projectHistory);
+
+  if (nextHistory === projectHistory) return;
+
+  projectHistory = nextHistory;
+  project = getCurrentProjectState(projectHistory);
+  projectSession = applyProjectHistoryEdit(
+    projectSession,
+    project,
+    isCurrentProjectSaved(projectHistory),
+  );
+  setOpeningStatus("", "idle");
+  renderCanonicalProjectState();
+}
+
+function renderCanonicalProjectState(): void {
+  widthInput.value = String(project.room.widthM);
+  lengthInput.value = String(project.room.lengthM);
+  heightInput.value = String(project.room.heightM);
+  renderOpeningEditor();
+  renderWallTargets();
+  renderM2Schema(mustGet("m2Schema"), project);
+  viewer.setProject(project);
+  syncViewerFocus();
+  renderOffer();
   syncProjectBar();
 }
 
@@ -499,8 +576,10 @@ async function saveCurrentProject(): Promise<void> {
   if (!projectRepository || !projectSession) return;
 
   let saveStarted = false;
+  let savingHistoryRevision: number | null = null;
 
   try {
+    savingHistoryRevision = getCurrentProjectRevision(projectHistory);
     const begun = beginProjectSave(projectSession);
     projectSession = begun.session;
     saveStarted = true;
@@ -508,6 +587,10 @@ async function saveCurrentProject(): Promise<void> {
 
     const result = await projectRepository.save(begun.input);
     projectSession = applyProjectSaveSuccess(projectSession, result);
+    projectHistory = markProjectHistoryRevisionSaved(
+      projectHistory,
+      savingHistoryRevision,
+    );
   } catch (error) {
     if (
       saveStarted &&
@@ -596,24 +679,19 @@ function updateDimensions(): void {
     return;
   }
 
-  project.room.widthM = width;
-  project.room.lengthM = length;
-  project.room.heightM = height;
-  setOpeningStatus("", "idle");
-
-  widthInput.value = String(width);
-  lengthInput.value = String(length);
-  heightInput.value = String(height);
-
-  if (changed) {
-    markCurrentProjectDirty();
+  if (!changed) {
+    widthInput.value = String(project.room.widthM);
+    lengthInput.value = String(project.room.lengthM);
+    heightInput.value = String(project.room.heightM);
+    return;
   }
 
-  renderOpeningEditor();
-  renderM2Schema(mustGet("m2Schema"), project);
-  viewer.setProject(project);
-  syncViewerFocus();
-  renderOffer();
+  const nextProject = getCurrentProjectState(projectHistory);
+  nextProject.room.widthM = width;
+  nextProject.room.lengthM = length;
+  nextProject.room.heightM = height;
+  setOpeningStatus("", "idle");
+  commitCanonicalProject(nextProject);
 }
 
 function renderOpeningEditor(): void {
@@ -769,14 +847,10 @@ function applyOpeningMutation(result: OpeningMutationResult): void {
     return;
   }
 
-  project.room.openings = result.openings;
-  markCurrentProjectDirty();
+  const nextProject = getCurrentProjectState(projectHistory);
+  nextProject.room.openings = result.openings;
   setOpeningStatus("", "idle");
-  renderOpeningEditor();
-  renderM2Schema(mustGet("m2Schema"), project);
-  viewer.setProject(project);
-  syncViewerFocus();
-  renderOffer();
+  commitCanonicalProject(nextProject);
 }
 
 function setOpeningStatus(
@@ -827,13 +901,15 @@ function renderWallTargets(): void {
           (wallId, index) => wallId !== previousTargets[index],
         );
 
-      getFinePuttyAssignment(project).targetEntityIds = nextTargets;
+      offerInteraction = selectOfferService(FINE_PUTTY_ASSIGNMENT_ID);
 
       if (changed) {
-        markCurrentProjectDirty();
+        const nextProject = getCurrentProjectState(projectHistory);
+        getFinePuttyAssignment(nextProject).targetEntityIds = nextTargets;
+        commitCanonicalProject(nextProject);
+        return;
       }
 
-      offerInteraction = selectOfferService(FINE_PUTTY_ASSIGNMENT_ID);
       syncViewerFocus();
       renderOffer();
     });

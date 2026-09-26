@@ -113,6 +113,32 @@ export function markProjectDirty(
   };
 }
 
+export function applyProjectHistoryEdit(
+  session: ProjectSession,
+  project: ProjectState,
+  matchesSavedRevision: boolean,
+): ProjectSession {
+  const next = markProjectDirty({
+    ...session,
+    project,
+  });
+
+  if (
+    matchesSavedRevision &&
+    session.saveState !== "saving" &&
+    session.saveState !== "conflict"
+  ) {
+    return {
+      ...next,
+      saveState: "clean",
+      savedEditRevision: next.editRevision,
+      lastError: null,
+    };
+  }
+
+  return next;
+}
+
 export function canSaveProject(session: ProjectSession): boolean {
   return session.saveState === "dirty" || session.saveState === "error";
 }

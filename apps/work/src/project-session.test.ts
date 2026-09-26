@@ -7,6 +7,7 @@ import {
 } from "./project-repository";
 import {
   ProjectSessionError,
+  applyProjectHistoryEdit,
   applyProjectSaveFailure,
   applyProjectSaveSuccess,
   beginProjectSave,
@@ -139,6 +140,60 @@ describe("Project Session dirty/save state", () => {
     expect(session.editRevision).toBe(1);
     expect(canSaveProject(session)).toBe(true);
     expect(shouldWarnBeforeProjectSwitch(session)).toBe(true);
+  });
+
+  it("can return to a saved history revision without a false dirty warning", () => {
+    const original = createProjectSession(openedProject("history-session", 2));
+    const editedProject = structuredClone(original.project);
+    editedProject.room.widthM = 5;
+
+    let session = applyProjectHistoryEdit(original, editedProject, false);
+    expect(session.saveState).toBe("dirty");
+    expect(shouldWarnBeforeProjectSwitch(session)).toBe(true);
+
+    session = applyProjectHistoryEdit(session, structuredClone(original.project), true);
+
+    expect(session.project.room.widthM).toBe(4.2);
+    expect(session.saveState).toBe("clean");
+    expect(session.savedEditRevision).toBe(session.editRevision);
+    expect(shouldWarnBeforeProjectSwitch(session)).toBe(false);
+  });
+
+  it("clears a retryable save error when undo returns to the saved project state", () => {
+    const original = createProjectSession(openedProject("history-error", 2));
+    let session = markProjectDirty(original);
+    session = beginProjectSave(session).session;
+    session = applyProjectSaveFailure(session, new Error("Network unavailable"));
+
+    const restored = applyProjectHistoryEdit(
+      session,
+      structuredClone(original.project),
+      true,
+    );
+
+    expect(restored.saveState).toBe("clean");
+    expect(restored.lastError).toBeNull();
+    expect(canSaveProject(restored)).toBe(false);
+    expect(shouldWarnBeforeProjectSwitch(restored)).toBe(false);
+  });
+
+  it("does not clear conflict state merely because local history matches an older saved revision", () => {
+    const original = createProjectSession(openedProject("history-conflict", 2));
+    let session = markProjectDirty(original);
+    session = beginProjectSave(session).session;
+    session = applyProjectSaveFailure(
+      session,
+      new ProjectRepositoryError("STALE_WRITE", "stale"),
+    );
+
+    const restored = applyProjectHistoryEdit(
+      session,
+      structuredClone(original.project),
+      true,
+    );
+
+    expect(restored.saveState).toBe("conflict");
+    expect(canSaveProject(restored)).toBe(false);
   });
 
   it("begins save with the current work version", () => {
