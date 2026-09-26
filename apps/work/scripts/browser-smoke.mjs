@@ -390,7 +390,11 @@ async function renderProjectBarStateQa(session, saveState) {
       };
       ui.renderProjectBar(document.querySelector("#app"), base, {
         persistenceEnabled: true,
+        canUndo: saveState === "dirty",
+        canRedo: false,
         onProjects: () => {},
+        onUndo: () => {},
+        onRedo: () => {},
         onSave: () => {},
         onReloadLatest: () => {},
       });
@@ -818,6 +822,11 @@ async function runWorkSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display !== "none"', "Work: authoring panel should be visible");
     await assertEval(session, 'Boolean(document.querySelector("#projectBar")) && getComputedStyle(document.querySelector("#projectBar")).display !== "none"', "Work: project bar should be visible");
     await assertEval(session, 'document.querySelector("#projectBarStatus").textContent.includes("Запазено") && document.querySelector("#projectBarStatus").textContent.includes("v1")', "Work: clean project status is missing");
+    await assertEval(
+      session,
+      'document.querySelector("#undoProjectButton").disabled && document.querySelector("#redoProjectButton").disabled',
+      "P3.3b: Undo/Redo should start disabled on a clean untouched project",
+    );
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#quantityTextLaminate").textContent.includes("m²")', "Work P3.1c: Laminate offer row is missing");
 
@@ -851,6 +860,11 @@ async function runWorkSmoke() {
       'document.querySelector("#projectBarStatus").textContent.includes("Запазено")',
       "Work: viewer-only interaction incorrectly dirtied project state",
     );
+    await assertEval(
+      session,
+      'document.querySelector("#undoProjectButton").disabled && document.querySelector("#redoProjectButton").disabled',
+      "P3.3b: viewer-only interaction incorrectly entered project history",
+    );
 
     await evaluate(
       session,
@@ -860,6 +874,11 @@ async function runWorkSmoke() {
       session,
       'document.querySelector("#projectBarStatus").textContent.includes("Има промени") && document.querySelector("#projectBarStatus").textContent.includes("v1")',
       "Work: authoring change did not mark project dirty",
+    );
+    await assertEval(
+      session,
+      '!document.querySelector("#undoProjectButton").disabled && document.querySelector("#redoProjectButton").disabled',
+      "P3.3b: authoring change did not enable Undo",
     );
 
     await assertEval(
@@ -890,6 +909,27 @@ async function runWorkSmoke() {
       session,
       'document.querySelector("#projectBarStatus").textContent.includes("Има промени")',
       "P3.2d: opening edit did not keep the project dirty",
+    );
+
+    await evaluate(session, 'document.querySelector("#undoProjectButton").click()');
+    await delay(120);
+    await assertEval(
+      session,
+      `document.querySelector('[data-opening-id="room-1.window-1"][data-opening-field="widthM"]').value === "1.2" && document.querySelector("#quantityText").textContent.includes("44,11")`,
+      "P3.3b: Undo did not restore the previous window width and Fine Putty quantity",
+    );
+    await assertEval(
+      session,
+      '!document.querySelector("#redoProjectButton").disabled && document.querySelector("#projectBarStatus").textContent.includes("Има промени")',
+      "P3.3b: Undo did not expose Redo or preserve the earlier unsaved room-width edit",
+    );
+
+    await evaluate(session, 'document.querySelector("#redoProjectButton").click()');
+    await delay(120);
+    await assertEval(
+      session,
+      `document.querySelector('[data-opening-id="room-1.window-1"][data-opening-field="widthM"]').value === "1.3" && document.querySelector("#quantityText").textContent.includes("44,00")`,
+      "P3.3b: Redo did not restore the window-width edit and recalculated quantity",
     );
 
     await evaluate(
@@ -1010,6 +1050,11 @@ async function runMobileWorkSmoke() {
       session,
       'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#serviceRowLaminate").getBoundingClientRect().height >= 44',
       "Mobile Work P3.1c: Laminate row is missing or too small for touch",
+    );
+    await assertEval(
+      session,
+      '["#undoProjectButton", "#redoProjectButton"].every((selector) => document.querySelector(selector)?.getBoundingClientRect().height >= 44)',
+      "Mobile P3.3b: Undo/Redo controls are below the 44px touch target",
     );
     await assertEval(
       session,
