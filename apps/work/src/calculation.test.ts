@@ -6,6 +6,7 @@ import {
   calculateLineTotalEur,
   calculateSupportedOfferLine,
   calculateSupportedOfferLines,
+  devGypsumPuttyPriceBookItem,
   devLaminateFlooringPriceBookItem,
   devPriceBookItem,
   type PriceBookItem,
@@ -17,6 +18,11 @@ import {
   getFinePuttyAssignment,
   getLaminateFlooringAssignment,
 } from "./domain";
+import {
+  addOperationAssignment,
+  findOperationAssignment,
+  gypsumPuttyOperation,
+} from "./operation-authoring";
 
 describe("fine putty quantity", () => {
   it("calculates selected wall area from domain geometry", () => {
@@ -288,5 +294,23 @@ describe("supported offer line bridge", () => {
     expect(
       calculateSupportedOfferLine(project, "assignment-unknown-price"),
     ).toBeNull();
+  });
+});
+
+
+describe("gypsum putty proof operation", () => {
+  it("reuses the audited net-wall rule without a new service-specific formula", () => {
+    let project = createOpeningProofProject("gypsum-proof");
+    project = addOperationAssignment(project, gypsumPuttyOperation);
+
+    const assignment = findOperationAssignment(project, gypsumPuttyOperation);
+    expect(assignment).toBeDefined();
+
+    const line = calculateSupportedOfferLine(project, assignment!.id);
+
+    expect(line?.quantity.ruleId).toBe("wall-net-area-openings-v1");
+    expect(line?.quantity.value).toBeCloseTo(46.8 - 1.89 - 1.32, 8);
+    expect(line?.price.id).toBe(devGypsumPuttyPriceBookItem.id);
+    expect(line?.totalEur).toBeCloseTo(line!.quantity.value, 8);
   });
 });
