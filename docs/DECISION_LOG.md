@@ -633,3 +633,31 @@ P3.1 Floor Finish and P3.2 Door + Window Openings are completed parts of that di
 The exact bounded NEXT after P3.2 must be derived from the active dependency/product documents and current implementation gaps, then presented through the normal audit → proposal → Criteria Check → Owner approval process.
 
 Publishing/Link/PIN remains required by the product contracts, but the historical instruction that it must precede Complete Room is superseded.
+
+
+## 26.09.2026 — Owner approves staged roadmap and continuous Uniqueness Interrupt Gate
+
+**Owner decision:** the audited post-P3.2 path is approved and becomes the active staged product direction.
+
+Approved sequence:
+**P3.3 Generic Operation Authoring Core → P3.4 Price Core/totals → P3.5 wall/ceiling finishing stack → P3.6 Object/Edit Core → P3.7 Materials/Colors/Images/Assets → P3.8 Complete Room acceptance → P4 Protected Publishing/Client Viewer → P5 broader service families → P6 Office workflow integration/reuse → P7 Photo Assist → P8 advanced/secondary outputs → Production Protection Gate.**
+
+This sequence is a dependency direction, not a permanent prohibition on improvement.
+
+Owner clarified the operational meaning of **Ivanov Unique / Living Product**:
+
+- approved decisions are the current protected baseline, not immutable forever;
+- the Uniqueness criterion remains active while a task is being executed and reviewed, not only when the task is initially proposed;
+- if a materially stronger mechanism, logic, interaction or sequence is discovered, the Work Controller must stop the affected task before embedding the weaker approach further;
+- the stronger option must be compared against the approved baseline with concrete benefit + dependency + impact/risk;
+- no chat may silently replace an Owner-approved product decision;
+- material product changes require Owner decision before implementation;
+- after approval of a replacement, the old decision is marked superseded and the canonical sources are synchronized before work resumes;
+- this interrupt applies to the affected scope only and is not permission to restart unrelated accepted work.
+
+Durable formulation:
+
+**APPROVED / LOCKED = protected current truth, not immunity from a demonstrably better solution.**
+
+**Uniqueness Interrupt Gate:**  
+**discover stronger solution → STOP affected work → compare/evidence → impact/risk → Owner decision when material → supersede/sync → continue.**
