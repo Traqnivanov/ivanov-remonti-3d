@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** none — P3.2 is merged / closed; next product block is not yet authorized.
+**Current Work Issue:** #13 — `[CURRENT WORK] P3.3 — Generic Operation Authoring Core` — AUTHORIZED / not yet implemented.
 
 This file answers only: **where is the project now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -12,13 +12,13 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 ## 1. Repository / active work
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
-- Stable product baseline: `main` after merged P3.2.
+- Stable product-code baseline: `main` after merged P3.2; current `main` also includes the approved roadmap / source-rule / Uniqueness-gate documentation sync.
 - P3.2 merge commit: `f55a0bcea1c298bdf773aa2ec970f0df7a13c896`
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
 - Active feature branch: **none**
 - Active PR: **none**
-- Active Current Work Issue: **none**
+- Active Current Work Issue: **#13 — P3.3 Generic Operation Authoring Core**
 - PR #12: **MERGED / CLOSED**
 - PR #10: **MERGED / CLOSED**
 - P3.1 merge commit: `0631821405b7013554963c80b0d8481da9ace579`
@@ -154,7 +154,9 @@ Important current guardrails:
 - EUR only;
 - final Client/Result quality must aim toward a believable real-room result, while Work view stays fast/practical;
 - real colors/palettes and intentional user-supplied materials/images on supported surfaces/objects are part of the end-state target;
-- next major product direction after Persistence is **one complete room before broad service-family expansion**, unless Owner explicitly changes it.
+- next major product direction after Persistence is **one complete room before broad service-family expansion**, unless Owner explicitly changes it;
+- the approved staged path is now recorded in `docs/DELIVERY_STRATEGY.md §15`: **P3.3 → P3.4 → P3.5 → P3.6 → P3.7 → P3.8 Complete Room → P4 Publishing → P5 broader service families → P6 Office workflow → P7 Photo Assist → P8 advanced outputs → Protection Gate**;
+- **Uniqueness Interrupt Gate is always active:** an approved decision is the protected current baseline, not immutable. If a materially stronger mechanism/logic/sequence is found during work, stop the affected scope, compare benefit + dependencies + impact/risk, obtain Owner approval when the product decision changes, supersede/sync the old truth, then continue. No silent substitution and no unrelated restart.
 
 Detailed rules are read from the dependency map in `START_HERE.md` only when the active task requires them.
 
@@ -184,55 +186,40 @@ These do not block planning of the next slice, but must not be forgotten:
 
 ## 6. Current Work
 
-There is **no active implementation block**.
+**P3.3 — Generic Operation Authoring Core — AUTHORIZED / NOT YET IMPLEMENTED**
 
-P3.2 is merged / closed:
-- Issue #11: completed / closing record;
-- PR #12: **MERGED / CLOSED**;
-- merge commit: `f55a0bcea1c298bdf773aa2ec970f0df7a13c896`;
-- all P3.2 checkpoints: **PASS**.
+Current Work Issue:
+- Issue #13 — `[CURRENT WORK] P3.3 — Generic Operation Authoring Core`.
 
-Merged P3.2 implementation:
-- Work-only opening editor renders canonical openings;
-- add/remove door or window with stable IDs;
-- edit host wall / width / height / offset / window sill;
-- invalid edits are rejected instead of silently moving/shrinking geometry;
-- room resize is rejected if it would invalidate an opening;
-- valid opening edits mark Project State dirty and update 3D + Fine Putty net quantity;
-- Client remains read-only;
-- opening controls are mobile touch-sized;
-- Work UI now reports the canonical Fine Putty rule `wall-net-area-openings-v1`;
-- viewer visual regression tests were hardened to compare the actual 3D canvas.
+Approved purpose:
+- remove proof-only Fine Putty/Laminate assignment-specific coupling before more services are added;
+- establish generic operation → target → quantity rule → quantity → Price Book reference → Info → presentation-mode flow;
+- introduce the safe authoring/change boundary and Undo/Redo foundation before authoring expands;
+- prove the generic mechanism with one additional real Registry operation;
+- preserve P3.1/P3.2 behavior and old persisted projects.
 
-Important:
-- real Work default projects still start with `openings: []`;
-- openings are added only by explicit Work action;
-- final authenticated P3.2 live persistence acceptance has **PASSED**;
-- P3.2 is now part of `main`.
+P3.3 is intentionally bounded. Production Price Book/totals, broad finishing catalog, objects, uploaded materials/images, Publishing and AI remain outside this block.
+
+There is currently:
+- no P3.3 feature branch yet;
+- no P3.3 PR yet;
+- no P3.3 product-code implementation yet.
+
+The global **Uniqueness Interrupt Gate** applies at every P3.3 checkpoint. If a materially stronger mechanism is discovered, the affected work stops before further implementation and follows the approved compare → impact/risk → Owner decision when material → supersede/sync → continue flow.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**P3.2 IS MERGED / CLOSED. NEXT PRODUCT BLOCK IS NOT YET AUTHORIZED.**
+**P3.3a — generic operation + quantity boundary.**
 
-Verified final live acceptance:
-- project: `P3.2 QA Openings`;
-- project ID: `add1f9af-5e4a-4b60-b047-5fa20e2e8c31`;
-- authenticated UI: door + window → **43.59 m²**;
-- window width `1.2 → 1.3 m` → **43.48 m²**;
-- dirty state: PASS;
-- Save `v1 → v2`: PASS;
-- reload/reopen same project: PASS;
-- direct Supabase verification: PASS;
-- persisted geometry: `4.2 × 4.8 × 2.6 m`;
-- persisted openings: one door + one window;
-- persisted Fine Putty net area recomputed from canonical DB state: **43.48 m²**;
-- `presentation = {}`;
-- older QA projects remain untouched.
+Exact next:
+1. perform a short focused architecture audit of the current operation/calculation boundary only;
+2. derive the smallest generic operation/rule-resolution and quantity-unit contract that removes assignment-ID-specific hardcoding without changing existing numerical truth;
+3. record the P3.3a concrete shape + visible Criteria Check in Issue #13;
+4. run the **Uniqueness Interrupt Gate** before code;
+5. if no stronger material product mechanism is found, implement P3.3a on a dedicated feature branch with focused tests and full regression;
+6. do not start P3.3b until P3.3a is verified.
 
-**NEXT:**
-- Chief Work Controller makes one short, concrete proposal for the next bounded step toward the approved **one complete room** goal.
-- The proposal must explain in human terms **what we add, why it is next, what user/product value it unlocks, and what it must not break**.
-- Run the Owner criteria / dependency check on that proposal.
-- **Do not implement the next product block before Owner approval.**
+No new Owner decision is required for routine engineering inside the approved P3.3 direction.  
+If the uniqueness review finds a materially stronger product/UX/architecture/quantity-price mechanism, **STOP and return to Owner before implementing that changed direction.**
