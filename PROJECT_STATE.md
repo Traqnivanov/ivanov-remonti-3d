@@ -200,26 +200,27 @@ Important:
 
 ## 7. NEXT EXACT STEP
 
-**P3.2d — REAL AUTHENTICATED LIVE PERSISTENCE PROOF.**
+**P3.2d — LIVE AUTHENTICATED PROOF CONTINUES IN NEXT CHAT.**
 
-Pre-live exact checkpoint:
-- HEAD: `1842e808a730658860fb6a7172b1c1ee89f3085a`;
-- CI #297: **SUCCESS**;
-- static preview #161: **SUCCESS**;
-- dedicated desktop opening-controls visual review: **PASS**;
-- dedicated mobile opening-controls visual review: **PASS**;
-- Model → Offer click QA now scans the actually visible 3D canvas and is layout-robust;
-- existing Slice 2 and P3.1 QA projects verified unchanged in Supabase;
-- no `P3.2 QA Openings` project exists yet.
+Verified live checkpoint:
+- new project: `P3.2 QA Openings`;
+- project ID: `add1f9af-5e4a-4b60-b047-5fa20e2e8c31`;
+- `work_version = 1`;
+- geometry: `4.2 × 4.8 × 2.6 m`;
+- `openings = []`;
+- `presentation = {}`;
+- 2 service assignments;
+- older QA projects remain untouched.
 
-Required live proof:
-1. create a NEW project titled exactly `P3.2 QA Openings`;
-2. confirm it starts at `v1` with no openings;
-3. add one door and one window;
-4. edit at least one opening value so live 3D + Fine Putty quantity update;
-5. Save → expect `v2`;
-6. reload/Open the same project and confirm the openings and edited values remain;
-7. then verify the persisted row directly in Supabase, including `presentation = {}`.
+Next exact live action:
+1. add one door;
+2. add one window;
+3. confirm Fine Putty becomes **43.59 m²**;
+4. change window width **1.2 → 1.3 m**;
+5. confirm Fine Putty becomes **43.48 m²** and project is dirty;
+6. Save `v1 → v2`;
+7. reload/Open the same project;
+8. Work Controller verifies the persisted row directly in Supabase.
 
-Do not modify the existing `QA — P2.4b Create List Open` or `P3.1 QA Floor` projects.
-Do not merge PR #12 or start the next room block before this live proof passes.
+Do not modify the older Slice 2 or P3.1 QA projects.
+Do not merge PR #12 or start another complete-room block before this live proof passes.
