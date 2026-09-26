@@ -577,3 +577,27 @@ It starts from:
 
 This decision does not remove historical evidence; it changes where that evidence belongs.
 
+## 26.09.2026 — Universal continuity protocol and Owner criteria are binding
+
+**Owner decision:** the project must be self-explanatory enough that a new Chief Work Controller / execution chat can continue without Owner reconstructing the project from memory.
+
+The permanent process is now explicitly hardened in `START_HERE.md`.
+
+Mandatory foundations:
+- project memory lives in the project sources, not in one chat;
+- ENTRY / CURRENT STATE / durable product truth / decision history / work control / evidence have distinct roles;
+- every material decision is checked against the universal Owner criteria plus project-specific criteria;
+- **Uniqueness / distinctive product logic is a mandatory Owner criterion**, but only when it creates real user/product value;
+- checkpoint lifecycle is **OPEN → WORKING → DECISION / VERIFIED RESULT → CLOSED → SYNC → NEXT**;
+- Work Controller has a proactive strategic duty and must report significant conflict, drift, missed dependency, dead-end or materially stronger solution;
+- Critical strategic risk stops the affected work until resolved;
+- a new chat must produce the mandatory startup report (role, final goal, Owner criteria, checkpoint, last valid decision, NEXT, open, frozen, authority limit, strategic duty) before substantive work;
+- after an important checkpoint, a **Sync Gate** must leave CURRENT STATE, durable contracts/dependencies, Work control, active Issue/PR and NEXT consistent;
+- canonical documentation records resolved truth, not the transcript of discussion;
+- handoff means synchronized canonical sources, not a new per-chat handoff file.
+
+Acceptance condition:
+
+**If Owner must explain again what the project is, how it is judged, where it is now, what is frozen or what comes next, continuity is not complete.**
+
+This process decision does not change P3.2 product scope or authorize a new room block.
