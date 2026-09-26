@@ -242,9 +242,11 @@ Then compare the result manually and with the existing m² calculator.
 Only after this passes do we connect the same data to 3D.
 
 
-## 12. Important inconsistency found during audit
+## 12. Historical inconsistency found during the original broad audit
 
-The existing tools themselves prove why we must audit before reuse.
+> **Historical evidence only — not an active calculation source.** The files below were inspected before the Owner narrowed current calculation reuse to **Калкулатор M² / `kalkulator-combined.html` only**. This section is retained solely to explain why the Smart Offer taxonomy separates plaster from putty; do not use these files for formulas or current implementation decisions.
+
+The original broad audit found:
 
 In `calculator.html`:
 
