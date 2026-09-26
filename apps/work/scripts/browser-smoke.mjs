@@ -866,6 +866,50 @@ async function runWorkSmoke() {
       "P3.3b: viewer-only interaction incorrectly entered project history",
     );
 
+    await assertEval(
+      session,
+      'Boolean(document.querySelector("#addGypsumPuttyButton"))',
+      "P3.3c: gypsum putty add control is missing",
+    );
+    await evaluate(session, 'document.querySelector("#addGypsumPuttyButton").click()');
+    await delay(100);
+    await assertEval(
+      session,
+      'Boolean(document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")',
+      "P3.3c: adding gypsum putty did not create a calculated focused offer line",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector('[data-operation-target="room-1.wall-front"]'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#quantityKpi").textContent.includes("34,56") && !document.querySelector('[data-operation-target="room-1.wall-front"]').checked',
+      "P3.3c: exact gypsum putty wall targeting did not update net quantity",
+    );
+    await evaluate(session, 'document.querySelector("#undoProjectButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#quantityKpi").textContent.includes("43,59") && document.querySelector('[data-operation-target="room-1.wall-front"]').checked',
+      "P3.3c: Undo did not restore gypsum putty targets and quantity",
+    );
+    await evaluate(session, 'document.querySelector("#redoProjectButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#quantityKpi").textContent.includes("34,56") && !document.querySelector('[data-operation-target="room-1.wall-front"]').checked',
+      "P3.3c: Redo did not restore gypsum putty target edit",
+    );
+    await evaluate(session, 'document.querySelector("#removeGypsumPuttyButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'Boolean(document.querySelector("#addGypsumPuttyButton")) && !document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')',
+      "P3.3c: removing gypsum putty did not remove the Work assignment and offer line",
+    );
+
     await evaluate(
       session,
       '(() => { const input = document.querySelector("#widthInput"); input.value = "4.3"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
@@ -1056,6 +1100,26 @@ async function runMobileWorkSmoke() {
       '["#undoProjectButton", "#redoProjectButton"].every((selector) => document.querySelector(selector)?.getBoundingClientRect().height >= 44)',
       "Mobile P3.3b: Undo/Redo controls are below the 44px touch target",
     );
+    await assertEval(
+      session,
+      'document.querySelector("#addGypsumPuttyButton")?.getBoundingClientRect().height >= 44',
+      "Mobile P3.3c: gypsum putty add control is missing or too small",
+    );
+    await evaluate(session, 'document.querySelector("#addGypsumPuttyButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#removeGypsumPuttyButton")?.getBoundingClientRect().height >= 44 && Array.from(document.querySelectorAll("#operationAuthoring .check-row")).every((el) => el.getBoundingClientRect().height >= 44)',
+      "Mobile P3.3c: gypsum putty authoring controls are below the 44px touch target",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("#operationAuthoring").scrollIntoView({ block: "center", behavior: "instant" })',
+    );
+    await delay(100);
+    await saveScreenshot(session, "/tmp/p33c-gypsum-authoring-mobile.png");
+    await evaluate(session, 'document.querySelector("#removeGypsumPuttyButton").click()');
+    await delay(80);
     await assertEval(
       session,
       'document.querySelectorAll(".opening-fields input, .opening-fields select, .opening-add-actions button, .opening-remove").length > 0 && Array.from(document.querySelectorAll(".opening-fields input, .opening-fields select, .opening-add-actions button, .opening-remove")).every((el) => el.getBoundingClientRect().height >= 44)',
