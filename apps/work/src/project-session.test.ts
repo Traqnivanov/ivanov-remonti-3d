@@ -159,6 +159,24 @@ describe("Project Session dirty/save state", () => {
     expect(shouldWarnBeforeProjectSwitch(session)).toBe(false);
   });
 
+  it("clears a retryable save error when undo returns to the saved project state", () => {
+    const original = createProjectSession(openedProject("history-error", 2));
+    let session = markProjectDirty(original);
+    session = beginProjectSave(session).session;
+    session = applyProjectSaveFailure(session, new Error("Network unavailable"));
+
+    const restored = applyProjectHistoryEdit(
+      session,
+      structuredClone(original.project),
+      true,
+    );
+
+    expect(restored.saveState).toBe("clean");
+    expect(restored.lastError).toBeNull();
+    expect(canSaveProject(restored)).toBe(false);
+    expect(shouldWarnBeforeProjectSwitch(restored)).toBe(false);
+  });
+
   it("does not clear conflict state merely because local history matches an older saved revision", () => {
     const original = createProjectSession(openedProject("history-conflict", 2));
     let session = markProjectDirty(original);
