@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #11 — **[CURRENT WORK] P3.2 — Door + Window Openings**
+**Current Work Issue:** none — P3.2 is merged / closed; next product block is not yet authorized.
 
 This file answers only: **where is the project now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -12,12 +12,14 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 ## 1. Repository / active work
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
-- Stable product baseline: `main` after merged P3.1 + post-merge continuity cleanup (`e538d9ab85dacccb1decd174c3232345d87a91cc`).
+- Stable product baseline: `main` after merged P3.2.
+- P3.2 merge commit: `f55a0bcea1c298bdf773aa2ec970f0df7a13c896`
 - Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
 - Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
-- Active branch: `feat/p3-2-openings-net-wall-quantity`
-- Active PR: **#12 — DRAFT / OPEN**
-- Active Current Work: **Issue #11 — P3.2**
+- Active feature branch: **none**
+- Active PR: **none**
+- Active Current Work Issue: **none**
+- PR #12: **MERGED / CLOSED**
 - PR #10: **MERGED / CLOSED**
 - P3.1 merge commit: `0631821405b7013554963c80b0d8481da9ace579`
 - PR #8: **MERGED / CLOSED**
@@ -60,14 +62,15 @@ History: PR #4 / closed Issue #6.
 
 ### Current product implementation
 
-**P3.2 — Door + Window Openings — PASS / OWNER MERGE DECISION NEXT**
+**P3.2 — Door + Window Openings — MERGED / CLOSED**
 
 Current checkpoint:
 - **P3.2a — Opening domain + persistence foundation: PASS**
 - **P3.2b — Opening geometry proof: PASS**
 - **P3.2c — Fine Putty net wall quantity: PASS**
 - **P3.2d — Work opening controls + live persistence acceptance: PASS**
-- **P3.2 overall acceptance: PASS — PR #12 remains DRAFT / OPEN pending explicit Owner merge approval**
+- **P3.2 overall acceptance: PASS / MERGED**
+- PR #12 merge commit: `f55a0bcea1c298bdf773aa2ec970f0df7a13c896`
 
 P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
 
@@ -181,22 +184,15 @@ These do not block planning of the next slice, but must not be forgotten:
 
 ## 6. Current Work
 
-**Issue #11 — P3.2 Door + Window Openings**
+There is **no active implementation block**.
 
-Active branch:
-- `feat/p3-2-openings-net-wall-quantity`
+P3.2 is merged / closed:
+- Issue #11: completed / closing record;
+- PR #12: **MERGED / CLOSED**;
+- merge commit: `f55a0bcea1c298bdf773aa2ec970f0df7a13c896`;
+- all P3.2 checkpoints: **PASS**.
 
-Active PR:
-- **#12 — DRAFT / OPEN**
-
-Checkpoint status:
-- P3.2a Opening domain + persistence foundation: **PASS**;
-- P3.2b Opening geometry proof: **PASS**;
-- P3.2c Fine Putty net wall quantity: **PASS**;
-- P3.2d Work opening controls + live persistence acceptance: **PASS**;
-- P3.2 overall: **PASS — OWNER MERGE DECISION NEXT**.
-
-Current P3.2d implementation:
+Merged P3.2 implementation:
 - Work-only opening editor renders canonical openings;
 - add/remove door or window with stable IDs;
 - edit host wall / width / height / offset / window sill;
@@ -212,13 +208,13 @@ Important:
 - real Work default projects still start with `openings: []`;
 - openings are added only by explicit Work action;
 - final authenticated P3.2 live persistence acceptance has **PASSED**;
-- PR #12 remains **DRAFT / OPEN** until explicit Owner merge approval.
+- P3.2 is now part of `main`.
 
 ---
 
 ## 7. NEXT EXACT STEP
 
-**P3.2 IS CLOSED / PASS. OWNER MERGE DECISION IS NEXT.**
+**P3.2 IS MERGED / CLOSED. NEXT PRODUCT BLOCK IS NOT YET AUTHORIZED.**
 
 Verified final live acceptance:
 - project: `P3.2 QA Openings`;
@@ -236,6 +232,7 @@ Verified final live acceptance:
 - older QA projects remain untouched.
 
 **NEXT:**
-- Owner reviews P3.2 result and decides whether PR #12 may merge.
-- Do **not** merge PR #12 without explicit Owner approval.
-- Do **not** start the next complete-room block before that Owner decision.
+- Chief Work Controller makes one short, concrete proposal for the next bounded step toward the approved **one complete room** goal.
+- The proposal must explain in human terms **what we add, why it is next, what user/product value it unlocks, and what it must not break**.
+- Run the Owner criteria / dependency check on that proposal.
+- **Do not implement the next product block before Owner approval.**
