@@ -270,7 +270,11 @@ These are deliberately deferred until the core mechanism is proven.
 
 ---
 
-## 13. What follows after acceptance
+## 13. What followed after acceptance — HISTORICAL PLAN
+
+> **SUPERSEDED SEQUENCING NOTE:** this section records the plan at First Slice acceptance time. It is not the current roadmap. Persistence was completed, but the later Owner-approved direction moved active development to **one complete room before broad service-family expansion**. Use `START_HERE.md`, `PROJECT_STATE.md`, `docs/DELIVERY_STRATEGY.md` and the later Decision Log entry for current sequencing.
+
+Historical plan:
 
 ### Slice 2 — Persistence
 - Supabase project persistence;
@@ -278,20 +282,20 @@ These are deliberately deferred until the core mechanism is proven.
 - Work Auth;
 - safe Save/Open.
 
-### Slice 3 — Publishing
+### Historical planned Slice 3 — Publishing
 - Published Revision creation;
 - client-safe payload;
 - Link / Link + PIN;
 - separate Client Viewer app.
 
-### Slice 4 — Complete room offer
+### Historical planned Slice 4 — Complete room offer
 - multiple services;
 - multiple surfaces;
 - openings;
 - operation-specific quantity rules;
 - fuller client Info.
 
-Then expand objects, materials, advanced services and realism.
+Publishing remains a required end-state capability, but its old position before Complete Room is no longer an active instruction.
 
 ---
 
