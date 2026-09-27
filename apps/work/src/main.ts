@@ -41,7 +41,6 @@ import { renderM2Schema } from "./m2-schema";
 import { getModeCapabilities, type AppEntry } from "./capabilities";
 import {
   FINE_PUTTY_ASSIGNMENT_ID,
-  createInitialOfferInteraction,
   getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
   selectModelEntity,
