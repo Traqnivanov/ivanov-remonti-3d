@@ -717,3 +717,17 @@ the service source explicitly distinguishes ceilings as more labor-intensive, wh
 
 This is an application of the Uniqueness Interrupt Gate: extend the existing service→target→quantity→price mechanism rather than adding a superficial ceiling checkbox that creates pricing ambiguity.
 
+
+
+## 27.09.2026 — Applicable ceiling scope is included by default
+
+**Owner decision after live-preview review:** when a selected finishing operation can apply to both walls and ceiling, the ceiling is part of the service scope **by default**.
+
+Active behavior:
+- selecting an applicable service should not force Work to add the ceiling manually;
+- Work may explicitly exclude/remove the ceiling when the job does not include it;
+- walls and ceiling remain separate quantity/price scopes where unit prices can differ;
+- the product must not create fake duplicate catalog services such as separate “Боядисване стени” and “Боядисване таван”.
+
+Reason:
+manual opt-in for the ceiling adds unnecessary work to normal offer preparation. The default should optimize the common Work flow while preserving exact scope and pricing truth.
