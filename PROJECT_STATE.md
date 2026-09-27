@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **P3.5b DEFAULT CEILING SCOPE IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; AWAITING OWNER LIVE-PREVIEW REVIEW.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.1 ACTIVE; only the desktop skeleton is authorized now. D1.2–D1.5 are recorded but not active.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -13,9 +13,10 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
 - Stable branch: `main`
-- Active feature branch: **`feat/p3-5a-wall-finishing`**
-- Active PR: **#22 — `P3.5a — Wall finishing: Sanding, Primer, Paint` — DRAFT / awaiting Owner review of the corrected live preview**
-- Active Current Work Issue: **#21 — P3.5 Real wall/ceiling finishing stack**
+- P3.5 dependency branch: **`feat/p3-5a-wall-finishing`**
+- P3.5 dependency PR: **#22 — DRAFT / verified but not merged; remains a separate Owner merge gate**
+- Active D1 branch: **to be created from the verified P3.5b head as a stacked branch**
+- Active Current Work Issue: **#23 — D1 Desktop Workbench UX**
 - P3.3: **MERGED / VERIFIED / CLOSED**
 - P3.4: **MERGED / VERIFIED / CLOSED**
 - Latest product-code merge: PR #20
@@ -208,62 +209,69 @@ These do not block P3.5 planning, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — P3.5
+## 7. CURRENT WORK — D1 Desktop Workbench
 
 Current Work Issue:
-**#21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack`**
+**#23 — `[CURRENT WORK] D1 — Desktop Workbench UX`**
 
-Status:
-**P3.5b ceiling-scope correction is implemented and verified. Applicable finishing services now default to walls + ceiling, with ceiling independently removable and separately priced. PR #22 remains DRAFT until Owner reviews the live result.**
+Owner-approved direction:
+- this D1 line changes **Desktop Work only**;
+- Mobile Work and Client Preview are separate later redesigns and must not be redesigned inside D1;
+- desktop becomes a practical 3-zone workstation:
+  - left = object / room geometry;
+  - center = persistent 3D work area;
+  - right = services / scope / price / Smart Offer;
+- the page must stop forcing constant full-page scrolling between geometry, services and offer;
+- the distinctive product mechanism remains **object → service → exact place → quantity → price → Info**.
 
-P3.5 current direction:
-- **Owner live-review correction 27.09.2026:** for finishing operations that apply to walls and ceiling, selecting the service defaults to **walls + ceiling**; Work may explicitly remove the ceiling when it is not part of the job;
-- walls and ceiling remain separate quantity/price scopes because unit prices can differ, while keeping one real service identity rather than duplicate catalog services;
-- wall scope uses opening-aware net wall m²; ceiling scope uses canonical room width × length;
-- real finishing operations remain distinct, not one generic „Шпакловка“;
-- client Info continues to come from approved Ivanov Remonti sources;
-- reuse the merged generic authoring/pricing/persistence mechanism rather than creating parallel systems.
+Approved bounded sequence — strictly one at a time:
+1. **D1.1 — Desktop skeleton**
+   - persistent three-zone desktop layout;
+   - independent side-panel scrolling;
+   - 3D remains visible while editing;
+   - service controls move into the right Work zone;
+   - no tabs/accordion redesign yet;
+   - no business-logic change.
+2. **D1.2 — Left Work panel**
+   - compact Room / Openings / Scheme organization;
+   - M² scheme becomes secondary/collapsible.
+3. **D1.3 — Right Smart Offer panel**
+   - scalable Services / Scope / Price+Info organization;
+   - total remains easy to see as services grow.
+4. **D1.4 — Unique context link**
+   - 3D selection opens the exact relevant Work context;
+   - preserve exact object/surface → service/offer relationship.
+5. **D1.5 — Desktop acceptance QA**
+   - multi-service real workflow;
+   - openings + separate prices;
+   - Save/Open + Work→Client Preview;
+   - desktop overflow/scroll acceptance;
+   - mobile/client regression only, no redesign.
 
-Current non-goals:
-- no ordinary plaster or reinforced/base putty in this bounded correction;
-- no broad service catalog;
-- no Object/Edit Core;
-- no Materials/Colors/Images/Assets implementation;
-- no Publishing;
-- no Photo/AI;
-- no unrelated redesign;
-- no fixed price catalog.
+Dependency:
+- D1.1 is stacked on the verified P3.5b feature state because PR #22 is not merged yet;
+- P3.5 Issue #21 stays open as **PAUSED / DEPENDENCY**;
+- PR #22 remains DRAFT and is not implicitly approved or merged by starting D1;
+- D1 changes must remain separable from P3.5 logic.
 
 ---
 
 ## 8. NEXT EXACT STEP
 
-**OWNER LIVE-PREVIEW REVIEW — verify the corrected default ceiling scope before PR #22 can return to merge gate.**
+**D1.1 ONLY — Desktop Workbench skeleton.**
 
-Current verified result:
-- one service toggle remains one real service choice;
-- applicable finishing services create **wall + ceiling scopes by default**;
-- wall scope supports exact wall targeting and opening-aware net m²;
-- ceiling scope is independently removable and uses room width × length;
-- wall and ceiling each keep their own dynamic EUR unit price and offer line;
-- Save/Open persistence preserves exact scopes and separate prices;
-- compact mobile authoring and Client read-only behavior remain intact;
-- no plaster/base-putty/materials/renderer/Supabase scope drift.
+Acceptance for D1.1:
+- normal desktop Work does not require full-page scrolling to move between room geometry, services and offer;
+- center 3D remains continuously visible;
+- left and right Work panels scroll independently only when their own contents exceed available height;
+- geometry/openings remain in the left zone;
+- service controls are visually separated into the right Work zone above the offer;
+- service/quantity/EUR price/Undo/Redo/Save/Open behavior is unchanged;
+- no D1.2–D1.5 implementation;
+- no Mobile Work redesign;
+- no Client Preview redesign;
+- exact desktop preview must be visually inspected before Owner review;
+- mobile and Client states must pass regression checks.
 
-Owner live-preview decision:
-- for operations that apply to both walls and ceiling, selecting the service should include the ceiling **by default**;
-- Work may explicitly remove/exclude the ceiling when it is not part of the job;
-- walls and ceiling still remain separate priced scopes/offer lines when unit prices can differ;
-- this must not create fake duplicate catalog services such as “Paint walls” and “Paint ceiling”.
-
-Verified implementation evidence:
-- feature head: `cab113478d250c4e74221a6367f883cb5f543881`;
-- CI run #36343470472: SUCCESS;
-- 17/17 test files, 161/161 tests PASS;
-- build + desktop/mobile browser smoke PASS;
-- visual artifact `p35b-ceiling-scope-mobile.png` confirms the checked default ceiling scope;
-- GitHub Pages deployment #36343537517: SUCCESS;
-- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
-
-**NEXT: Owner reviews the live preview. Keep PR #22 DRAFT and do not merge until explicit Owner approval after that review.**
+**NEXT after D1.1 implementation:** technical + visual QA → same permanent live preview URL → Owner reviews D1.1. Do not begin D1.2 before that review.
 
