@@ -908,6 +908,11 @@ async function runWorkSmoke() {
       '!document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked && !document.querySelector("[data-service-id=assignment-gypsum-putty-1]")',
       "P3.4b scope: gypsum putty must start outside the offer",
     );
+    await assertEval(
+      session,
+      '["assignment-sanding-1", "assignment-primer-1", "assignment-paint-1"].every((id) => !document.querySelector("[data-service-include=" + id + "]").checked && !document.querySelector("[data-service-id=" + id + "]"))',
+      "P3.5a: sanding, primer and paint must start outside the offer",
+    );
     await evaluate(
       session,
       '(() => { const input = document.querySelector("[data-service-include=assignment-gypsum-putty-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
@@ -971,6 +976,48 @@ async function runWorkSmoke() {
       `!document.querySelector("[data-service-id=assignment-gypsum-putty-1]") && !document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked`,
       "P3.4b scope: deselecting gypsum putty did not remove it from the offer",
     );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-paint-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'Boolean(document.querySelector("[data-service-id=assignment-paint-1]")) && document.querySelector("#infoTitle").textContent.includes("Боядисване") && document.querySelector("#quantityKpi").textContent.includes("43,59") && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true"',
+      "P3.5a: Paint did not enter the offer with calculated wall quantity and expanded authoring",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#unitPriceInput"); input.value = "4.25"; input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#totalKpi").textContent.includes("185,26")',
+      "P3.5a: Paint dynamic EUR price did not calculate the line total",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-target="room-1.wall-front"]'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#quantityKpi").textContent.includes("34,56") && document.querySelector("#totalKpi").textContent.includes("146,88")',
+      "P3.5a: Paint exact wall scope did not update quantity and price",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-paint-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      '!document.querySelector("[data-service-id=assignment-paint-1]") && !document.querySelector("[data-service-include=assignment-paint-1]").checked',
+      "P3.5a: Paint still affects the offer after deselection",
+    );
+
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
     await assertEval(
       session,
@@ -1197,7 +1244,7 @@ async function runMobileWorkSmoke() {
     await assertMobileLayout(session, "Work");
     await assertEval(
       session,
-      'Array.from(document.querySelectorAll(".service-scope-toggle")).length === 3 && Array.from(document.querySelectorAll(".service-scope-toggle")).every((el) => el.getBoundingClientRect().height >= 44) && !document.querySelector("#serviceRowLaminate")',
+      'Array.from(document.querySelectorAll(".service-scope-toggle")).length === 6 && Array.from(document.querySelectorAll(".service-scope-toggle")).every((el) => el.getBoundingClientRect().height >= 44) && !document.querySelector("#serviceRowLaminate")',
       "Mobile P3.4b scope: service check controls are missing, too small, or Laminate is included by default",
     );
     await evaluate(
@@ -1229,7 +1276,7 @@ async function runMobileWorkSmoke() {
     );
     await assertEval(
       session,
-      '!document.querySelector("[data-service-include=assignment-laminate-flooring-1]").checked && !document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked',
+      '["assignment-laminate-flooring-1", "assignment-gypsum-putty-1", "assignment-sanding-1", "assignment-primer-1", "assignment-paint-1"].every((id) => !document.querySelector("[data-service-include=" + id + "]").checked)',
       "Mobile P3.4b scope: optional services must start deselected",
     );
     await assertEval(
@@ -1302,6 +1349,29 @@ async function runMobileWorkSmoke() {
       '(() => { const input = document.querySelector("[data-service-include=assignment-gypsum-putty-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(80);
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-paint-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#operationSummary-paint")?.getBoundingClientRect().height >= 44 && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true" && Array.from(document.querySelectorAll("#operationAuthoring .check-row")).every((el) => el.getBoundingClientRect().height >= 44)',
+      "Mobile P3.5a: Paint authoring is missing or below the 44px touch target",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("#operationAuthoring").scrollIntoView({ block: "center", behavior: "instant" })',
+    );
+    await delay(100);
+    await saveScreenshot(session, "/tmp/p35a-wall-finishing-mobile.png");
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-paint-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+
     await assertEval(
       session,
       'document.querySelectorAll(".opening-fields input, .opening-fields select, .opening-add-actions button, .opening-remove").length > 0 && Array.from(document.querySelectorAll(".opening-fields input, .opening-fields select, .opening-add-actions button, .opening-remove")).every((el) => el.getBoundingClientRect().height >= 44)',
