@@ -351,7 +351,7 @@ app.innerHTML = `
       </section>
 
       <aside class="panel right">
-        <h2>Smart Offer</h2>
+        <h2 class="workbench-zone-title work-only">Работа и оферта</h2>
 
         <div class="workbench-services work-only">
           <section class="section">
@@ -372,6 +372,7 @@ app.innerHTML = `
           </section>
         </div>
 
+        <h2 class="smart-offer-heading">Smart Offer</h2>
         <div id="offerRows"></div>
 
         <section class="offer-summary" id="offerSummarySection">
