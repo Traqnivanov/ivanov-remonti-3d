@@ -48,6 +48,23 @@ type QuantityRuleCalculator = (
   assignment: ServiceAssignment,
 ) => QuantityResult;
 
+export type DynamicOfferLineCalculation = {
+  assignmentId: string;
+  label: string;
+  quantity: QuantityResult;
+  unitPriceEur: number | null;
+  totalEur: number | null;
+  priceStatus: "missing" | "priced";
+  clientInfo: ClientInfo;
+};
+
+export type DynamicOfferSummary = {
+  lines: DynamicOfferLineCalculation[];
+  pricedSubtotalEur: number;
+  complete: boolean;
+  missingPriceAssignmentIds: string[];
+};
+
 export const devFinePuttyPriceBookItem: PriceBookItem = {
   id: "dev-fine-putty",
   label: "Фина шпакловка — DEV",
@@ -244,4 +261,106 @@ export function calculateSupportedOfferLines(
   return project.serviceAssignments
     .map((assignment) => calculateSupportedOfferLine(project, assignment.id))
     .filter((line): line is OfferLineCalculation => line !== null);
+}
+
+
+export function setAssignmentUnitPriceEur(
+  project: ProjectState,
+  assignmentId: string,
+  unitPriceEur: number | null,
+): ProjectState {
+  if (
+    unitPriceEur !== null &&
+    (!Number.isFinite(unitPriceEur) || unitPriceEur < 0)
+  ) {
+    throw new Error("Unit price must be a non-negative finite EUR amount.");
+  }
+
+  let found = false;
+  const serviceAssignments = project.serviceAssignments.map((assignment) => {
+    if (assignment.id !== assignmentId) return assignment;
+    found = true;
+
+    if (unitPriceEur === null) {
+      const { unitPriceEur: _removed, ...withoutPrice } = assignment;
+      return withoutPrice;
+    }
+
+    return {
+      ...assignment,
+      unitPriceEur,
+    };
+  });
+
+  if (!found) {
+    throw new Error(`Missing service assignment: ${assignmentId}`);
+  }
+
+  return {
+    ...project,
+    serviceAssignments,
+  };
+}
+
+export function calculateDynamicOfferLine(
+  project: ProjectState,
+  assignmentId: string,
+): DynamicOfferLineCalculation | null {
+  const assignment = project.serviceAssignments.find(
+    (item) => item.id === assignmentId,
+  );
+
+  if (!assignment || !assignment.included || !assignment.clientInfo) return null;
+
+  const quantity = calculateAssignmentQuantity(project, assignment);
+  if (!quantity) return null;
+
+  const unitPriceEur = assignment.unitPriceEur;
+  if (unitPriceEur === undefined) {
+    return {
+      assignmentId: assignment.id,
+      label: assignment.label,
+      quantity,
+      unitPriceEur: null,
+      totalEur: null,
+      priceStatus: "missing",
+      clientInfo: assignment.clientInfo,
+    };
+  }
+
+  if (!Number.isFinite(unitPriceEur) || unitPriceEur < 0) {
+    throw new Error("Stored unit price must be a non-negative finite EUR amount.");
+  }
+
+  return {
+    assignmentId: assignment.id,
+    label: assignment.label,
+    quantity,
+    unitPriceEur,
+    totalEur: quantity.value * unitPriceEur,
+    priceStatus: "priced",
+    clientInfo: assignment.clientInfo,
+  };
+}
+
+export function calculateDynamicOfferSummary(
+  project: ProjectState,
+): DynamicOfferSummary {
+  const lines = project.serviceAssignments
+    .map((assignment) => calculateDynamicOfferLine(project, assignment.id))
+    .filter((line): line is DynamicOfferLineCalculation => line !== null);
+
+  const missingPriceAssignmentIds = lines
+    .filter((line) => line.priceStatus === "missing")
+    .map((line) => line.assignmentId);
+
+  return {
+    lines,
+    pricedSubtotalEur: lines.reduce(
+      (sum, line) => sum + (line.totalEur ?? 0),
+      0,
+    ),
+    complete: missingPriceAssignmentIds.length === 0,
+    missingPriceAssignmentIds,
+  };
 }
