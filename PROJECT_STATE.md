@@ -216,19 +216,16 @@ Current Work Issue:
 Status:
 **P3.5b ceiling-scope correction is implemented and verified. Applicable finishing services now default to walls + ceiling, with ceiling independently removable and separately priced. PR #22 remains DRAFT until Owner reviews the live result.**
 
-P3.5 direction:
-- **Owner-approved 27.09.2026:** P3.5a first implements wall-only `Шлайфане → Грунд → Боядисване` on the existing generic core;
-- **Owner-approved scope/price rule:** wall and ceiling work are not forced into one priced scope when unit prices can differ; future P3.5b must support separate wall/ceiling quantity + unit price for the same real operation without duplicating it as separate catalog services;
-- real finishing operations, not one generic „Шпакловка“;
-- audit ordinary plaster/leveling, reinforced/base putty, gypsum putty, fine putty, sanding, primer/preparation and paint from approved sources;
-- ceiling becomes a real service target;
-- quantity/opening-deduction behavior must be correct per operation;
-- client Info must come from approved Ivanov Remonti sources;
-- reuse the merged generic authoring/pricing foundation rather than creating parallel mechanisms.
+P3.5 current direction:
+- **Owner live-review correction 27.09.2026:** for finishing operations that apply to walls and ceiling, selecting the service defaults to **walls + ceiling**; Work may explicitly remove the ceiling when it is not part of the job;
+- walls and ceiling remain separate quantity/price scopes because unit prices can differ, while keeping one real service identity rather than duplicate catalog services;
+- wall scope uses opening-aware net wall m²; ceiling scope uses canonical room width × length;
+- real finishing operations remain distinct, not one generic „Шпакловка“;
+- client Info continues to come from approved Ivanov Remonti sources;
+- reuse the merged generic authoring/pricing/persistence mechanism rather than creating parallel systems.
 
-Non-goals for P3.5a:
-- no ceiling authoring yet;
-- no plaster or reinforced/base putty in this slice;
+Current non-goals:
+- no ordinary plaster or reinforced/base putty in this bounded correction;
 - no broad service catalog;
 - no Object/Edit Core;
 - no Materials/Colors/Images/Assets implementation;
@@ -243,25 +240,15 @@ Non-goals for P3.5a:
 
 **OWNER LIVE-PREVIEW REVIEW — verify the corrected default ceiling scope before PR #22 can return to merge gate.**
 
-P3.5a is implemented and verified on `feat/p3-5a-wall-finishing`.
-
-Verified result:
-- separate optional wall services: **Шлайфане**, **Грунд**, **Боядисване**;
-- exact wall targeting through the existing generic operation authoring;
-- wall net m² deducts door/window openings;
-- dynamic per-offer EUR unit price and recalculated line/offer totals;
-- compact mobile authoring;
-- approved-source client Info;
-- Paint target + EUR price survives canonical persistence round-trip;
-- no ceiling/plaster/base-putty/materials/renderer/Supabase scope drift.
-
-Verification:
-- head: `e3aed2d13ed8cca18d31ac74623fb1a3b7ad73fc`;
-- CI #357 / `36340308776`: **SUCCESS**;
-- 17 test files / 156 tests: **PASS**;
-- typecheck/build/browser smoke: **PASS**;
-- mobile touch/overflow regression: **PASS**;
-- exact latest visual artifact `p35a-wall-finishing-mobile.png` inspected; no visual blocker found.
+Current verified result:
+- one service toggle remains one real service choice;
+- applicable finishing services create **wall + ceiling scopes by default**;
+- wall scope supports exact wall targeting and opening-aware net m²;
+- ceiling scope is independently removable and uses room width × length;
+- wall and ceiling each keep their own dynamic EUR unit price and offer line;
+- Save/Open persistence preserves exact scopes and separate prices;
+- compact mobile authoring and Client read-only behavior remain intact;
+- no plaster/base-putty/materials/renderer/Supabase scope drift.
 
 Owner live-preview decision:
 - for operations that apply to both walls and ceiling, selecting the service should include the ceiling **by default**;
