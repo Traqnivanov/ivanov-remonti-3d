@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.1 ACTIVE; only the desktop skeleton is authorized now. D1.2–D1.5 are recorded but not active.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.1 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; AWAITING OWNER LIVE-PREVIEW REVIEW. D1.2–D1.5 remain recorded but inactive.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -15,7 +15,8 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - Stable branch: `main`
 - P3.5 dependency branch: **`feat/p3-5a-wall-finishing`**
 - P3.5 dependency PR: **#22 — DRAFT / verified but not merged; remains a separate Owner merge gate**
-- Active D1 branch: **to be created from the verified P3.5b head as a stacked branch**
+- Active D1 branch: **`feat/d1-1-desktop-workbench`**
+- Active D1 PR: **#24 — `D1.1 — Desktop Workbench skeleton` — DRAFT / stacked on PR #22**
 - Active Current Work Issue: **#23 — D1 Desktop Workbench UX**
 - P3.3: **MERGED / VERIFIED / CLOSED**
 - P3.4: **MERGED / VERIFIED / CLOSED**
@@ -258,20 +259,30 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**D1.1 ONLY — Desktop Workbench skeleton.**
+**OWNER LIVE-PREVIEW REVIEW — D1.1 Desktop Workbench skeleton.**
 
-Acceptance for D1.1:
-- normal desktop Work does not require full-page scrolling to move between room geometry, services and offer;
-- center 3D remains continuously visible;
-- left and right Work panels scroll independently only when their own contents exceed available height;
-- geometry/openings remain in the left zone;
-- service controls are visually separated into the right Work zone above the offer;
+Verified D1.1 result:
+- desktop Work uses three persistent zones:
+  - left = room geometry/openings/M²;
+  - center = persistent 3D viewer;
+  - right = service controls/scope + Smart Offer;
+- left/right panels scroll independently;
+- the 3D viewer does not move when side panels scroll;
+- service controls are separated from geometry;
 - service/quantity/EUR price/Undo/Redo/Save/Open behavior is unchanged;
-- no D1.2–D1.5 implementation;
-- no Mobile Work redesign;
-- no Client Preview redesign;
-- exact desktop preview must be visually inspected before Owner review;
-- mobile and Client states must pass regression checks.
+- Mobile Work and Client Preview were regression-tested, not redesigned.
 
-**NEXT after D1.1 implementation:** technical + visual QA → same permanent live preview URL → Owner reviews D1.1. Do not begin D1.2 before that review.
+Verification:
+- branch: `feat/d1-1-desktop-workbench`;
+- stacked DRAFT PR: #24, base `feat/p3-5a-wall-finishing`;
+- final head: `d985b266c6a681c4845472dfa212f311476c72d9`;
+- CI run `36346318116`: **SUCCESS**;
+- 17/17 test files, 161/161 tests: **PASS**;
+- build + desktop/mobile/Client browser smoke: **PASS**;
+- dedicated desktop visual `d11-desktop-workbench.png`: inspected, no D1.1 blocker found;
+- mobile regression visual inspected; Smart Offer flow preserved;
+- GitHub Pages deploy `36346382975`: **SUCCESS** from the exact final head;
+- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+
+**NEXT: Owner reviews D1.1 on the live preview. Do not begin D1.2 and do not merge PR #24 without a separate Owner decision.**
 
