@@ -1205,6 +1205,12 @@ async function runMobileWorkSmoke() {
       'Array.from(document.querySelectorAll(".service-scope-toggle")).length === 3 && Array.from(document.querySelectorAll(".service-scope-toggle")).every((el) => el.getBoundingClientRect().height >= 44) && !document.querySelector("#serviceRowLaminate")',
       "Mobile P3.4b scope: service check controls are missing, too small, or Laminate is included by default",
     );
+    await evaluate(
+      session,
+      'document.querySelector("#serviceScopeControls").scrollIntoView({ block: "start", behavior: "instant" })',
+    );
+    await delay(100);
+    await saveScreenshot(session, "/tmp/p34b-service-scope-mobile.png");
     await assertEval(
       session,
       '["#undoProjectButton", "#redoProjectButton"].every((selector) => document.querySelector(selector)?.getBoundingClientRect().height >= 44)',
