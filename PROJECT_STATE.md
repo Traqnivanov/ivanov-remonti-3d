@@ -148,7 +148,7 @@ Important current guardrails:
 - Work/Edit and Client/View remain separate capability profiles;
 - mobile is the first UX/QA priority;
 - quantities come from confirmed domain geometry + approved rules;
-- Price Book stays separate from renderer/geometry;
+- offer pricing stays separate from renderer/geometry; prices are entered dynamically in Work per concrete offer and stored in EUR;
 - client receives a Published Revision/Snapshot, never the mutable Work draft;
 - Client is read-only with Link or Link + PIN per approved delivery contract;
 - EUR only;
@@ -211,21 +211,23 @@ The global **Uniqueness Interrupt Gate** applies at every P3.3 checkpoint. If a 
 
 ## 7. NEXT EXACT STEP
 
-**P3.4 — Price Core + room/offer totals**
+**P3.4 — Dynamic Price Core + room/offer totals**
 Current Work Issue: #18
 
-Owner-locked currency rule:
-**EUR ONLY** — no BGN display, no EUR/BGN conversion, no dual-currency reuse from legacy tools.
+Owner-locked pricing truth:
+- **EUR ONLY**;
+- **NO fixed global product prices**;
+- Work user enters the unit price for the concrete service/offer;
+- changing price updates line total and overall total immediately;
+- entered price is canonical Project State and persists through Save/Open;
+- saved offers do not silently change because of later prices elsewhere;
+- DEV/test fixtures may contain example values only for tests.
 
-Current audited direction:
-- central versioned Price Book;
-- service → quantity → unit price → line total;
-- coherent room/offer total;
-- saved/historical offers must not silently change when future Price Book values change;
-- Price Book remains separate from geometry/renderer;
-- legacy `ivanov-tools/offer.html` is workflow reference only.
+Target chain:
+**canonical quantity × entered EUR unit price → line total → room/offer total**
 
-**BLOCKER BEFORE CODE:** choose/verify the starting real Price Book values.
-The legacy `offer.html` EUR prices are not automatically accepted as current truth.
+Legacy `ivanov-tools/offer.html` remains workflow reference only. Its old prices and BGN logic are not product truth.
 
-No P3.4 implementation has started.
+The former blocker “choose starting Price Book values” is **RESOLVED / SUPERSEDED** by Owner decision.
+
+No P3.4 product code has started yet.
