@@ -683,3 +683,14 @@ Durable mechanism:
 **canonical quantity × Work-entered EUR unit price → line total → offer total**
 
 Pricing remains independent from geometry and renderer, but no fixed catalog is required as the source of price truth.
+
+
+## 27.09.2026 — Blank price is not zero
+
+**Owner decision:** an included service without an entered unit price must never be interpreted as `0 €`.
+
+Active behavior:
+- show **„Цена не е въведена“**;
+- mark the room/offer total as incomplete while an included service is missing its required price;
+- do not present a misleading final total;
+- entering a valid EUR price immediately recalculates the line and overall total.
