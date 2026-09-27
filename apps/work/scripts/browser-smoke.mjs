@@ -905,7 +905,7 @@ async function runWorkSmoke() {
 
     await assertEval(
       session,
-      '!document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked && !document.querySelector("[data-service-id=\"assignment-gypsum-putty-1\"]")',
+      '!document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked && !document.querySelector("[data-service-id=assignment-gypsum-putty-1]")',
       "P3.4b scope: gypsum putty must start outside the offer",
     );
     await evaluate(
@@ -915,7 +915,7 @@ async function runWorkSmoke() {
     await delay(100);
     await assertEval(
       session,
-      `Boolean(document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")`,
+      `Boolean(document.querySelector("[data-service-id=assignment-gypsum-putty-1]")) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")`,
       "P3.3c: adding gypsum putty did not create a calculated focused offer line",
     );
     await assertEval(
@@ -968,7 +968,7 @@ async function runWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      `!document.querySelector('[data-service-id="assignment-gypsum-putty-1"]') && !document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked`,
+      `!document.querySelector("[data-service-id=assignment-gypsum-putty-1]") && !document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked`,
       "P3.4b scope: deselecting gypsum putty did not remove it from the offer",
     );
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
