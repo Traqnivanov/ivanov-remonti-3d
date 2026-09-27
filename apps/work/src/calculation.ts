@@ -91,10 +91,37 @@ export const devGypsumPuttyPriceBookItem: PriceBookItem = {
   devOnly: true,
 };
 
+export const devSandingPriceBookItem: PriceBookItem = {
+  id: "dev-sanding",
+  label: "Шлайфане — DEV",
+  unit: "m2",
+  unitPriceEur: 1,
+  devOnly: true,
+};
+
+export const devPrimerPriceBookItem: PriceBookItem = {
+  id: "dev-primer",
+  label: "Грунд — DEV",
+  unit: "m2",
+  unitPriceEur: 1,
+  devOnly: true,
+};
+
+export const devPaintPriceBookItem: PriceBookItem = {
+  id: "dev-paint",
+  label: "Боядисване — DEV",
+  unit: "m2",
+  unitPriceEur: 1,
+  devOnly: true,
+};
+
 const devPriceBookItems: Record<string, PriceBookItem> = {
   [devFinePuttyPriceBookItem.id]: devFinePuttyPriceBookItem,
   [devLaminateFlooringPriceBookItem.id]: devLaminateFlooringPriceBookItem,
   [devGypsumPuttyPriceBookItem.id]: devGypsumPuttyPriceBookItem,
+  [devSandingPriceBookItem.id]: devSandingPriceBookItem,
+  [devPrimerPriceBookItem.id]: devPrimerPriceBookItem,
+  [devPaintPriceBookItem.id]: devPaintPriceBookItem,
 };
 
 function calculateWallNetAreaOpeningsQuantity(
