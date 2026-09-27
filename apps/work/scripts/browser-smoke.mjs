@@ -999,7 +999,7 @@ async function runWorkSmoke() {
     );
     await evaluate(
       session,
-      '(() => { const input = document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-target="room-1.wall-front"]'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      `(() => { const input = document.querySelector(\'[data-operation-id="assignment-paint-1"][data-operation-target="room-1.wall-front"]\'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()`,
     );
     await delay(80);
     await assertEval(
