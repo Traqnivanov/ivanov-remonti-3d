@@ -43,12 +43,15 @@ The Smart Offer uses several existing Ivanov Remonti sources, but they have **di
   - Do not embed the old HTML or create a second project state.
   - `calculator.html` and `room.html` remain outside current integration scope unless Owner explicitly changes that decision.
 
-- **Prices:** current Smart Offer prices come only from the separate versioned **Price Book**.
-  - Prices visible in the website, guides or old tools are evidence/snapshots/reference, not the canonical runtime price authority.
+- **Prices:** Smart Offer has **no fixed global product prices** as canonical truth.
+  - In Work, Ivanov Remonti enters the unit price in **EUR** for the concrete offer/service.
+  - The entered unit price is persisted with that offer/project and drives the line/offer totals.
+  - Test fixtures may contain example prices, but fixture values are never business truth.
+  - Prices visible in the website, guides or old tools are evidence/snapshots/reference only, never automatic runtime price authority.
 
 Source-to-product flow:
 
-**Remonti- service truth + narachnik Info → Service Operation Registry → shared project geometry → audited M²/quantity logic → Price Book → Smart Offer.**
+**Remonti- service truth + narachnik Info → Service Operation Registry → shared project geometry → audited M²/quantity logic → Work-entered EUR unit price → Smart Offer.**
 
 If the site, guide, registry or calculator source is ambiguous or conflicts on a material service distinction/formula, **STOP and ask Owner; do not silently reconcile it.**
 
@@ -79,7 +82,7 @@ The finished Ivanov Remonti Smart Offer must provide:
 - true interactive **2D/3D** behavior where needed, with dimensions, surfaces, openings, objects, selection, movement and cutaway/visibility controls;
 - real renovation services linked to the **exact surfaces/zones/objects** they affect;
 - quantities derived from confirmed project geometry + approved rules;
-- prices derived from a separate Price Book / approved pricing rules;
+- prices entered dynamically in Work for the concrete offer/service, in EUR only, and persisted with that offer;
 - bidirectional **offer ↔ model** interaction;
 - short client-facing ⓘ Info that explains what the service is, why it is done, what is included and what the client receives;
 - real wall/ceiling/material color selection, including practical **color picker / palettes**;
@@ -439,7 +442,7 @@ These are current approved foundations and must not drift silently:
 - Client is interactive but read-only with respect to Project State;
 - Viewer Session State such as camera, zoom, cutaway and selection is not persistent project truth;
 - quantities derive from domain geometry + approved rules, never visible meshes/camera;
-- Price Book remains separate from renderer/geometry;
+- offer pricing remains separate from renderer/geometry; no fixed global price table is product truth;
 - Supabase Postgres is canonical persisted application truth;
 - Supabase Auth is the private Work identity boundary;
 - RLS/authorization is not replaced by hidden frontend controls;
