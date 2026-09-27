@@ -314,42 +314,43 @@ P3.5 dependency:
 - Issue #21 is **PAUSED / DEPENDENCY**;
 - default finishing scope is walls + ceiling, with ceiling independently removable and separately priced.
 
-Active Current Work Issue:
-**#23 — [CURRENT WORK] D1 — Desktop Workbench UX**
+Active Current Work:
+- Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
+- branch `feat/d1-1-desktop-workbench`;
+- stacked DRAFT PR #24, base `feat/p3-5a-wall-finishing`;
+- D1.1 final head `d985b266c6a681c4845472dfa212f311476c72d9`;
+- CI `36346318116` SUCCESS;
+- 17/17 test files, 161/161 tests PASS;
+- Pages deploy `36346382975` SUCCESS.
 
-Owner approved D1 as **Desktop Work only**. Mobile Work and Client Preview are not redesigned in this line.
+D1.1 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
 
 ---
 
-## 10. CURRENT NEXT — D1.1 ONLY
+## 10. CURRENT NEXT — OWNER REVIEW OF D1.1
 
-Implement only **D1.1 — Desktop Workbench skeleton**.
+Owner reviews:
+`https://traqnivanov.github.io/ivanov-remonti-3d/`
 
-Required behavior:
-- three persistent desktop zones:
-  - left: room/object geometry;
-  - center: 3D viewer;
-  - right: service controls + Smart Offer;
-- center 3D remains visible while side panels are used;
-- left/right panels scroll independently;
-- service controls are separated from geometry and live in the right Work zone;
-- no tabs, accordion redesign or deeper panel redesign yet;
-- no service/quantity/price/persistence logic change;
-- no Mobile Work redesign;
-- no Client Preview redesign.
+What D1.1 changes:
+- Desktop Work only;
+- geometry left / persistent 3D center / services+offer right;
+- independent side-panel scrolling;
+- no business/service/price/persistence logic change.
 
-D1.1 is a stacked branch from the verified P3.5b state until PR #22 is resolved.
+What remains untouched:
+- Mobile Work redesign;
+- Client Preview redesign;
+- D1.2–D1.5 implementation.
 
-After D1.1:
-**technical QA → exact desktop visual QA → permanent live preview → Owner review → STOP.**
-
-Do not begin D1.2 automatically.
+**STOP after Owner review.**
+Do not begin D1.2 and do not merge PR #24 without separate Owner approval.
 
 ---
 
 ## 11. APPROVED D1 SEQUENCE — DO NOT BATCH
 
-1. **D1.1 Desktop skeleton** — current.
+1. **D1.1 Desktop skeleton** — implemented/verified, awaiting Owner review.
 2. **D1.2 Left Work panel** — compact Room/Openings/Scheme; scheme secondary/collapsible.
 3. **D1.3 Right Smart Offer panel** — scalable Services/Scope/Price+Info.
 4. **D1.4 Unique context link** — 3D click → exact Work/service/offer context.
