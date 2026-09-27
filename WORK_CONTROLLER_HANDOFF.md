@@ -308,92 +308,54 @@ P3.4 is **CLOSED**.
 Stable branch:
 `main`
 
-No active feature branch.
+P3.5 dependency:
+- branch `feat/p3-5a-wall-finishing`;
+- PR #22 is DRAFT and verified, but not merged;
+- Issue #21 is **PAUSED / DEPENDENCY**;
+- default finishing scope is walls + ceiling, with ceiling independently removable and separately priced.
 
-No active PR.
+Active Current Work Issue:
+**#23 — [CURRENT WORK] D1 — Desktop Workbench UX**
 
-Current Work Issue:
-**#21 — [CURRENT WORK] P3.5 — Real wall/ceiling finishing stack**
-
-Status:
-**PLANNING / AUDIT ONLY. NO P3.5 IMPLEMENTATION AUTHORIZED YET.**
-
-The exact current truth is in `PROJECT_STATE.md`. Verify repo state before work.
-
----
-
-## 10. CURRENT NEXT — P3.5
-
-P3.5 is the next approved roadmap phase.
-
-The goal is not “add many services”.
-
-The goal is to move the complete-room workflow forward with a **real wall/ceiling finishing stack** using the generic mechanism already built.
-
-Expected source-audit family includes:
-- ordinary plaster / leveling;
-- reinforced/base putty;
-- gypsum putty;
-- fine putty;
-- sanding;
-- primer/preparation;
-- paint;
-- ceiling as a real target.
-
-Do not assume all of them belong in the first implementation slice.
-
-### First exact work
-
-**Audit + one concrete bounded proposal only. No code.**
-
-Do this:
-
-1. Read `START_HERE.md`.
-2. Read `PROJECT_STATE.md`.
-3. Read Issue #21.
-4. Verify actual `main`, HEAD, open PRs.
-5. Read task-relevant:
-   - `docs/MASTER_SPEC.md`
-   - `docs/SERVICE_OPERATION_REGISTRY.md`
-   - `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
-   - `docs/DELIVERY_STRATEGY.md`
-6. Audit relevant current `Traqnivanov/Remonti-` pages.
-7. Audit relevant `narachnik/` guides.
-8. Use `kalkulator-combined.html` only if quantity/formula evidence is needed.
-9. Determine:
-   - real operation chain;
-   - dependencies/order;
-   - wall vs ceiling applicability;
-   - opening deduction rules per operation;
-   - what current generic core already supports;
-   - exact capability gaps.
-10. Propose the smallest useful P3.5 implementation sequence.
-11. Run full Criteria Check.
-12. Run Uniqueness Interrupt Gate.
-13. Explain the proposal in plain Bulgarian.
-14. **STOP for Owner approval before code.**
-
-Do not create a P3.5 feature branch before there is an implementation decision that needs one.
+Owner approved D1 as **Desktop Work only**. Mobile Work and Client Preview are not redesigned in this line.
 
 ---
 
-## 11. P3.5 NON-GOALS AT START
+## 10. CURRENT NEXT — D1.1 ONLY
 
-Do not drift into:
-- broad service catalog;
-- Object/Edit Core;
-- full furniture/assets;
-- Materials/Colors/Images/Assets implementation;
-- Publishing;
-- Link/PIN implementation;
-- PDF/export;
-- Photo/AI;
-- unrelated redesign;
-- fixed pricing catalog;
-- a rewrite of the app;
-- a second geometry/calculation truth.
+Implement only **D1.1 — Desktop Workbench skeleton**.
+
+Required behavior:
+- three persistent desktop zones:
+  - left: room/object geometry;
+  - center: 3D viewer;
+  - right: service controls + Smart Offer;
+- center 3D remains visible while side panels are used;
+- left/right panels scroll independently;
+- service controls are separated from geometry and live in the right Work zone;
+- no tabs, accordion redesign or deeper panel redesign yet;
+- no service/quantity/price/persistence logic change;
+- no Mobile Work redesign;
+- no Client Preview redesign.
+
+D1.1 is a stacked branch from the verified P3.5b state until PR #22 is resolved.
+
+After D1.1:
+**technical QA → exact desktop visual QA → permanent live preview → Owner review → STOP.**
+
+Do not begin D1.2 automatically.
 
 ---
+
+## 11. APPROVED D1 SEQUENCE — DO NOT BATCH
+
+1. **D1.1 Desktop skeleton** — current.
+2. **D1.2 Left Work panel** — compact Room/Openings/Scheme; scheme secondary/collapsible.
+3. **D1.3 Right Smart Offer panel** — scalable Services/Scope/Price+Info.
+4. **D1.4 Unique context link** — 3D click → exact Work/service/offer context.
+5. **D1.5 Desktop acceptance QA** — real multi-service workflow + regression.
+
+The five tasks are an approved roadmap, **not permission to implement them together**.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
