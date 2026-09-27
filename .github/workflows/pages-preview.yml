@@ -6,6 +6,7 @@ on:
       - "feat/persistence-slice-v1"
       - "feat/p3-1-floor-finish-vertical-slice"
       - "feat/p3-2-openings-net-wall-quantity"
+      - "feat/p3-5a-wall-finishing"
   workflow_dispatch:
 
 permissions:
@@ -58,6 +59,9 @@ jobs:
               ;;
             feat/p3-2-openings-net-wall-quantity)
               PREVIEW_BRANCH="preview-p3-2-openings"
+              ;;
+            feat/p3-5a-wall-finishing)
+              PREVIEW_BRANCH="preview-p3-5a-wall-finishing"
               ;;
             *)
               echo "No preview destination configured for ${GITHUB_REF_NAME}"
