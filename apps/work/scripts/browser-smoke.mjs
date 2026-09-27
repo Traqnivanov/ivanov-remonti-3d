@@ -1044,7 +1044,7 @@ async function runWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      'document.querySelector("#unitPriceInput").value === "6.5" && document.querySelector("#lineTotalText").textContent.includes("286,00")',
+      'document.querySelector("#unitPriceInput").value === "6,50" && document.querySelector("#lineTotalText").textContent.includes("286,00")',
       "P3.4b: confirmed EUR price did not remain in canonical Work state",
     );
 
@@ -1059,7 +1059,7 @@ async function runWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#unitPriceInput").value === "6.5"',
+      'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#unitPriceInput").value === "6,50"',
       "P3.4b: Redo did not restore the entered EUR price",
     );
 
