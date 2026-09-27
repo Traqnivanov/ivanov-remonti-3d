@@ -828,6 +828,85 @@ async function runWorkSmoke() {
       "P3.3b: Undo/Redo should start disabled on a clean untouched project",
     );
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
+
+    const d11Workbench = await evaluate(
+      session,
+      `(() => {
+        const left = document.querySelector(".panel.left");
+        const right = document.querySelector(".panel.right");
+        const viewer = document.querySelector(".viewer-wrap");
+        const services = document.querySelector("#serviceScopeControls");
+        const workspace = document.querySelector(".workspace");
+        return {
+          pageScrollY: window.scrollY,
+          bodyHeight: document.body.scrollHeight,
+          documentHeight: document.documentElement.scrollHeight,
+          viewportHeight: window.innerHeight,
+          leftOverflowY: getComputedStyle(left).overflowY,
+          rightOverflowY: getComputedStyle(right).overflowY,
+          rightHasServices: right.contains(services),
+          leftHasServices: left.contains(services),
+          viewerTop: Math.round(viewer.getBoundingClientRect().top),
+          viewerBottom: Math.round(viewer.getBoundingClientRect().bottom),
+          workspaceTop: Math.round(workspace.getBoundingClientRect().top),
+          workspaceBottom: Math.round(workspace.getBoundingClientRect().bottom),
+        };
+      })()`,
+    );
+    if (
+      d11Workbench.pageScrollY !== 0 ||
+      d11Workbench.bodyHeight > d11Workbench.viewportHeight + 2 ||
+      d11Workbench.documentHeight > d11Workbench.viewportHeight + 2 ||
+      !["auto", "scroll"].includes(d11Workbench.leftOverflowY) ||
+      !["auto", "scroll"].includes(d11Workbench.rightOverflowY) ||
+      !d11Workbench.rightHasServices ||
+      d11Workbench.leftHasServices ||
+      Math.abs(d11Workbench.viewerTop - d11Workbench.workspaceTop) > 1 ||
+      Math.abs(d11Workbench.viewerBottom - d11Workbench.workspaceBottom) > 1
+    ) {
+      throw new Error(
+        "D1.1: desktop Work is not a fixed three-zone workbench: " +
+          JSON.stringify(d11Workbench),
+      );
+    }
+
+    await evaluate(
+      session,
+      `(() => {
+        const left = document.querySelector(".panel.left");
+        const right = document.querySelector(".panel.right");
+        left.scrollTop = left.scrollHeight;
+        right.scrollTop = right.scrollHeight;
+      })()`,
+    );
+    await delay(80);
+    const d11AfterPanelScroll = await evaluate(
+      session,
+      `(() => {
+        const viewer = document.querySelector(".viewer-wrap").getBoundingClientRect();
+        return {
+          pageScrollY: window.scrollY,
+          viewerTop: Math.round(viewer.top),
+          viewerBottom: Math.round(viewer.bottom),
+        };
+      })()`,
+    );
+    if (
+      d11AfterPanelScroll.pageScrollY !== 0 ||
+      d11AfterPanelScroll.viewerTop !== d11Workbench.viewerTop ||
+      d11AfterPanelScroll.viewerBottom !== d11Workbench.viewerBottom
+    ) {
+      throw new Error(
+        "D1.1: side-panel scrolling moved the page or 3D viewport: " +
+          JSON.stringify(d11AfterPanelScroll),
+      );
+    }
+    await evaluate(
+      session,
+      'document.querySelector(".panel.left").scrollTop = 0; document.querySelector(".panel.right").scrollTop = 0',
+    );
+    await delay(80);
+    await saveScreenshot(session, "/tmp/d11-desktop-workbench.png");
     await assertEval(
       session,
       '!document.querySelector("#serviceRowLaminate") && !document.querySelector("[data-service-include=assignment-laminate-flooring-1]").checked',
