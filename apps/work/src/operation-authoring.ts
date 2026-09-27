@@ -194,38 +194,49 @@ export function findOperationCeilingAssignment(
   );
 }
 
+export function addOperationCeilingAssignment(
+  project: ProjectState,
+  definition: AuthorableOperationDefinition,
+  included = true,
+): ProjectState {
+  const existingCeiling = findOperationCeilingAssignment(project, definition);
+  if (existingCeiling) {
+    return setServiceAssignmentIncluded(
+      project,
+      definition.ceilingAssignmentId,
+      included,
+    );
+  }
+
+  return {
+    ...project,
+    serviceAssignments: [
+      ...project.serviceAssignments,
+      {
+        id: definition.ceilingAssignmentId,
+        serviceCode: definition.serviceCode,
+        label: definition.label,
+        targetEntityIds: ["room-1.ceiling"],
+        included,
+        quantityRuleId: "ceiling-area-v1",
+        priceBookItemId: definition.priceBookItemId,
+        presentationMode: definition.presentationMode,
+        clientInfo: { ...definition.ceilingClientInfo },
+      },
+    ],
+  };
+}
+
 export function addOperationScopeAssignments(
   project: ProjectState,
   definition: AuthorableOperationDefinition,
 ): ProjectState {
   let nextProject = addOperationAssignment(project, definition);
-  const existingCeiling = findOperationCeilingAssignment(nextProject, definition);
-
-  if (!existingCeiling) {
-    nextProject = {
-      ...nextProject,
-      serviceAssignments: [
-        ...nextProject.serviceAssignments,
-        {
-          id: definition.ceilingAssignmentId,
-          serviceCode: definition.serviceCode,
-          label: definition.label,
-          targetEntityIds: ["room-1.ceiling"],
-          included: true,
-          quantityRuleId: "ceiling-area-v1",
-          priceBookItemId: definition.priceBookItemId,
-          presentationMode: definition.presentationMode,
-          clientInfo: { ...definition.ceilingClientInfo },
-        },
-      ],
-    };
-  } else {
-    nextProject = setServiceAssignmentIncluded(
-      nextProject,
-      definition.ceilingAssignmentId,
-      true,
-    );
-  }
+  nextProject = addOperationCeilingAssignment(
+    nextProject,
+    definition,
+    true,
+  );
 
   return setServiceAssignmentIncluded(
     nextProject,
