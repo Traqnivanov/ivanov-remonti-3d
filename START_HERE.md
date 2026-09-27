@@ -11,6 +11,7 @@ Every new chat must use these roles consistently:
 
 - **ENTRY / READ FIRST:** `START_HERE.md`
 - **CURRENT STATE:** `PROJECT_STATE.md`
+- **CHAT CONTINUITY / WORK CONTROLLER BRIDGE:** `WORK_CONTROLLER_HANDOFF.md` — operational onboarding only; if it conflicts with current state, `PROJECT_STATE.md` wins
 - **MASTER / durable product truth:** `docs/MASTER_SPEC.md` + only the task-relevant active contracts
 - **DECISION HISTORY:** `docs/DECISION_LOG.md`
 - **DEPENDENCIES:** the dependency document map in this file + task-relevant contracts
@@ -219,9 +220,10 @@ Read in this order:
 
 1. `START_HERE.md`
 2. `PROJECT_STATE.md`
-3. the Current Work Issue linked from `PROJECT_STATE.md`, **if one exists**
-4. verify the actual Git branch / HEAD / PR state
-5. read only the dependency documents required for the current task
+3. `WORK_CONTROLLER_HANDOFF.md` for complete chat-to-chat operating context
+4. the Current Work Issue linked from `PROJECT_STATE.md`, **if one exists**
+5. verify the actual Git branch / HEAD / PR state
+6. read only the dependency documents required for the current task
 
 Before substantive work, the new chat must be able to state this compact startup report:
 
@@ -249,7 +251,9 @@ The report must make clear:
 
 If the chat cannot formulate this from the project sources, it is **not ready to work**.
 
-If the repo/Issue contradicts `PROJECT_STATE.md`, **STOP — reconcile before implementation; do not guess.**
+If the handoff, repo or Issue contradicts `PROJECT_STATE.md`, **STOP — reconcile before implementation; do not guess.**
+
+The Owner should not be asked to retell project history that is recoverable from these sources.
 
 ---
 
