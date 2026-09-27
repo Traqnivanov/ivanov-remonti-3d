@@ -19,6 +19,8 @@ export type AuthorableOperationDefinition = {
   allowedTargetKind: "wall";
   defaultTargetEntityIds: WallId[];
   clientInfo: ClientInfo;
+  ceilingAssignmentId: string;
+  ceilingClientInfo: ClientInfo;
 };
 
 export const gypsumPuttyOperation: AuthorableOperationDefinition = {
@@ -39,6 +41,17 @@ export const gypsumPuttyOperation: AuthorableOperationDefinition = {
       "Подготвена основа за следващия фин слой. При съществено криви стени изравняването е работа на мазилката, не на гипсовата шпакловка.",
     includes:
       "Гипсова шпакловка върху избраните повърхности. Грунд, мазилка, армиране, фина шпакловка, шлайфане и боя са отделни операции, когато са необходими.",
+  },
+  ceilingAssignmentId: "assignment-gypsum-putty-ceiling-1",
+  ceilingClientInfo: {
+    what:
+      "Гипсова шпакловка е подготвителен шпакловъчен слой върху тавана, според основата и избраната технология.",
+    why:
+      "Използва се за подготовка на тавана преди фината шпакловка, когато конкретната основа и технология го изискват.",
+    result:
+      "Подготвен таван за следващия фин слой.",
+    includes:
+      "Гипсова шпакловка върху тавана. Грунд, фина шпакловка, шлайфане и боя са отделни операции, когато са необходими.",
   },
 };
 
@@ -61,6 +74,17 @@ export const sandingOperation: AuthorableOperationDefinition = {
     includes:
       "Шлайфане на избраните стени. Грундът и боята са отделни операции.",
   },
+  ceilingAssignmentId: "assignment-sanding-ceiling-1",
+  ceilingClientInfo: {
+    what:
+      "Шлайфането премахва дребни неравности и следи от инструменти по шпаклования таван.",
+    why:
+      "Прави тавана гладък преди грундиране и боядисване.",
+    result:
+      "Гладък и подготвен таван за следващия довършителен етап.",
+    includes:
+      "Шлайфане на тавана. Грундът и боята са отделни операции.",
+  },
 };
 
 export const primerOperation: AuthorableOperationDefinition = {
@@ -82,6 +106,17 @@ export const primerOperation: AuthorableOperationDefinition = {
     includes:
       "Грундиране на избраните стени. Шлайфането, локалните ремонти и боята са отделни операции.",
   },
+  ceilingAssignmentId: "assignment-primer-ceiling-1",
+  ceilingClientInfo: {
+    what:
+      "Грундът подготвя тавана преди боядисване и уеднаквява попиването на повърхността.",
+    why:
+      "Помага следващото покритие да се нанесе равномерно върху правилно подготвения таван.",
+    result:
+      "Грундиран таван, готов за боядисване според избраната система.",
+    includes:
+      "Грундиране на тавана. Шлайфането, локалните ремонти и боята са отделни операции.",
+  },
 };
 
 export const paintOperation: AuthorableOperationDefinition = {
@@ -102,6 +137,17 @@ export const paintOperation: AuthorableOperationDefinition = {
       "Завършени боядисани стени с равномерно покритие.",
     includes:
       "Боядисване на избраните стени. Подготовката, шпакловката, шлайфането и грундът остават отделни операции, когато са необходими.",
+  },
+  ceilingAssignmentId: "assignment-paint-ceiling-1",
+  ceilingClientInfo: {
+    what:
+      "Боядисване с латекс върху подготвен и грундиран таван, стандартно в два слоя.",
+    why:
+      "Завършва тавана с избраното крайно покритие и цвят.",
+    result:
+      "Завършен боядисан таван с равномерно покритие.",
+    includes:
+      "Боядисване на тавана. Подготовката, шпакловката, шлайфането и грундът остават отделни операции, когато са необходими.",
   },
 };
 
@@ -137,6 +183,55 @@ export function addOperationAssignment(
       },
     ],
   };
+}
+
+export function findOperationCeilingAssignment(
+  project: ProjectState,
+  definition: AuthorableOperationDefinition,
+): ServiceAssignment | undefined {
+  return project.serviceAssignments.find(
+    (assignment) => assignment.id === definition.ceilingAssignmentId,
+  );
+}
+
+export function addOperationScopeAssignments(
+  project: ProjectState,
+  definition: AuthorableOperationDefinition,
+): ProjectState {
+  let nextProject = addOperationAssignment(project, definition);
+  const existingCeiling = findOperationCeilingAssignment(nextProject, definition);
+
+  if (!existingCeiling) {
+    nextProject = {
+      ...nextProject,
+      serviceAssignments: [
+        ...nextProject.serviceAssignments,
+        {
+          id: definition.ceilingAssignmentId,
+          serviceCode: definition.serviceCode,
+          label: definition.label,
+          targetEntityIds: ["room-1.ceiling"],
+          included: true,
+          quantityRuleId: "ceiling-area-v1",
+          priceBookItemId: definition.priceBookItemId,
+          presentationMode: definition.presentationMode,
+          clientInfo: { ...definition.ceilingClientInfo },
+        },
+      ],
+    };
+  } else {
+    nextProject = setServiceAssignmentIncluded(
+      nextProject,
+      definition.ceilingAssignmentId,
+      true,
+    );
+  }
+
+  return setServiceAssignmentIncluded(
+    nextProject,
+    definition.assignmentId,
+    true,
+  );
 }
 
 export function removeOperationAssignment(
