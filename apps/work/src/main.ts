@@ -63,9 +63,8 @@ import {
   addOperationAssignment,
   findOperationAssignment,
   gypsumPuttyOperation,
-  removeOperationAssignment,
-  setOperationIncluded,
   setOperationTargets,
+  setServiceAssignmentIncluded,
 } from "./operation-authoring";
 import { resolveWorkAccess } from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
@@ -310,13 +309,19 @@ app.innerHTML = `
           <div id="m2Schema"></div>
         </section>
 
-        <section class="section">
-          <div class="section-title">Фина шпакловка · target</div>
+        <section class="section work-only">
+          <div class="section-title">Услуги за изпълнение</div>
+          <div id="serviceScopeControls" class="service-scope-list"></div>
+          <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
+        </section>
+
+        <section class="section work-only" id="finePuttyTargetsSection">
+          <div class="section-title">Фина шпакловка · стени</div>
           <div id="wallTargets"></div>
         </section>
 
-        <section class="section work-only">
-          <div class="section-title">Услуги · Work</div>
+        <section class="section work-only" id="operationSettingsSection">
+          <div class="section-title">Настройки на услуга</div>
           <div id="operationAuthoring"></div>
           <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
         </section>
@@ -426,6 +431,7 @@ for (const input of [widthInput, lengthInput, heightInput]) {
 }
 
 renderOpeningEditor();
+renderServiceScopeControls();
 renderWallTargets();
 renderOperationAuthoring();
 renderM2Schema(mustGet("m2Schema"), project);
@@ -611,6 +617,7 @@ function renderCanonicalProjectState(): void {
   lengthInput.value = String(project.room.lengthM);
   heightInput.value = String(project.room.heightM);
   renderOpeningEditor();
+  renderServiceScopeControls();
   renderWallTargets();
   renderOperationAuthoring();
   renderM2Schema(mustGet("m2Schema"), project);
@@ -910,9 +917,114 @@ function setOpeningStatus(
   status.dataset.state = state;
 }
 
+function renderServiceScopeControls(): void {
+  const host = mustGet("serviceScopeControls");
+  host.replaceChildren();
+
+  const services = [
+    {
+      assignmentId: FINE_PUTTY_ASSIGNMENT_ID,
+      label: "Фина шпакловка",
+    },
+    {
+      assignmentId: "assignment-laminate-flooring-1",
+      label: "Ламинат",
+    },
+    {
+      assignmentId: gypsumPuttyOperation.assignmentId,
+      label: gypsumPuttyOperation.label,
+    },
+  ];
+
+  for (const service of services) {
+    const assignment = project.serviceAssignments.find(
+      (item) => item.id === service.assignmentId,
+    );
+    const included = assignment?.included ?? false;
+
+    const toggle = document.createElement("label");
+    toggle.className = "service-scope-toggle";
+    toggle.classList.toggle("selected", included);
+    toggle.dataset.serviceScopeId = service.assignmentId;
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = included;
+    checkbox.dataset.serviceInclude = service.assignmentId;
+    checkbox.setAttribute(
+      "aria-label",
+      `Включи ${service.label} в офертата`,
+    );
+
+    const text = document.createElement("span");
+    text.textContent = service.label;
+
+    checkbox.addEventListener("change", () => {
+      if (!currentCapabilities().canAuthorProject) {
+        renderServiceScopeControls();
+        return;
+      }
+
+      let nextProject = getCurrentProjectState(projectHistory);
+      const currentAssignment = nextProject.serviceAssignments.find(
+        (item) => item.id === service.assignmentId,
+      );
+
+      try {
+        if (
+          service.assignmentId === gypsumPuttyOperation.assignmentId &&
+          !currentAssignment &&
+          checkbox.checked
+        ) {
+          nextProject = addOperationAssignment(
+            nextProject,
+            gypsumPuttyOperation,
+          );
+        } else if (currentAssignment) {
+          nextProject = setServiceAssignmentIncluded(
+            nextProject,
+            service.assignmentId,
+            checkbox.checked,
+          );
+        } else {
+          renderServiceScopeControls();
+          return;
+        }
+
+        if (checkbox.checked) {
+          offerInteraction = selectOfferService(service.assignmentId);
+          if (service.assignmentId === gypsumPuttyOperation.assignmentId) {
+            expandedOperationId = gypsumPuttyOperation.assignmentId;
+          }
+        } else {
+          if (offerInteraction.selectedServiceId === service.assignmentId) {
+            offerInteraction = showWholeResult();
+          }
+          if (service.assignmentId === gypsumPuttyOperation.assignmentId) {
+            expandedOperationId = null;
+          }
+        }
+
+        setOperationStatus("");
+        commitCanonicalProject(nextProject);
+      } catch (error) {
+        setOperationStatus(operationErrorMessage(error), "error");
+        renderServiceScopeControls();
+      }
+    });
+
+    toggle.append(checkbox, text);
+    host.append(toggle);
+  }
+}
+
 function renderWallTargets(): void {
   const targetHost = mustGet("wallTargets");
   targetHost.replaceChildren();
+
+  const finePutty = getFinePuttyAssignment(project);
+  mustGet<HTMLElement>("finePuttyTargetsSection").hidden = !finePutty.included;
+  if (!finePutty.included) return;
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -975,30 +1087,15 @@ function renderOperationAuthoring(): void {
   host.replaceChildren();
 
   const assignment = findOperationAssignment(project, gypsumPuttyOperation);
+  const settingsSection = mustGet<HTMLElement>("operationSettingsSection");
 
-  if (!assignment) {
+  if (!assignment || !assignment.included) {
     expandedOperationId = null;
-
-    const addButton = document.createElement("button");
-    addButton.id = "addGypsumPuttyButton";
-    addButton.type = "button";
-    addButton.className = "operation-add";
-    addButton.textContent = "Добави гипсова шпакловка";
-    addButton.addEventListener("click", () => {
-      if (!currentCapabilities().canAuthorProject) return;
-
-      const nextProject = addOperationAssignment(
-        getCurrentProjectState(projectHistory),
-        gypsumPuttyOperation,
-      );
-      expandedOperationId = gypsumPuttyOperation.assignmentId;
-      offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
-      setOperationStatus("");
-      commitCanonicalProject(nextProject);
-    });
-    host.append(addButton);
+    settingsSection.hidden = true;
     return;
   }
+
+  settingsSection.hidden = false;
 
   const card = document.createElement("div");
   card.className = "operation-card";
@@ -1052,41 +1149,6 @@ function renderOperationAuthoring(): void {
 
   const editor = document.createElement("div");
   editor.className = "operation-editor";
-
-  const includedRow = document.createElement("label");
-  includedRow.className = "check-row";
-
-  const includedCheckbox = document.createElement("input");
-  includedCheckbox.id = "gypsumPuttyIncluded";
-  includedCheckbox.type = "checkbox";
-  includedCheckbox.checked = assignment.included;
-  includedCheckbox.addEventListener("change", () => {
-    if (!currentCapabilities().canAuthorProject) {
-      renderOperationAuthoring();
-      return;
-    }
-
-    try {
-      const nextProject = setOperationIncluded(
-        getCurrentProjectState(projectHistory),
-        gypsumPuttyOperation,
-        includedCheckbox.checked,
-      );
-      offerInteraction = includedCheckbox.checked
-        ? selectOfferService(gypsumPuttyOperation.assignmentId)
-        : showWholeResult();
-      setOperationStatus("");
-      commitCanonicalProject(nextProject);
-    } catch (error) {
-      setOperationStatus(operationErrorMessage(error), "error");
-      renderOperationAuthoring();
-    }
-  });
-
-  const includedText = document.createElement("span");
-  includedText.textContent = "Включена в офертата";
-  includedRow.append(includedCheckbox, includedText);
-  editor.append(includedRow);
 
   const targetTitle = document.createElement("div");
   targetTitle.className = "operation-target-title";
@@ -1152,27 +1214,7 @@ function renderOperationAuthoring(): void {
   meta.className = "operation-meta";
   meta.textContent = "m² · нето след отвори";
 
-  const removeButton = document.createElement("button");
-  removeButton.id = "removeGypsumPuttyButton";
-  removeButton.type = "button";
-  removeButton.className = "operation-remove";
-  removeButton.textContent = "Премахни";
-  removeButton.addEventListener("click", () => {
-    if (!currentCapabilities().canAuthorProject) return;
-
-    const nextProject = removeOperationAssignment(
-      getCurrentProjectState(projectHistory),
-      gypsumPuttyOperation,
-    );
-    expandedOperationId = null;
-    if (offerInteraction.selectedServiceId === gypsumPuttyOperation.assignmentId) {
-      offerInteraction = showWholeResult();
-    }
-    setOperationStatus("");
-    commitCanonicalProject(nextProject);
-  });
-
-  footer.append(meta, removeButton);
+  footer.append(meta);
   editor.append(footer);
   card.append(editor);
   host.append(card);
