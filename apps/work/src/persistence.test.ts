@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultProject, createOpeningProofProject, findLaminateFlooringAssignment, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
 import {
+  addOperationAssignment,
+  findOperationAssignment,
+  gypsumPuttyOperation,
+  setOperationTargets,
+} from "./operation-authoring";
+import {
   CURRENT_PROJECT_SCHEMA_VERSION,
   ProjectPersistenceError,
   deserializeProjectState,
@@ -144,6 +150,29 @@ describe("project persistence boundary", () => {
     expect(getFinePuttyAssignment(restored)).toEqual(
       getFinePuttyAssignment(project),
     );
+  });
+
+  it("round-trips an added gypsum putty operation and its exact wall targets", () => {
+    let project = addOperationAssignment(
+      createOpeningProofProject("gypsum-persistence"),
+      gypsumPuttyOperation,
+    );
+    project = setOperationTargets(project, gypsumPuttyOperation, [
+      "room-1.wall-left",
+      "room-1.wall-right",
+    ]);
+
+    const restored = deserializeProjectState(serializeProjectState(project));
+    const assignment = findOperationAssignment(restored, gypsumPuttyOperation);
+
+    expect(assignment?.serviceCode).toBe("gypsum-putty");
+    expect(assignment?.quantityRuleId).toBe("wall-net-area-openings-v1");
+    expect(assignment?.priceBookItemId).toBe("dev-gypsum-putty");
+    expect(assignment?.targetEntityIds).toEqual([
+      "room-1.wall-left",
+      "room-1.wall-right",
+    ]);
+    expect(assignment?.clientInfo).toEqual(gypsumPuttyOperation.clientInfo);
   });
 
   it("preserves stable proof opening ids through persistence", () => {

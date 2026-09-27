@@ -57,6 +57,14 @@ import {
   validateRoomResize,
   type OpeningMutationResult,
 } from "./opening-authoring";
+import {
+  addOperationAssignment,
+  findOperationAssignment,
+  gypsumPuttyOperation,
+  removeOperationAssignment,
+  setOperationIncluded,
+  setOperationTargets,
+} from "./operation-authoring";
 import { resolveWorkAccess } from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
 import {
@@ -230,6 +238,7 @@ let projectSession = options.session
 const projectRepository = options.repository;
 let previewMode = appEntry === "direct-client";
 let offerInteraction = createInitialOfferInteraction();
+let expandedOperationId: string | null = null;
 let autoCutaway = true;
 
 const appNode = document.querySelector<HTMLDivElement>("#app");
@@ -302,6 +311,12 @@ app.innerHTML = `
         <section class="section">
           <div class="section-title">Фина шпакловка · target</div>
           <div id="wallTargets"></div>
+        </section>
+
+        <section class="section work-only">
+          <div class="section-title">Услуги · Work</div>
+          <div id="operationAuthoring"></div>
+          <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
         </section>
 
         <section class="section">
@@ -389,6 +404,7 @@ for (const input of [widthInput, lengthInput, heightInput]) {
 
 renderOpeningEditor();
 renderWallTargets();
+renderOperationAuthoring();
 renderM2Schema(mustGet("m2Schema"), project);
 mustGet("finePuttyRuleId").textContent =
   getFinePuttyAssignment(project).quantityRuleId;
@@ -565,6 +581,7 @@ function renderCanonicalProjectState(): void {
   heightInput.value = String(project.room.heightM);
   renderOpeningEditor();
   renderWallTargets();
+  renderOperationAuthoring();
   renderM2Schema(mustGet("m2Schema"), project);
   viewer.setProject(project);
   syncViewerFocus();
@@ -920,6 +937,227 @@ function renderWallTargets(): void {
     row.append(checkbox, text);
     targetHost.append(row);
   });
+}
+
+function renderOperationAuthoring(): void {
+  const host = mustGet("operationAuthoring");
+  host.replaceChildren();
+
+  const assignment = findOperationAssignment(project, gypsumPuttyOperation);
+
+  if (!assignment) {
+    expandedOperationId = null;
+
+    const addButton = document.createElement("button");
+    addButton.id = "addGypsumPuttyButton";
+    addButton.type = "button";
+    addButton.className = "operation-add";
+    addButton.textContent = "Добави гипсова шпакловка";
+    addButton.addEventListener("click", () => {
+      if (!currentCapabilities().canAuthorProject) return;
+
+      const nextProject = addOperationAssignment(
+        getCurrentProjectState(projectHistory),
+        gypsumPuttyOperation,
+      );
+      expandedOperationId = gypsumPuttyOperation.assignmentId;
+      offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
+      setOperationStatus("");
+      commitCanonicalProject(nextProject);
+    });
+    host.append(addButton);
+    return;
+  }
+
+  const card = document.createElement("div");
+  card.className = "operation-card";
+
+  const summaryButton = document.createElement("button");
+  summaryButton.id = "gypsumPuttySummaryButton";
+  summaryButton.type = "button";
+  summaryButton.className = "operation-summary";
+
+  const expanded =
+    expandedOperationId === gypsumPuttyOperation.assignmentId;
+  summaryButton.setAttribute("aria-expanded", String(expanded));
+
+  const summaryText = document.createElement("span");
+  summaryText.className = "operation-summary-text";
+
+  const title = document.createElement("strong");
+  title.textContent = assignment.label;
+
+  const summaryMeta = document.createElement("span");
+  summaryMeta.className = "operation-summary-meta";
+  const wallCount = assignment.targetEntityIds.filter((id) =>
+    wallIds.includes(id as WallId),
+  ).length;
+  summaryMeta.textContent = assignment.included
+    ? `${wallCount} ${wallCount === 1 ? "стена" : "стени"}`
+    : "Изключена";
+
+  summaryText.append(title, summaryMeta);
+
+  const chevron = document.createElement("span");
+  chevron.className = "operation-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+  chevron.textContent = expanded ? "▴" : "▾";
+
+  summaryButton.append(summaryText, chevron);
+  summaryButton.addEventListener("click", () => {
+    expandedOperationId = expanded ? null : gypsumPuttyOperation.assignmentId;
+    offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
+    renderOperationAuthoring();
+    syncViewerFocus();
+    renderOffer();
+  });
+
+  card.append(summaryButton);
+
+  if (!expanded) {
+    host.append(card);
+    return;
+  }
+
+  const editor = document.createElement("div");
+  editor.className = "operation-editor";
+
+  const includedRow = document.createElement("label");
+  includedRow.className = "check-row";
+
+  const includedCheckbox = document.createElement("input");
+  includedCheckbox.id = "gypsumPuttyIncluded";
+  includedCheckbox.type = "checkbox";
+  includedCheckbox.checked = assignment.included;
+  includedCheckbox.addEventListener("change", () => {
+    if (!currentCapabilities().canAuthorProject) {
+      renderOperationAuthoring();
+      return;
+    }
+
+    try {
+      const nextProject = setOperationIncluded(
+        getCurrentProjectState(projectHistory),
+        gypsumPuttyOperation,
+        includedCheckbox.checked,
+      );
+      offerInteraction = includedCheckbox.checked
+        ? selectOfferService(gypsumPuttyOperation.assignmentId)
+        : showWholeResult();
+      setOperationStatus("");
+      commitCanonicalProject(nextProject);
+    } catch (error) {
+      setOperationStatus(operationErrorMessage(error), "error");
+      renderOperationAuthoring();
+    }
+  });
+
+  const includedText = document.createElement("span");
+  includedText.textContent = "Включена в офертата";
+  includedRow.append(includedCheckbox, includedText);
+  editor.append(includedRow);
+
+  const targetTitle = document.createElement("div");
+  targetTitle.className = "operation-target-title";
+  targetTitle.textContent = "Избери стени";
+  editor.append(targetTitle);
+
+  const labelById: Record<WallId, string> = {
+    "room-1.wall-front": "Предна стена",
+    "room-1.wall-back": "Задна стена",
+    "room-1.wall-left": "Лява стена",
+    "room-1.wall-right": "Дясна стена",
+  };
+
+  for (const wallId of wallIds) {
+    const row = document.createElement("label");
+    row.className = "check-row";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.dataset.operationTarget = wallId;
+    checkbox.checked = assignment.targetEntityIds.includes(wallId);
+    checkbox.addEventListener("change", () => {
+      if (!currentCapabilities().canAuthorProject) {
+        renderOperationAuthoring();
+        return;
+      }
+
+      const currentAssignment = findOperationAssignment(
+        project,
+        gypsumPuttyOperation,
+      );
+      if (!currentAssignment) return;
+
+      const nextTargets = new Set(currentAssignment.targetEntityIds);
+      if (checkbox.checked) nextTargets.add(wallId);
+      else nextTargets.delete(wallId);
+
+      try {
+        const nextProject = setOperationTargets(
+          getCurrentProjectState(projectHistory),
+          gypsumPuttyOperation,
+          wallIds.filter((id) => nextTargets.has(id)),
+        );
+        offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
+        setOperationStatus("");
+        commitCanonicalProject(nextProject);
+      } catch (error) {
+        setOperationStatus(operationErrorMessage(error), "error");
+        renderOperationAuthoring();
+      }
+    });
+
+    const text = document.createElement("span");
+    text.textContent = labelById[wallId];
+    row.append(checkbox, text);
+    editor.append(row);
+  }
+
+  const footer = document.createElement("div");
+  footer.className = "operation-editor-footer";
+
+  const meta = document.createElement("span");
+  meta.className = "operation-meta";
+  meta.textContent = "m² · нето след отвори";
+
+  const removeButton = document.createElement("button");
+  removeButton.id = "removeGypsumPuttyButton";
+  removeButton.type = "button";
+  removeButton.className = "operation-remove";
+  removeButton.textContent = "Премахни";
+  removeButton.addEventListener("click", () => {
+    if (!currentCapabilities().canAuthorProject) return;
+
+    const nextProject = removeOperationAssignment(
+      getCurrentProjectState(projectHistory),
+      gypsumPuttyOperation,
+    );
+    expandedOperationId = null;
+    if (offerInteraction.selectedServiceId === gypsumPuttyOperation.assignmentId) {
+      offerInteraction = showWholeResult();
+    }
+    setOperationStatus("");
+    commitCanonicalProject(nextProject);
+  });
+
+  footer.append(meta, removeButton);
+  editor.append(footer);
+  card.append(editor);
+  host.append(card);
+}
+
+function setOperationStatus(
+  message: string,
+  state: "idle" | "error" = "idle",
+): void {
+  const status = mustGet("operationStatus");
+  status.textContent = message;
+  status.dataset.state = state;
+}
+
+function operationErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Промяната не можа да се приложи.";
 }
 
 function syncViewerFocus(): void {

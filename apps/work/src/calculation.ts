@@ -66,9 +66,18 @@ export const devLaminateFlooringPriceBookItem: PriceBookItem = {
   devOnly: true,
 };
 
+export const devGypsumPuttyPriceBookItem: PriceBookItem = {
+  id: "dev-gypsum-putty",
+  label: "Гипсова шпакловка — DEV",
+  unit: "m2",
+  unitPriceEur: 1,
+  devOnly: true,
+};
+
 const devPriceBookItems: Record<string, PriceBookItem> = {
   [devFinePuttyPriceBookItem.id]: devFinePuttyPriceBookItem,
   [devLaminateFlooringPriceBookItem.id]: devLaminateFlooringPriceBookItem,
+  [devGypsumPuttyPriceBookItem.id]: devGypsumPuttyPriceBookItem,
 };
 
 function calculateWallNetAreaOpeningsQuantity(
