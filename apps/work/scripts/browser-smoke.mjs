@@ -1427,7 +1427,7 @@ async function runDirectClientSmoke() {
     );
     await assertEval(
       session,
-      '!document.querySelector("#serviceRowLaminate") && getComputedStyle(document.querySelector("#serviceScopeControls")).display === "none"',
+      '!document.querySelector("#serviceRowLaminate") && getComputedStyle(document.querySelector("#serviceScopeControls").closest(".work-only")).display === "none"',
       "Client P3.4b scope: unselected Laminate leaked into the offer or Work scope controls are visible",
     );
 
