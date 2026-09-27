@@ -1,0 +1,91 @@
+name: Deploy Smart Offer Live Preview
+
+on:
+  workflow_run:
+    workflows:
+      - "Vertical Slice CI"
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or commit to publish"
+        required: false
+        default: "main"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: smart-offer-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        (
+          startsWith(github.event.workflow_run.head_branch, 'feat/') ||
+          startsWith(github.event.workflow_run.head_branch, 'work/') ||
+          startsWith(github.event.workflow_run.head_branch, 'fix/') ||
+          startsWith(github.event.workflow_run.head_branch, 'review/')
+        )
+      )
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Resolve preview ref
+        id: preview
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout verified work version
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.preview.outputs.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/work/package-lock.json
+
+      - name: Install dependencies
+        run: npm --prefix apps/work ci --no-audit --no-fund
+
+      - name: Build Smart Offer preview
+        env:
+          VITE_SUPABASE_URL: https://qjfpbxucrxrtpygusnuv.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VITE_SUPABASE_PUBLISHABLE_KEY:-}" ]; then
+            echo "Missing repository variable SUPABASE_PUBLISHABLE_KEY"
+            exit 1
+          fi
+          npm --prefix apps/work run build
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/work/dist
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
