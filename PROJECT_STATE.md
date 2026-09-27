@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **P3.5a IMPLEMENTATION AUTHORIZED; BOUNDED WALL-ONLY SLICE.**
+**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **P3.5a IMPLEMENTED / VERIFIED; AWAITING EXPLICIT OWNER MERGE APPROVAL.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -14,7 +14,7 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - Repo: `Traqnivanov/ivanov-remonti-3d`
 - Stable branch: `main`
 - Active feature branch: **`feat/p3-5a-wall-finishing`**
-- Active PR: **none**
+- Active PR: **#22 — `P3.5a — Wall finishing: Sanding, Primer, Paint` — READY FOR OWNER REVIEW**
 - Active Current Work Issue: **#21 — P3.5 Real wall/ceiling finishing stack**
 - P3.3: **MERGED / VERIFIED / CLOSED**
 - P3.4: **MERGED / VERIFIED / CLOSED**
@@ -22,6 +22,8 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - PR #20 merge commit: `126e9877c425329867cf9963497467091008e1d2`
 - Final verified P3.4b head before merge: `745fa385947315721102c82ce459651182b28b71`
 - Final P3.4b CI: #351 / `36333699252` — **SUCCESS**
+- P3.5a verified head: `e3aed2d13ed8cca18d31ac74623fb1a3b7ad73fc`
+- P3.5a final CI: #357 / `36340308776` — **SUCCESS**
 
 Every new chat must verify actual branch / HEAD / PR / Issue state before changing anything.
 
@@ -212,7 +214,7 @@ Current Work Issue:
 **#21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack`**
 
 Status:
-**P3.5a IMPLEMENTATION AUTHORIZED — bounded wall-only finishing slice.**
+**P3.5a IMPLEMENTED / VERIFIED — awaiting explicit Owner merge approval for PR #22.**
 
 P3.5 direction:
 - **Owner-approved 27.09.2026:** P3.5a first implements wall-only `Шлайфане → Грунд → Боядисване` on the existing generic core;
@@ -239,28 +241,33 @@ Non-goals for P3.5a:
 
 ## 8. NEXT EXACT STEP
 
-**P3.5a — implement the approved bounded wall-finishing slice.**
+**OWNER MERGE GATE — PR #22 / P3.5a.**
 
-Exact scope:
+P3.5a is implemented and verified on `feat/p3-5a-wall-finishing`.
 
-1. work only on `feat/p3-5a-wall-finishing`;
-2. reuse the merged generic operation-authoring mechanism;
-3. add separate real wall operations:
-   - Шлайфане;
-   - Грунд;
-   - Боядисване;
-4. wall targets only in P3.5a;
-5. use the existing wall net-area/opening-deduction quantity truth where applicable;
-6. preserve independent service inclusion and dynamic per-offer EUR unit price;
-7. preserve compact mobile authoring, persistence, Undo/Redo and Offer ↔ Model behavior;
-8. add/adjust tests for operation authoring, quantity, pricing/persistence and regression;
-9. run browser/mobile visual verification before requesting review;
-10. **do not implement ceiling, plaster or reinforced/base putty in P3.5a**;
-11. report the exact user-visible result and verification evidence;
-12. **STOP for Work Controller review; no merge without explicit Owner merge approval.**
+Verified result:
+- separate optional wall services: **Шлайфане**, **Грунд**, **Боядисване**;
+- exact wall targeting through the existing generic operation authoring;
+- wall net m² deducts door/window openings;
+- dynamic per-offer EUR unit price and recalculated line/offer totals;
+- compact mobile authoring;
+- approved-source client Info;
+- Paint target + EUR price survives canonical persistence round-trip;
+- no ceiling/plaster/base-putty/materials/renderer/Supabase scope drift.
 
-There is currently:
-- no P3.5 feature branch;
-- no P3.5 PR;
-- no P3.5 product-code implementation.
+Verification:
+- head: `e3aed2d13ed8cca18d31ac74623fb1a3b7ad73fc`;
+- CI #357 / `36340308776`: **SUCCESS**;
+- 17 test files / 156 tests: **PASS**;
+- typecheck/build/browser smoke: **PASS**;
+- mobile touch/overflow regression: **PASS**;
+- exact latest visual artifact `p35a-wall-finishing-mobile.png` inspected; no visual blocker found.
+
+**NEXT: Owner decides whether to merge PR #22. Do not merge without explicit Owner approval.**
+
+After an approved merge:
+1. verify the merged `main` checkpoint;
+2. sync P3.5a as merged/closed inside the P3.5 phase;
+3. derive the next bounded P3.5 step from the approved wall/ceiling scope-price rule;
+4. no P3.5b code before its audit/proposal gate.
 
