@@ -42,6 +42,69 @@ export const gypsumPuttyOperation: AuthorableOperationDefinition = {
   },
 };
 
+export const sandingOperation: AuthorableOperationDefinition = {
+  assignmentId: "assignment-sanding-1",
+  serviceCode: "sanding",
+  label: "Шлайфане",
+  quantityRuleId: "wall-net-area-openings-v1",
+  priceBookItemId: "dev-sanding",
+  presentationMode: "highlight",
+  allowedTargetKind: "wall",
+  defaultTargetEntityIds: [...wallIds],
+  clientInfo: {
+    what:
+      "Шлайфането премахва дребни неравности и следи от инструменти по шпаклованата повърхност.",
+    why:
+      "Прави основата гладка преди грундиране и боядисване.",
+    result:
+      "Гладка и подготвена повърхност за следващия довършителен етап.",
+    includes:
+      "Шлайфане на избраните стени. Грундът и боята са отделни операции.",
+  },
+};
+
+export const primerOperation: AuthorableOperationDefinition = {
+  assignmentId: "assignment-primer-1",
+  serviceCode: "primer",
+  label: "Грунд",
+  quantityRuleId: "wall-net-area-openings-v1",
+  priceBookItemId: "dev-primer",
+  presentationMode: "highlight",
+  allowedTargetKind: "wall",
+  defaultTargetEntityIds: [...wallIds],
+  clientInfo: {
+    what:
+      "Грундът подготвя основата преди боядисване и уеднаквява попиването на повърхността.",
+    why:
+      "Помага следващото покритие да се нанесе равномерно върху правилно подготвената основа.",
+    result:
+      "Грундирана повърхност, готова за боядисване според избраната система.",
+    includes:
+      "Грундиране на избраните стени. Шлайфането, локалните ремонти и боята са отделни операции.",
+  },
+};
+
+export const paintOperation: AuthorableOperationDefinition = {
+  assignmentId: "assignment-paint-1",
+  serviceCode: "paint",
+  label: "Боядисване",
+  quantityRuleId: "wall-net-area-openings-v1",
+  priceBookItemId: "dev-paint",
+  presentationMode: "highlight",
+  allowedTargetKind: "wall",
+  defaultTargetEntityIds: [...wallIds],
+  clientInfo: {
+    what:
+      "Боядисване с латекс върху подготвена и грундирана основа, стандартно в два слоя.",
+    why:
+      "Завършва стената с избраното крайно покритие и цвят.",
+    result:
+      "Завършени боядисани стени с равномерно покритие.",
+    includes:
+      "Боядисване на избраните стени. Подготовката, шпакловката, шлайфането и грундът остават отделни операции, когато са необходими.",
+  },
+};
+
 export function findOperationAssignment(
   project: ProjectState,
   definition: AuthorableOperationDefinition,
