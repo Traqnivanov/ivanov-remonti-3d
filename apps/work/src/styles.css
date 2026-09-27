@@ -798,9 +798,17 @@ input[type="number"] {
 
 @media (min-width: 981px) {
   .app-shell:not(.preview-mode) {
+    height: 100vh;
     height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
     min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
     overflow: hidden;
+  }
+
+  .app-shell.has-project-bar:not(.preview-mode) {
+    grid-template-rows: auto auto minmax(0, 1fr);
   }
 
   .app-shell:not(.preview-mode) .workspace {
