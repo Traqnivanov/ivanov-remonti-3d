@@ -251,7 +251,10 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
           includes: "Количеството и стойността се отнасят само за стените, включени в тази позиция.",
         },
       },
-      createLaminateFlooringAssignment(),
+      {
+        ...createLaminateFlooringAssignment(),
+        included: false,
+      },
     ],
   };
 }
