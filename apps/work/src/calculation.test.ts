@@ -101,6 +101,7 @@ describe("fine putty quantity", () => {
 describe("laminate flooring quantity", () => {
   it("is unchanged by wall openings", () => {
     const project = createOpeningProofProject();
+    getLaminateFlooringAssignment(project).included = true;
     const result = calculateLaminateFlooringQuantity(project);
 
     expect(result.value).toBeCloseTo(20.16, 8);
@@ -109,6 +110,7 @@ describe("laminate flooring quantity", () => {
 
   it("calculates the exact floor area from canonical room geometry", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
     const result = calculateLaminateFlooringQuantity(project);
 
     expect(result.ruleId).toBe("floor-area-v1");
@@ -121,6 +123,7 @@ describe("laminate flooring quantity", () => {
 
   it("changes with floor dimensions but not with room height", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
     const before = calculateLaminateFlooringQuantity(project).value;
 
     project.room.heightM += 1;
@@ -148,6 +151,7 @@ describe("laminate flooring quantity", () => {
 
   it("uses a separate EUR DEV price-book fixture", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
     const quantity = calculateLaminateFlooringQuantity(project);
 
     expect(devLaminateFlooringPriceBookItem.id).toBe("dev-laminate-flooring");
@@ -230,6 +234,7 @@ describe("generic operation quantity boundary", () => {
 describe("supported offer line bridge", () => {
   it("returns one calculated line for each supported included assignment", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
     const lines = calculateSupportedOfferLines(project);
 
     expect(lines.map((line) => line.assignmentId)).toEqual([
@@ -339,6 +344,7 @@ describe("P3.4 dynamic per-offer pricing", () => {
 
   it("recalculates line and offer totals from the entered EUR unit price", () => {
     let project = createDefaultProject("dynamic-price-entered");
+    getLaminateFlooringAssignment(project).included = true;
     project = setAssignmentUnitPriceEur(
       project,
       "assignment-fine-putty-1",

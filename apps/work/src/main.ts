@@ -30,16 +30,17 @@ import {
   undoProjectState,
 } from "./project-history";
 import {
-  calculateSupportedOfferLine,
-  calculateSupportedOfferLines,
-  type OfferLineCalculation,
+  calculateDynamicOfferLine,
+  calculateDynamicOfferSummary,
+  setAssignmentUnitPriceEur,
+  type DynamicOfferLineCalculation,
+  type QuantityUnit,
 } from "./calculation";
 import { RoomViewer } from "./viewer";
 import { renderM2Schema } from "./m2-schema";
 import { getModeCapabilities, type AppEntry } from "./capabilities";
 import {
   FINE_PUTTY_ASSIGNMENT_ID,
-  createInitialOfferInteraction,
   getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
   selectModelEntity,
@@ -61,9 +62,8 @@ import {
   addOperationAssignment,
   findOperationAssignment,
   gypsumPuttyOperation,
-  removeOperationAssignment,
-  setOperationIncluded,
   setOperationTargets,
+  setServiceAssignmentIncluded,
 } from "./operation-authoring";
 import { resolveWorkAccess } from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
@@ -237,7 +237,12 @@ let projectSession = options.session
   : null;
 const projectRepository = options.repository;
 let previewMode = appEntry === "direct-client";
-let offerInteraction = createInitialOfferInteraction();
+const initialIncludedService = project.serviceAssignments.find(
+  (assignment) => assignment.included,
+);
+let offerInteraction = initialIncludedService
+  ? selectOfferService(initialIncludedService.id)
+  : showWholeResult();
 let expandedOperationId: string | null = null;
 let autoCutaway = true;
 
@@ -308,25 +313,23 @@ app.innerHTML = `
           <div id="m2Schema"></div>
         </section>
 
-        <section class="section">
-          <div class="section-title">Фина шпакловка · target</div>
+        <section class="section work-only">
+          <div class="section-title">Услуги за изпълнение</div>
+          <div id="serviceScopeControls" class="service-scope-list"></div>
+          <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
+        </section>
+
+        <section class="section work-only" id="finePuttyTargetsSection">
+          <div class="section-title">Фина шпакловка · стени</div>
           <div id="wallTargets"></div>
         </section>
 
-        <section class="section work-only">
-          <div class="section-title">Услуги · Work</div>
+        <section class="section work-only" id="operationSettingsSection">
+          <div class="section-title">Настройки на услуга</div>
           <div id="operationAuthoring"></div>
           <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
         </section>
 
-        <section class="section">
-          <div class="section-title">Quantity source</div>
-          <div class="kpi"><span>Правило</span><strong id="finePuttyRuleId"></strong></div>
-          <div class="kpi"><span>Цена</span><strong>DEV fixture</strong></div>
-          <p style="color:#7688a0;font-size:11px;line-height:1.5;margin:10px 0 0">
-            DEV цената е технически fixture, не production Price Book.
-          </p>
-        </section>
       </aside>
 
       <section class="viewer-wrap">
@@ -354,11 +357,32 @@ app.innerHTML = `
 
         <div id="offerRows"></div>
 
+        <section class="offer-summary" id="offerSummarySection">
+          <div class="offer-summary-row">
+            <span>Общо</span>
+            <strong id="offerTotalKpi">—</strong>
+          </div>
+          <p id="offerTotalStatus"></p>
+        </section>
+
         <section class="section" id="offerDetailsSection">
           <div class="section-title">Оферта</div>
           <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
-          <div class="kpi"><span id="unitPriceLabel">Ед. цена · DEV</span><strong id="unitPriceKpi">—</strong></div>
-          <div class="kpi"><span id="totalLabel">Сума · DEV</span><strong id="totalKpi">—</strong></div>
+          <div class="kpi price-kpi">
+            <span id="unitPriceLabel">Ед. цена</span>
+            <label class="price-input-wrap work-only" id="unitPriceWorkControl">
+              <input
+                id="unitPriceInput"
+                type="text"
+                inputmode="decimal"
+                placeholder="Въведи цена"
+                aria-label="Единична цена в евро"
+              />
+              <span id="unitPriceSuffix">€/m²</span>
+            </label>
+            <strong id="unitPriceKpi" class="client-price-value">—</strong>
+          </div>
+          <div class="kpi"><span id="totalLabel">Сума</span><strong id="totalKpi">—</strong></div>
         </section>
 
         <div class="info-card" id="offerInfoCard">
@@ -403,11 +427,10 @@ for (const input of [widthInput, lengthInput, heightInput]) {
 }
 
 renderOpeningEditor();
+renderServiceScopeControls();
 renderWallTargets();
 renderOperationAuthoring();
 renderM2Schema(mustGet("m2Schema"), project);
-mustGet("finePuttyRuleId").textContent =
-  getFinePuttyAssignment(project).quantityRuleId;
 viewer.setProject(project);
 syncViewerFocus();
 renderOffer();
@@ -450,6 +473,14 @@ function wireControls(): void {
       viewer.setManualVisibility(id, !nextHidden);
       button.classList.toggle("active", nextHidden);
     });
+  });
+
+  const unitPriceInput = mustGet<HTMLInputElement>("unitPriceInput");
+  unitPriceInput.addEventListener("input", () => {
+    previewSelectedServicePrice(unitPriceInput.value);
+  });
+  unitPriceInput.addEventListener("change", () => {
+    commitSelectedServicePrice(unitPriceInput);
   });
 
   mustGet("offerRows").addEventListener("click", (event) => {
@@ -580,6 +611,7 @@ function renderCanonicalProjectState(): void {
   lengthInput.value = String(project.room.lengthM);
   heightInput.value = String(project.room.heightM);
   renderOpeningEditor();
+  renderServiceScopeControls();
   renderWallTargets();
   renderOperationAuthoring();
   renderM2Schema(mustGet("m2Schema"), project);
@@ -879,9 +911,114 @@ function setOpeningStatus(
   status.dataset.state = state;
 }
 
+function renderServiceScopeControls(): void {
+  const host = mustGet("serviceScopeControls");
+  host.replaceChildren();
+
+  const services = [
+    {
+      assignmentId: FINE_PUTTY_ASSIGNMENT_ID,
+      label: "Фина шпакловка",
+    },
+    {
+      assignmentId: "assignment-laminate-flooring-1",
+      label: "Ламинат",
+    },
+    {
+      assignmentId: gypsumPuttyOperation.assignmentId,
+      label: gypsumPuttyOperation.label,
+    },
+  ];
+
+  for (const service of services) {
+    const assignment = project.serviceAssignments.find(
+      (item) => item.id === service.assignmentId,
+    );
+    const included = assignment?.included ?? false;
+
+    const toggle = document.createElement("label");
+    toggle.className = "service-scope-toggle";
+    toggle.classList.toggle("selected", included);
+    toggle.dataset.serviceScopeId = service.assignmentId;
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = included;
+    checkbox.dataset.serviceInclude = service.assignmentId;
+    checkbox.setAttribute(
+      "aria-label",
+      `Включи ${service.label} в офертата`,
+    );
+
+    const text = document.createElement("span");
+    text.textContent = service.label;
+
+    checkbox.addEventListener("change", () => {
+      if (!currentCapabilities().canAuthorProject) {
+        renderServiceScopeControls();
+        return;
+      }
+
+      let nextProject = getCurrentProjectState(projectHistory);
+      const currentAssignment = nextProject.serviceAssignments.find(
+        (item) => item.id === service.assignmentId,
+      );
+
+      try {
+        if (
+          service.assignmentId === gypsumPuttyOperation.assignmentId &&
+          !currentAssignment &&
+          checkbox.checked
+        ) {
+          nextProject = addOperationAssignment(
+            nextProject,
+            gypsumPuttyOperation,
+          );
+        } else if (currentAssignment) {
+          nextProject = setServiceAssignmentIncluded(
+            nextProject,
+            service.assignmentId,
+            checkbox.checked,
+          );
+        } else {
+          renderServiceScopeControls();
+          return;
+        }
+
+        if (checkbox.checked) {
+          offerInteraction = selectOfferService(service.assignmentId);
+          if (service.assignmentId === gypsumPuttyOperation.assignmentId) {
+            expandedOperationId = gypsumPuttyOperation.assignmentId;
+          }
+        } else {
+          if (offerInteraction.selectedServiceId === service.assignmentId) {
+            offerInteraction = showWholeResult();
+          }
+          if (service.assignmentId === gypsumPuttyOperation.assignmentId) {
+            expandedOperationId = null;
+          }
+        }
+
+        setOperationStatus("");
+        commitCanonicalProject(nextProject);
+      } catch (error) {
+        setOperationStatus(operationErrorMessage(error), "error");
+        renderServiceScopeControls();
+      }
+    });
+
+    toggle.append(checkbox, text);
+    host.append(toggle);
+  }
+}
+
 function renderWallTargets(): void {
   const targetHost = mustGet("wallTargets");
   targetHost.replaceChildren();
+
+  const finePutty = getFinePuttyAssignment(project);
+  mustGet<HTMLElement>("finePuttyTargetsSection").hidden = !finePutty.included;
+  if (!finePutty.included) return;
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -944,30 +1081,15 @@ function renderOperationAuthoring(): void {
   host.replaceChildren();
 
   const assignment = findOperationAssignment(project, gypsumPuttyOperation);
+  const settingsSection = mustGet<HTMLElement>("operationSettingsSection");
 
-  if (!assignment) {
+  if (!assignment || !assignment.included) {
     expandedOperationId = null;
-
-    const addButton = document.createElement("button");
-    addButton.id = "addGypsumPuttyButton";
-    addButton.type = "button";
-    addButton.className = "operation-add";
-    addButton.textContent = "Добави гипсова шпакловка";
-    addButton.addEventListener("click", () => {
-      if (!currentCapabilities().canAuthorProject) return;
-
-      const nextProject = addOperationAssignment(
-        getCurrentProjectState(projectHistory),
-        gypsumPuttyOperation,
-      );
-      expandedOperationId = gypsumPuttyOperation.assignmentId;
-      offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
-      setOperationStatus("");
-      commitCanonicalProject(nextProject);
-    });
-    host.append(addButton);
+    settingsSection.hidden = true;
     return;
   }
+
+  settingsSection.hidden = false;
 
   const card = document.createElement("div");
   card.className = "operation-card";
@@ -1021,41 +1143,6 @@ function renderOperationAuthoring(): void {
 
   const editor = document.createElement("div");
   editor.className = "operation-editor";
-
-  const includedRow = document.createElement("label");
-  includedRow.className = "check-row";
-
-  const includedCheckbox = document.createElement("input");
-  includedCheckbox.id = "gypsumPuttyIncluded";
-  includedCheckbox.type = "checkbox";
-  includedCheckbox.checked = assignment.included;
-  includedCheckbox.addEventListener("change", () => {
-    if (!currentCapabilities().canAuthorProject) {
-      renderOperationAuthoring();
-      return;
-    }
-
-    try {
-      const nextProject = setOperationIncluded(
-        getCurrentProjectState(projectHistory),
-        gypsumPuttyOperation,
-        includedCheckbox.checked,
-      );
-      offerInteraction = includedCheckbox.checked
-        ? selectOfferService(gypsumPuttyOperation.assignmentId)
-        : showWholeResult();
-      setOperationStatus("");
-      commitCanonicalProject(nextProject);
-    } catch (error) {
-      setOperationStatus(operationErrorMessage(error), "error");
-      renderOperationAuthoring();
-    }
-  });
-
-  const includedText = document.createElement("span");
-  includedText.textContent = "Включена в офертата";
-  includedRow.append(includedCheckbox, includedText);
-  editor.append(includedRow);
 
   const targetTitle = document.createElement("div");
   targetTitle.className = "operation-target-title";
@@ -1121,27 +1208,7 @@ function renderOperationAuthoring(): void {
   meta.className = "operation-meta";
   meta.textContent = "m² · нето след отвори";
 
-  const removeButton = document.createElement("button");
-  removeButton.id = "removeGypsumPuttyButton";
-  removeButton.type = "button";
-  removeButton.className = "operation-remove";
-  removeButton.textContent = "Премахни";
-  removeButton.addEventListener("click", () => {
-    if (!currentCapabilities().canAuthorProject) return;
-
-    const nextProject = removeOperationAssignment(
-      getCurrentProjectState(projectHistory),
-      gypsumPuttyOperation,
-    );
-    expandedOperationId = null;
-    if (offerInteraction.selectedServiceId === gypsumPuttyOperation.assignmentId) {
-      offerInteraction = showWholeResult();
-    }
-    setOperationStatus("");
-    commitCanonicalProject(nextProject);
-  });
-
-  footer.append(meta, removeButton);
+  footer.append(meta);
   editor.append(footer);
   card.append(editor);
   host.append(card);
@@ -1192,10 +1259,14 @@ function syncViewerFocus(): void {
   chip.replaceChildren();
 }
 
-function renderOffer(): void {
-  const lines = calculateSupportedOfferLines(project);
+function renderOffer(
+  sourceProject: ProjectState = project,
+  priceInputRaw?: string,
+): void {
+  const summary = calculateDynamicOfferSummary(sourceProject);
+  const lines = summary.lines;
   const focusedIds = new Set(
-    getFocusedServiceAssignmentIds(project, offerInteraction),
+    getFocusedServiceAssignmentIds(sourceProject, offerInteraction),
   );
   const rowHost = mustGet("offerRows");
   rowHost.replaceChildren();
@@ -1225,12 +1296,16 @@ function renderOffer(): void {
     meta.className = "offer-meta";
 
     const quantity = document.createElement("span");
-    quantity.textContent = `${formatNumber(line.quantity.value)} m²`;
+    quantity.textContent =
+      `${formatNumber(line.quantity.value)} ${formatQuantityUnit(line.quantity.unit)}`;
+
     const total = document.createElement("span");
     total.className = "offer-total";
-    total.textContent = previewMode
-      ? `${formatMoney(line.totalEur)} € · ТЕСТОВА ЦЕНА`
-      : `${formatMoney(line.totalEur)} € DEV`;
+    total.classList.toggle("missing-price", line.priceStatus === "missing");
+    total.textContent =
+      line.priceStatus === "missing" || line.totalEur === null
+        ? "Цена не е въведена"
+        : `${formatMoney(line.totalEur)} €`;
 
     if (line.assignmentId === FINE_PUTTY_ASSIGNMENT_ID) {
       quantity.id = "quantityText";
@@ -1245,7 +1320,9 @@ function renderOffer(): void {
     rowHost.append(button);
   });
 
-  const detailLine = resolveOfferDetailLine(lines);
+  renderOfferSummary(summary);
+
+  const detailLine = resolveDynamicOfferDetailLine(sourceProject, lines);
   const details = mustGet<HTMLElement>("offerDetailsSection");
   const infoCard = mustGet<HTMLElement>("offerInfoCard");
 
@@ -1258,17 +1335,30 @@ function renderOffer(): void {
   details.hidden = false;
   infoCard.hidden = false;
 
+  const unitLabel = formatQuantityUnit(detailLine.quantity.unit);
   mustGet("quantityKpi").textContent =
-    `${formatNumber(detailLine.quantity.value)} m²`;
-  mustGet("unitPriceLabel").textContent = previewMode
-    ? "Ед. цена · тестова"
-    : "Ед. цена · DEV";
-  mustGet("totalLabel").textContent = previewMode
-    ? "Сума · тестова"
-    : "Сума · DEV";
+    `${formatNumber(detailLine.quantity.value)} ${unitLabel}`;
+  mustGet("unitPriceLabel").textContent = "Ед. цена";
+  mustGet("totalLabel").textContent = "Сума";
+  mustGet("unitPriceSuffix").textContent = `€/${unitLabel}`;
+
+  const unitPriceInput = mustGet<HTMLInputElement>("unitPriceInput");
+  unitPriceInput.dataset.assignmentId = detailLine.assignmentId;
+  unitPriceInput.value =
+    priceInputRaw ??
+    (detailLine.unitPriceEur === null
+      ? ""
+      : formatPriceInputValue(detailLine.unitPriceEur));
+  unitPriceInput.setCustomValidity("");
+
   mustGet("unitPriceKpi").textContent =
-    `${formatMoney(detailLine.price.unitPriceEur)} €/m²`;
-  mustGet("totalKpi").textContent = `${formatMoney(detailLine.totalEur)} €`;
+    detailLine.unitPriceEur === null
+      ? "Цена не е въведена"
+      : `${formatMoney(detailLine.unitPriceEur)} €/${unitLabel}`;
+  mustGet("totalKpi").textContent =
+    detailLine.totalEur === null
+      ? "Цена не е въведена"
+      : `${formatMoney(detailLine.totalEur)} €`;
 
   mustGet("infoTitle").textContent = detailLine.label;
   mustGet("infoWhat").textContent = detailLine.clientInfo.what;
@@ -1277,25 +1367,130 @@ function renderOffer(): void {
   mustGet("infoIncludes").textContent = detailLine.clientInfo.includes;
 }
 
-function resolveOfferDetailLine(
-  lines: OfferLineCalculation[],
-): OfferLineCalculation | null {
+function renderOfferSummary(
+  summary: ReturnType<typeof calculateDynamicOfferSummary>,
+): void {
+  const total = mustGet("offerTotalKpi");
+  const status = mustGet("offerTotalStatus");
+
+  if (summary.lines.length === 0) {
+    total.textContent = "—";
+    total.dataset.state = "empty";
+    status.textContent = "Няма избрани услуги.";
+    status.dataset.state = "empty";
+    return;
+  }
+
+  if (summary.complete) {
+    total.textContent = `${formatMoney(summary.pricedSubtotalEur)} €`;
+    total.dataset.state = "complete";
+    status.textContent = "Всички включени позиции имат цена.";
+    status.dataset.state = "complete";
+    return;
+  }
+
+  const missingCount = summary.missingPriceAssignmentIds.length;
+  total.textContent = "Непълна оферта";
+  total.dataset.state = "incomplete";
+  status.textContent =
+    `${missingCount} ${missingCount === 1 ? "позиция е" : "позиции са"} без цена · ` +
+    `Въведено до момента: ${formatMoney(summary.pricedSubtotalEur)} €`;
+  status.dataset.state = "incomplete";
+}
+
+function resolveDynamicOfferDetailLine(
+  sourceProject: ProjectState,
+  lines: DynamicOfferLineCalculation[],
+): DynamicOfferLineCalculation | null {
   if (offerInteraction.selectedServiceId) {
     return (
-      calculateSupportedOfferLine(
-        project,
+      calculateDynamicOfferLine(
+        sourceProject,
         offerInteraction.selectedServiceId,
       ) ?? null
     );
   }
 
   if (offerInteraction.selectedEntity) {
-    const focusedIds = getFocusedServiceAssignmentIds(project, offerInteraction);
+    const focusedIds = getFocusedServiceAssignmentIds(
+      sourceProject,
+      offerInteraction,
+    );
     if (focusedIds.length !== 1) return null;
-    return calculateSupportedOfferLine(project, focusedIds[0]!) ?? null;
+    return calculateDynamicOfferLine(sourceProject, focusedIds[0]!) ?? null;
   }
 
   return lines[0] ?? null;
+}
+
+function previewSelectedServicePrice(raw: string): void {
+  if (!currentCapabilities().canAuthorProject) return;
+
+  const assignmentId =
+    mustGet<HTMLInputElement>("unitPriceInput").dataset.assignmentId;
+  if (!assignmentId) return;
+
+  const parsed = parseUnitPriceInput(raw);
+  if (parsed === undefined) return;
+
+  const draftProject = setAssignmentUnitPriceEur(
+    project,
+    assignmentId,
+    parsed,
+  );
+  renderOffer(draftProject, raw);
+}
+
+function commitSelectedServicePrice(input: HTMLInputElement): void {
+  if (!currentCapabilities().canAuthorProject) {
+    renderOffer();
+    return;
+  }
+
+  const assignmentId = input.dataset.assignmentId;
+  if (!assignmentId) return;
+
+  const parsed = parseUnitPriceInput(input.value);
+  if (parsed === undefined) {
+    input.setCustomValidity("Въведете валидна цена в евро.");
+    input.reportValidity();
+    renderOffer();
+    return;
+  }
+
+  input.setCustomValidity("");
+  const nextProject = setAssignmentUnitPriceEur(
+    getCurrentProjectState(projectHistory),
+    assignmentId,
+    parsed,
+  );
+  commitCanonicalProject(nextProject);
+}
+
+function parseUnitPriceInput(raw: string): number | null | undefined {
+  const trimmed = raw.trim();
+  if (trimmed === "") return null;
+
+  const value = Number(trimmed.replace(",", "."));
+  if (!Number.isFinite(value) || value < 0) return undefined;
+  return value;
+}
+
+function formatQuantityUnit(unit: QuantityUnit): string {
+  switch (unit) {
+    case "m2":
+      return "m²";
+    case "lm":
+      return "л.м.";
+    case "count":
+      return "бр.";
+    case "point":
+      return "точка";
+    case "set":
+      return "комплект";
+    case "fixed":
+      return "общо";
+  }
 }
 
 function currentCapabilities() {
@@ -1319,6 +1514,10 @@ function formatMoney(value: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
+}
+
+function formatPriceInputValue(value: number): string {
+  return value.toFixed(2).replace(".", ",");
 }
 
 function escapeHtml(value: string): string {

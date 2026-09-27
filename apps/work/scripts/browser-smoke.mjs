@@ -828,23 +828,21 @@ async function runWorkSmoke() {
       "P3.3b: Undo/Redo should start disabled on a clean untouched project",
     );
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
-    await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#quantityTextLaminate").textContent.includes("m²")', "Work P3.1c: Laminate offer row is missing");
-
-    const finePuttyFocusedView = await captureElement(session, "#viewer canvas");
-    await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
-    await delay(120);
-    await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && !document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Laminate row did not become the focused offer position");
-    await assertEval(session, 'document.querySelector("#selectionChip").textContent.includes("Ламинат")', "Work P3.1c: Laminate focus is not visible");
-    await assertEval(session, 'document.querySelector("#quantityKpi").textContent.includes("20,16") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Work P3.1c: Laminate quantity/Info is not synchronized");
-    await waitForNextPaint(session);
-    const laminateFocusedView = await captureElement(session, "#viewer canvas");
-    assertScreenshotChanged(
-      finePuttyFocusedView,
-      laminateFocusedView,
-      "Work P3.1c: Offer → Model Laminate focus did not change the model presentation",
+    await assertEval(
+      session,
+      '!document.querySelector("#serviceRowLaminate") && !document.querySelector("[data-service-include=assignment-laminate-flooring-1]").checked',
+      "P3.4b scope: Laminate must not be in a new offer until explicitly selected",
     );
-    await evaluate(session, 'document.querySelector("#serviceRow").click()');
-    await assertEval(session, 'document.querySelector("#serviceRow").classList.contains("selected")', "Work P3.1c: Fine Putty focus could not be restored");
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("Цена не е въведена") && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта") && document.querySelector("#offerTotalStatus").textContent.includes("1 позиция")',
+      "P3.4b: only included services may make the offer incomplete",
+    );
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display !== "none" && getComputedStyle(document.querySelector("#unitPriceKpi")).display === "none"',
+      "P3.4b: Work should expose the price input and hide the client-only price value",
+    );
 
     const beforeViewerInput = await captureElement(session, "#viewer canvas");
     await smokeViewerInput(session);
@@ -866,16 +864,58 @@ async function runWorkSmoke() {
       "P3.3b: viewer-only interaction incorrectly entered project history",
     );
 
-    await assertEval(
+    const finePuttyFocusedView = await captureElement(session, "#viewer canvas");
+    await evaluate(
       session,
-      'Boolean(document.querySelector("#addGypsumPuttyButton"))',
-      "P3.3c: gypsum putty add control is missing",
+      '(() => { const input = document.querySelector("[data-service-include=assignment-laminate-flooring-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
-    await evaluate(session, 'document.querySelector("#addGypsumPuttyButton").click()');
     await delay(100);
     await assertEval(
       session,
-      `Boolean(document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")`,
+      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#offerTotalStatus").textContent.includes("2 позиции")',
+      "P3.4b scope: selecting Laminate did not add it to the offer and missing-price count",
+    );
+    await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
+    await delay(120);
+    await assertEval(
+      session,
+      'document.querySelector("#serviceRowLaminate").classList.contains("selected") && document.querySelector("#quantityKpi").textContent.includes("20,16") && document.querySelector("#infoTitle").textContent.includes("Ламинат")',
+      "P3.1c/P3.4b: selected Laminate is not synchronized with the offer/model",
+    );
+    await waitForNextPaint(session);
+    const laminateFocusedView = await captureElement(session, "#viewer canvas");
+    assertScreenshotChanged(
+      finePuttyFocusedView,
+      laminateFocusedView,
+      "P3.1c/P3.4b: selected Laminate did not change model presentation",
+    );
+    await saveScreenshot(session, "/tmp/p31d-laminate-desktop.png");
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-laminate-flooring-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(100);
+    await assertEval(
+      session,
+      '!document.querySelector("#serviceRowLaminate") && document.querySelector("#offerTotalStatus").textContent.includes("1 позиция")',
+      "P3.4b scope: deselected Laminate still affects the offer",
+    );
+    await evaluate(session, 'document.querySelector("#serviceRow").click()');
+
+    await assertEval(
+      session,
+      '!document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked && !document.querySelector("[data-service-id=assignment-gypsum-putty-1]")',
+      "P3.4b scope: gypsum putty must start outside the offer",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-gypsum-putty-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(100);
+    await assertEval(
+      session,
+      `Boolean(document.querySelector("[data-service-id=assignment-gypsum-putty-1]")) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")`,
       "P3.3c: adding gypsum putty did not create a calculated focused offer line",
     );
     await assertEval(
@@ -921,12 +961,15 @@ async function runWorkSmoke() {
       `document.querySelector("#quantityKpi").textContent.includes("34,56") && !document.querySelector('[data-operation-target="room-1.wall-front"]').checked`,
       "P3.3c: Redo did not restore gypsum putty target edit",
     );
-    await evaluate(session, 'document.querySelector("#removeGypsumPuttyButton").click()');
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-gypsum-putty-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
     await delay(80);
     await assertEval(
       session,
-      `Boolean(document.querySelector("#addGypsumPuttyButton")) && !document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')`,
-      "P3.3c: removing gypsum putty did not remove the Work assignment and offer line",
+      `!document.querySelector("[data-service-id=assignment-gypsum-putty-1]") && !document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked`,
+      "P3.4b scope: deselecting gypsum putty did not remove it from the offer",
     );
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
     await assertEval(
@@ -950,11 +993,6 @@ async function runWorkSmoke() {
       "P3.3b: authoring change did not enable Undo",
     );
 
-    await assertEval(
-      session,
-      'document.querySelector("#finePuttyRuleId").textContent === "wall-net-area-openings-v1"',
-      "P3.2d: Work UI reports the wrong Fine Putty quantity rule",
-    );
     await assertEval(
       session,
       `Boolean(document.querySelector('[data-opening-id="room-1.window-1"][data-opening-field="widthM"]')) && Boolean(document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]'))`,
@@ -1014,6 +1052,43 @@ async function runWorkSmoke() {
       session,
       `document.querySelector("#quantityText").textContent.includes("44,00") && document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]').value !== "99"`,
       "P3.2d: invalid opening edit mutated canonical geometry or quantity",
+    );
+
+    await evaluate(session, 'document.querySelector("#serviceRow").click()');
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#unitPriceInput"); input.value = "6.5"; input.dispatchEvent(new Event("input", { bubbles: true })); })()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#totalKpi").textContent.includes("286,00") && document.querySelector("#offerTotalKpi").textContent.includes("286,00") && document.querySelector("#offerTotalStatus").textContent.includes("Всички включени позиции")',
+      "P3.4b: selected-service price did not complete the offer correctly",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("#unitPriceInput").dispatchEvent(new Event("change", { bubbles: true }))',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#unitPriceInput").value === "6,50" && document.querySelector("#lineTotalText").textContent.includes("286,00")',
+      "P3.4b: confirmed EUR price did not remain in canonical Work state",
+    );
+
+    await evaluate(session, 'document.querySelector("#undoProjectButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("Цена не е въведена") && document.querySelector("#unitPriceInput").value === ""',
+      "P3.4b: Undo did not restore the missing-price state",
+    );
+    await evaluate(session, 'document.querySelector("#redoProjectButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#unitPriceInput").value === "6,50"',
+      "P3.4b: Redo did not restore the entered EUR price",
     );
 
     await evaluate(
@@ -1097,6 +1172,11 @@ async function runWorkSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display !== "none"', "Work preview: owner return control is missing");
     await assertEval(
       session,
+      'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && getComputedStyle(document.querySelector("#unitPriceKpi")).display !== "none" && document.querySelector("#unitPriceKpi").textContent.includes("6,50") && document.querySelector("#totalKpi").textContent.includes("286,00")',
+      "P3.4b: Client Preview did not keep pricing read-only and visible",
+    );
+    await assertEval(
+      session,
       'document.querySelector("#projectBarStatus").textContent.includes("Има промени")',
       "Work preview: dirty project state was lost while persistence controls were hidden",
     );
@@ -1117,9 +1197,31 @@ async function runMobileWorkSmoke() {
     await assertMobileLayout(session, "Work");
     await assertEval(
       session,
-      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#serviceRowLaminate").getBoundingClientRect().height >= 44',
-      "Mobile Work P3.1c: Laminate row is missing or too small for touch",
+      'Array.from(document.querySelectorAll(".service-scope-toggle")).length === 3 && Array.from(document.querySelectorAll(".service-scope-toggle")).every((el) => el.getBoundingClientRect().height >= 44) && !document.querySelector("#serviceRowLaminate")',
+      "Mobile P3.4b scope: service check controls are missing, too small, or Laminate is included by default",
     );
+    await evaluate(
+      session,
+      'document.querySelector("#serviceScopeControls").scrollIntoView({ block: "start", behavior: "instant" })',
+    );
+    await delay(100);
+    await saveScreenshot(session, "/tmp/p34b-service-scope-mobile.png");
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-fine-putty-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelectorAll("#offerRows .offer-row").length === 0 && document.querySelector("#offerTotalKpi").textContent.trim() === "—" && document.querySelector("#offerTotalStatus").textContent.includes("Няма избрани услуги")',
+      "Mobile P3.4b scope: empty service scope is incorrectly treated as an incomplete offer",
+    );
+    await saveScreenshot(session, "/tmp/p34b-empty-service-scope-mobile.png");
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-fine-putty-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
     await assertEval(
       session,
       '["#undoProjectButton", "#redoProjectButton"].every((selector) => document.querySelector(selector)?.getBoundingClientRect().height >= 44)',
@@ -1127,15 +1229,58 @@ async function runMobileWorkSmoke() {
     );
     await assertEval(
       session,
-      'document.querySelector("#addGypsumPuttyButton")?.getBoundingClientRect().height >= 44',
-      "Mobile P3.3c: gypsum putty add control is missing or too small",
+      '!document.querySelector("[data-service-include=assignment-laminate-flooring-1]").checked && !document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked',
+      "Mobile P3.4b scope: optional services must start deselected",
     );
-    await evaluate(session, 'document.querySelector("#addGypsumPuttyButton").click()');
+    await assertEval(
+      session,
+      'document.querySelector("#unitPriceInput")?.getBoundingClientRect().height >= 44 && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта")',
+      "Mobile P3.4b: price input is missing, too small, or incomplete total is not visible",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#unitPriceInput"); input.value = "6.5"; input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await evaluate(
+      session,
+      'document.querySelector("#offerDetailsSection").scrollIntoView({ block: "center", behavior: "instant" })',
+    );
+    await delay(100);
+    await saveScreenshot(session, "/tmp/p34b-dynamic-pricing-mobile.png");
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-laminate-flooring-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
     await delay(80);
     await assertEval(
       session,
-      'document.querySelector("#removeGypsumPuttyButton")?.getBoundingClientRect().height >= 44 && Array.from(document.querySelectorAll("#operationAuthoring .check-row")).every((el) => el.getBoundingClientRect().height >= 44)',
-      "Mobile P3.3c: gypsum putty authoring controls are below the 44px touch target",
+      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта")',
+      "Mobile P3.4b scope: selected Laminate did not enter the offer",
+    );
+    await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
+    await delay(80);
+    await saveScreenshot(session, "/tmp/p31d-laminate-mobile-client.png");
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-laminate-flooring-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      '!document.querySelector("#serviceRowLaminate") && document.querySelector("#offerTotalKpi").textContent.includes("283,34")',
+      "Mobile P3.4b scope: deselected Laminate still blocks the completed offer",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-gypsum-putty-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#gypsumPuttySummaryButton")?.getBoundingClientRect().height >= 44 && Array.from(document.querySelectorAll("#operationAuthoring .check-row")).every((el) => el.getBoundingClientRect().height >= 44)',
+      "Mobile P3.3c/P3.4b: gypsum putty settings are below the 44px touch target",
     );
     await evaluate(session, 'document.querySelector("#gypsumPuttySummaryButton").click()');
     await delay(80);
@@ -1152,7 +1297,10 @@ async function runMobileWorkSmoke() {
     await saveScreenshot(session, "/tmp/p33c-gypsum-authoring-mobile.png");
     await evaluate(session, 'document.querySelector("#gypsumPuttySummaryButton").click()');
     await delay(60);
-    await evaluate(session, 'document.querySelector("#removeGypsumPuttyButton").click()');
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-gypsum-putty-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
     await delay(80);
     await assertEval(
       session,
@@ -1246,8 +1394,13 @@ async function runMobileClientSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Mobile Client: authoring panel is visible");
     await assertEval(
       session,
-      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#serviceRowLaminate").getBoundingClientRect().height >= 44',
-      "Mobile Client P3.1c: Laminate row is missing or too small for touch",
+      'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта")',
+      "Mobile Client P3.4b: editable pricing leaked or incomplete total is missing",
+    );
+    await assertEval(
+      session,
+      '!document.querySelector("#serviceRowLaminate")',
+      "Mobile Client P3.4b scope: unselected Laminate leaked into the Client offer",
     );
     await assertMobileLayout(session, "Client");
     await evaluate(session, 'document.querySelector("#showAllBtn").click()');
@@ -1256,9 +1409,7 @@ async function runMobileClientSmoke() {
     await evaluate(session, 'document.querySelector("#autoCutawayBtn").click()');
     await delay(120);
     await saveScreenshot(session, "/tmp/vertical-slice-mobile-client.png");
-    await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
-    await delay(160);
-    await saveScreenshot(session, "/tmp/p31d-laminate-mobile-client.png");
+
     await smokeViewerTouch(session);
     throwBrowserErrors(session);
   } finally {
@@ -1281,13 +1432,21 @@ async function runDirectClientSmoke() {
       'getComputedStyle(document.querySelector(".openings-section")).display === "none"',
       "Client P3.2d: opening authoring controls leaked into Client mode",
     );
-    await assertEval(session, 'document.querySelector("#lineTotalText").textContent.includes("ТЕСТОВА ЦЕНА")', "Client: prototype price is not clearly marked as test price");
-    await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate"))', "Client P3.1c: Laminate offer row is missing");
-    await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
-    await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Client P3.1c: Laminate interaction is not available in read-only Client view");
-    await delay(160);
-    await saveScreenshot(session, "/tmp/p31d-laminate-desktop.png");
-    await evaluate(session, 'document.querySelector("#serviceRow").click()');
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("Цена не е въведена") && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта")',
+      "Client P3.4b: missing prices are not clearly presented as incomplete",
+    );
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && getComputedStyle(document.querySelector("#unitPriceKpi")).display !== "none" && document.querySelector("#unitPriceKpi").textContent.includes("Цена не е въведена")',
+      "Client P3.4b: price editor leaked into read-only Client mode",
+    );
+    await assertEval(
+      session,
+      '!document.querySelector("#serviceRowLaminate") && getComputedStyle(document.querySelector("#serviceScopeControls").closest(".work-only")).display === "none"',
+      "Client P3.4b scope: unselected Laminate leaked into the offer or Work scope controls are visible",
+    );
 
     const originalWidth = await evaluate(session, 'document.querySelector("#widthInput").value');
     await evaluate(session, '(() => { const input = document.querySelector("#widthInput"); input.value = "99"; input.dispatchEvent(new Event("change", { bubbles: true })); })()');

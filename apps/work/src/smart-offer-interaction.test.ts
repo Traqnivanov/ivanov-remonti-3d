@@ -37,6 +37,7 @@ describe("Smart Offer core interaction loop", () => {
 
   it("Offer → Model highlights only the floor for Laminate", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
     const interaction = selectOfferService(LAMINATE_ASSIGNMENT_ID);
 
     expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
@@ -60,6 +61,7 @@ describe("Smart Offer core interaction loop", () => {
 
   it("Model → Offer resolves Laminate for the floor", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
     const interaction = selectModelEntity(project, "room-1.floor");
 
     expect(interaction.selectedServiceId).toBe(LAMINATE_ASSIGNMENT_ID);
@@ -83,6 +85,7 @@ describe("Smart Offer core interaction loop", () => {
 
   it("does not silently choose one service if multiple assignments target the same entity", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
     project.serviceAssignments.push({
       id: "assignment-second-floor-service",
       serviceCode: "second-floor-service",
@@ -104,6 +107,7 @@ describe("Smart Offer core interaction loop", () => {
 
   it("exits focus mode without mutating project quantity or price", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
     const fineQuantity = calculateFinePuttyQuantity(project);
     const fineTotal = calculateLineTotalEur(fineQuantity, devPriceBookItem);
     const floorQuantity = calculateLaminateFlooringQuantity(project);
@@ -153,6 +157,7 @@ describe("Smart Offer core interaction loop", () => {
 describe("Laminate floor presentation state", () => {
   it("shows the Laminate result for Laminate focus and whole-result mode", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
 
     expect(
       shouldShowLaminateFloor(
@@ -176,6 +181,7 @@ describe("Laminate floor presentation state", () => {
 
   it("shows Laminate when the linked floor itself is selected", () => {
     const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
 
     expect(
       shouldShowLaminateFloor(
