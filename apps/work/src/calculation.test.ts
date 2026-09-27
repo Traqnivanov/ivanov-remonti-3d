@@ -18,12 +18,15 @@ import {
 import {
   createDefaultProject,
   createOpeningProofProject,
+  findFinePuttyCeilingAssignment,
   getFinePuttyAssignment,
   getLaminateFlooringAssignment,
 } from "./domain";
 import {
   addOperationAssignment,
+  addOperationScopeAssignments,
   findOperationAssignment,
+  findOperationCeilingAssignment,
   gypsumPuttyOperation,
   paintOperation,
   primerOperation,
@@ -242,13 +245,19 @@ describe("supported offer line bridge", () => {
 
     expect(lines.map((line) => line.assignmentId)).toEqual([
       "assignment-fine-putty-1",
+      "assignment-fine-putty-ceiling-1",
       "assignment-laminate-flooring-1",
     ]);
     expect(lines[0]!.quantity.value).toBeCloseTo(
       calculateFinePuttyQuantity(project).value,
       8,
     );
+    expect(lines[1]!.quantity.ruleId).toBe("ceiling-area-v1");
     expect(lines[1]!.quantity.value).toBeCloseTo(
+      project.room.widthM * project.room.lengthM,
+      8,
+    );
+    expect(lines[2]!.quantity.value).toBeCloseTo(
       calculateLaminateFlooringQuantity(project).value,
       8,
     );
@@ -380,6 +389,70 @@ describe("P3.5a wall finishing core", () => {
 });
 
 
+describe("P3.5b ceiling finishing scope", () => {
+  it("calculates ceiling area from room width × length and ignores wall openings/height", () => {
+    const project = createOpeningProofProject("p35b-ceiling-quantity");
+    const ceiling = findFinePuttyCeilingAssignment(project);
+    expect(ceiling).toBeDefined();
+
+    const before = calculateAssignmentQuantity(project, ceiling!);
+    expect(before?.ruleId).toBe("ceiling-area-v1");
+    expect(before?.value).toBeCloseTo(4.2 * 4.8, 8);
+    expect(before?.sourceEntityIds).toEqual(["room-1.ceiling"]);
+
+    project.room.heightM = 3.5;
+    project.room.openings.push({
+      id: "room-1.window-extra",
+      kind: "window",
+      hostSurfaceId: "room-1.wall-back",
+      widthM: 1,
+      heightM: 1,
+      offsetM: 1,
+      sillM: 1,
+    });
+
+    const unchanged = calculateAssignmentQuantity(project, ceiling!);
+    expect(unchanged?.value).toBeCloseTo(4.2 * 4.8, 8);
+
+    project.room.widthM = 5;
+    const resized = calculateAssignmentQuantity(project, ceiling!);
+    expect(resized?.value).toBeCloseTo(5 * 4.8, 8);
+  });
+
+  it("keeps wall and ceiling prices independent for the same real Paint service", () => {
+    let project = addOperationScopeAssignments(
+      createDefaultProject("p35b-paint-prices"),
+      paintOperation,
+    );
+    const ceiling = findOperationCeilingAssignment(project, paintOperation);
+    expect(ceiling).toBeDefined();
+
+    project = setAssignmentUnitPriceEur(
+      project,
+      paintOperation.assignmentId,
+      4.25,
+    );
+    project = setAssignmentUnitPriceEur(
+      project,
+      paintOperation.ceilingAssignmentId,
+      5.5,
+    );
+
+    const wallLine = calculateDynamicOfferLine(
+      project,
+      paintOperation.assignmentId,
+    );
+    const ceilingLine = calculateDynamicOfferLine(
+      project,
+      paintOperation.ceilingAssignmentId,
+    );
+
+    expect(wallLine?.totalEur).toBeCloseTo(46.8 * 4.25, 8);
+    expect(ceilingLine?.quantity.value).toBeCloseTo(20.16, 8);
+    expect(ceilingLine?.totalEur).toBeCloseTo(20.16 * 5.5, 8);
+  });
+});
+
 describe("P3.4 dynamic per-offer pricing", () => {
   it("treats a missing price as missing, never as zero", () => {
     const project = createDefaultProject("dynamic-price-missing");
@@ -411,6 +484,11 @@ describe("P3.4 dynamic per-offer pricing", () => {
       "assignment-laminate-flooring-1",
       8.25,
     );
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-ceiling-1",
+      7.25,
+    );
 
     const finePutty = calculateDynamicOfferLine(
       project,
@@ -426,7 +504,7 @@ describe("P3.4 dynamic per-offer pricing", () => {
     expect(finePutty?.totalEur).toBeCloseTo(46.8 * 6.5, 8);
     expect(laminate?.totalEur).toBeCloseTo(20.16 * 8.25, 8);
     expect(summary.pricedSubtotalEur).toBeCloseTo(
-      46.8 * 6.5 + 20.16 * 8.25,
+      46.8 * 6.5 + 20.16 * 7.25 + 20.16 * 8.25,
       8,
     );
     expect(summary.complete).toBe(true);
