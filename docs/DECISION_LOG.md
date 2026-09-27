@@ -694,3 +694,26 @@ Active behavior:
 - mark the room/offer total as incomplete while an included service is missing its required price;
 - do not present a misleading final total;
 - entering a valid EUR price immediately recalculates the line and overall total.
+
+## 27.09.2026 — P3.5 begins with wall finishing; wall and ceiling remain separate priced scopes
+
+**Owner decision:** after the P3.5 source/implementation audit, the first implementation slice is deliberately bounded.
+
+P3.5a:
+- wall targets only;
+- add separate real operations **Шлайфане → Грунд → Боядисване**;
+- reuse the existing generic operation authoring, quantity, dynamic EUR pricing, persistence, Undo/Redo and Offer ↔ Model mechanisms;
+- preserve independent service inclusion;
+- preserve compact mobile-first authoring;
+- do not include ceiling authoring, plaster or reinforced/base putty in this first slice.
+
+Durable quantity/price rule for the later ceiling step:
+- the same real operation may apply to walls and ceiling;
+- wall and ceiling work must not be forced into one priced scope when their unit prices can differ;
+- the product must support separate wall/ceiling quantity + unit price/offer scope without falsely turning them into different catalog services.
+
+Reason:
+the service source explicitly distinguishes ceilings as more labor-intensive, while the current price model has one unit price per offer line. A single mixed wall+ceiling line would therefore risk incorrect quote truth.
+
+This is an application of the Uniqueness Interrupt Gate: extend the existing service→target→quantity→price mechanism rather than adding a superficial ceiling checkbox that creates pricing ambiguity.
+
