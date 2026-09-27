@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setAssignmentUnitPriceEur } from "./calculation";
 import { createDefaultProject, createOpeningProofProject, findLaminateFlooringAssignment, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
 import {
   addOperationAssignment,
@@ -49,6 +50,37 @@ describe("project persistence boundary", () => {
     const restored = deserializeProjectState(serializeProjectState(project));
 
     expect(restored).toEqual(project);
+  });
+
+  it("round-trips an entered EUR unit price and keeps blank distinct from zero", () => {
+    let project = createDefaultProject("price-round-trip");
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-1",
+      6.75,
+    );
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-laminate-flooring-1",
+      0,
+    );
+
+    const restored = deserializeProjectState(serializeProjectState(project));
+
+    expect(
+      getFinePuttyAssignment(restored).unitPriceEur,
+    ).toBe(6.75);
+    expect(
+      getLaminateFlooringAssignment(restored).unitPriceEur,
+    ).toBe(0);
+
+    const blankProject = createDefaultProject("price-blank");
+    const blankRestored = deserializeProjectState(
+      serializeProjectState(blankProject),
+    );
+    expect(
+      getFinePuttyAssignment(blankRestored).unitPriceEur,
+    ).toBeUndefined();
   });
 
   it("round-trips canonical door and window openings with stable ids", () => {

@@ -4,8 +4,11 @@ import {
   calculateFinePuttyQuantity,
   calculateLaminateFlooringQuantity,
   calculateLineTotalEur,
+  calculateDynamicOfferLine,
+  calculateDynamicOfferSummary,
   calculateSupportedOfferLine,
   calculateSupportedOfferLines,
+  setAssignmentUnitPriceEur,
   devGypsumPuttyPriceBookItem,
   devLaminateFlooringPriceBookItem,
   devPriceBookItem,
@@ -312,5 +315,146 @@ describe("gypsum putty proof operation", () => {
     expect(line?.quantity.value).toBeCloseTo(46.8 - 1.89 - 1.32, 8);
     expect(line?.price.id).toBe(devGypsumPuttyPriceBookItem.id);
     expect(line?.totalEur).toBeCloseTo(line!.quantity.value, 8);
+  });
+});
+
+
+describe("P3.4 dynamic per-offer pricing", () => {
+  it("treats a missing price as missing, never as zero", () => {
+    const project = createDefaultProject("dynamic-price-missing");
+    const line = calculateDynamicOfferLine(
+      project,
+      "assignment-fine-putty-1",
+    );
+    const summary = calculateDynamicOfferSummary(project);
+
+    expect(line?.priceStatus).toBe("missing");
+    expect(line?.unitPriceEur).toBeNull();
+    expect(line?.totalEur).toBeNull();
+    expect(summary.complete).toBe(false);
+    expect(summary.missingPriceAssignmentIds).toContain(
+      "assignment-fine-putty-1",
+    );
+  });
+
+  it("recalculates line and offer totals from the entered EUR unit price", () => {
+    let project = createDefaultProject("dynamic-price-entered");
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-1",
+      6.5,
+    );
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-laminate-flooring-1",
+      8.25,
+    );
+
+    const finePutty = calculateDynamicOfferLine(
+      project,
+      "assignment-fine-putty-1",
+    );
+    const laminate = calculateDynamicOfferLine(
+      project,
+      "assignment-laminate-flooring-1",
+    );
+    const summary = calculateDynamicOfferSummary(project);
+
+    expect(finePutty?.priceStatus).toBe("priced");
+    expect(finePutty?.totalEur).toBeCloseTo(46.8 * 6.5, 8);
+    expect(laminate?.totalEur).toBeCloseTo(20.16 * 8.25, 8);
+    expect(summary.pricedSubtotalEur).toBeCloseTo(
+      46.8 * 6.5 + 20.16 * 8.25,
+      8,
+    );
+    expect(summary.complete).toBe(true);
+    expect(summary.missingPriceAssignmentIds).toEqual([]);
+  });
+
+  it("updates totals immediately when the entered price changes", () => {
+    let project = createDefaultProject("dynamic-price-change");
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-1",
+      5,
+    );
+    const before = calculateDynamicOfferLine(
+      project,
+      "assignment-fine-putty-1",
+    );
+
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-1",
+      7,
+    );
+    const after = calculateDynamicOfferLine(
+      project,
+      "assignment-fine-putty-1",
+    );
+
+    expect(before?.totalEur).toBeCloseTo(46.8 * 5, 8);
+    expect(after?.totalEur).toBeCloseTo(46.8 * 7, 8);
+  });
+
+  it("can deliberately store 0 EUR while still distinguishing it from blank", () => {
+    let project = createDefaultProject("dynamic-price-zero");
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-1",
+      0,
+    );
+
+    const line = calculateDynamicOfferLine(
+      project,
+      "assignment-fine-putty-1",
+    );
+
+    expect(line?.priceStatus).toBe("priced");
+    expect(line?.unitPriceEur).toBe(0);
+    expect(line?.totalEur).toBe(0);
+  });
+
+  it("clears an entered price back to the missing-price state", () => {
+    let project = createDefaultProject("dynamic-price-clear");
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-1",
+      6,
+    );
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-1",
+      null,
+    );
+
+    const line = calculateDynamicOfferLine(
+      project,
+      "assignment-fine-putty-1",
+    );
+
+    expect(line?.priceStatus).toBe("missing");
+    expect(line?.unitPriceEur).toBeNull();
+    expect(line?.totalEur).toBeNull();
+  });
+
+  it("rejects negative and non-finite EUR prices", () => {
+    const project = createDefaultProject("dynamic-price-invalid");
+
+    expect(() =>
+      setAssignmentUnitPriceEur(
+        project,
+        "assignment-fine-putty-1",
+        -1,
+      ),
+    ).toThrow("Unit price must be a non-negative finite EUR amount.");
+
+    expect(() =>
+      setAssignmentUnitPriceEur(
+        project,
+        "assignment-fine-putty-1",
+        Number.NaN,
+      ),
+    ).toThrow("Unit price must be a non-negative finite EUR amount.");
   });
 });

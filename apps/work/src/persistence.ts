@@ -50,6 +50,7 @@ export type PersistedServiceAssignmentV1 = {
   included: boolean;
   quantityRuleId: string;
   priceBookItemId?: string;
+  unitPriceEur?: number;
   presentationMode: "highlight" | "material" | "geometry" | "xray" | "object";
   clientInfo?: {
     what: string;
@@ -110,6 +111,9 @@ export function serializeProjectState(project: ProjectState): PersistedProjectV1
       ...(assignment.priceBookItemId
         ? { priceBookItemId: assignment.priceBookItemId }
         : {}),
+      ...(assignment.unitPriceEur === undefined
+        ? {}
+        : { unitPriceEur: assignment.unitPriceEur }),
       presentationMode: assignment.presentationMode,
       ...(assignment.clientInfo
         ? { clientInfo: { ...assignment.clientInfo } }
@@ -396,6 +400,11 @@ function validateAssignment(raw: unknown, index: number): PersistedServiceAssign
       ? undefined
       : expectNonEmptyString(assignment.priceBookItemId, `${path}.priceBookItemId`);
 
+  const unitPriceEur =
+    assignment.unitPriceEur === undefined
+      ? undefined
+      : expectNonNegativeNumber(assignment.unitPriceEur, `${path}.unitPriceEur`);
+
   const clientInfo =
     assignment.clientInfo === undefined
       ? undefined
@@ -415,6 +424,7 @@ function validateAssignment(raw: unknown, index: number): PersistedServiceAssign
       `${path}.quantityRuleId`,
     ),
     ...(priceBookItemId ? { priceBookItemId } : {}),
+    ...(unitPriceEur === undefined ? {} : { unitPriceEur }),
     presentationMode: mode,
     ...(clientInfo ? { clientInfo } : {}),
   };
@@ -493,6 +503,9 @@ function toRuntimeServiceAssignment(
     ...(assignment.priceBookItemId
       ? { priceBookItemId: assignment.priceBookItemId }
       : {}),
+    ...(assignment.unitPriceEur === undefined
+      ? {}
+      : { unitPriceEur: assignment.unitPriceEur }),
     presentationMode: assignment.presentationMode,
     ...(assignment.clientInfo
       ? { clientInfo: { ...assignment.clientInfo } }
