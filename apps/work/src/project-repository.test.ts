@@ -32,6 +32,9 @@ describe("Project repository contract", () => {
     expect(draft.title).toBe("Апартамент Иванови");
     expect(draft.project.projectId).toBe("project-uuid-1");
     expect(draft.project.schemaVersion).toBe(1);
+    expect(
+      draft.project.serviceAssignments.every((assignment) => !assignment.included),
+    ).toBe(true);
   });
 
   it("rejects a blank project title before repository I/O", () => {
