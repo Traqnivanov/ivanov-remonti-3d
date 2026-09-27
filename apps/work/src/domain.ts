@@ -55,6 +55,7 @@ export type ServiceAssignment = {
   included: boolean;
   quantityRuleId: string;
   priceBookItemId?: string;
+  unitPriceEur?: number;
   presentationMode: ServicePresentationMode;
   clientInfo?: ClientInfo;
 };
