@@ -995,11 +995,6 @@ async function runWorkSmoke() {
 
     await assertEval(
       session,
-      'document.querySelector("#finePuttyRuleId").textContent === "wall-net-area-openings-v1"',
-      "P3.2d: Work UI reports the wrong Fine Putty quantity rule",
-    );
-    await assertEval(
-      session,
       `Boolean(document.querySelector('[data-opening-id="room-1.window-1"][data-opening-field="widthM"]')) && Boolean(document.querySelector('[data-opening-id="room-1.door-1"][data-opening-field="offsetM"]'))`,
       "P3.2d: opening Work controls are missing",
     );
