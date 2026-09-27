@@ -230,4 +230,4 @@ Legacy `ivanov-tools/offer.html` remains workflow reference only. Its old prices
 
 The former blocker “choose starting Price Book values” is **RESOLVED / SUPERSEDED** by Owner decision.
 
-No P3.4 product code has started yet.
+Owner approved the missing-price rule. Next bounded implementation is P3.4a: canonical per-line EUR price state + persistence + calculation foundation, without expanding the visible UI yet.
