@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **PLANNING / AUDIT ONLY; NO IMPLEMENTATION AUTHORIZED YET.**
+**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **P3.5a IMPLEMENTATION AUTHORIZED; BOUNDED WALL-ONLY SLICE.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -13,7 +13,7 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
 - Stable branch: `main`
-- Active feature branch: **none**
+- Active feature branch: **`feat/p3-5a-wall-finishing`**
 - Active PR: **none**
 - Active Current Work Issue: **#21 — P3.5 Real wall/ceiling finishing stack**
 - P3.3: **MERGED / VERIFIED / CLOSED**
@@ -212,9 +212,11 @@ Current Work Issue:
 **#21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack`**
 
 Status:
-**PLANNING / AUDIT ONLY. NO P3.5 IMPLEMENTATION AUTHORIZED YET.**
+**P3.5a IMPLEMENTATION AUTHORIZED — bounded wall-only finishing slice.**
 
 P3.5 direction:
+- **Owner-approved 27.09.2026:** P3.5a first implements wall-only `Шлайфане → Грунд → Боядисване` on the existing generic core;
+- **Owner-approved scope/price rule:** wall and ceiling work are not forced into one priced scope when unit prices can differ; future P3.5b must support separate wall/ceiling quantity + unit price for the same real operation without duplicating it as separate catalog services;
 - real finishing operations, not one generic „Шпакловка“;
 - audit ordinary plaster/leveling, reinforced/base putty, gypsum putty, fine putty, sanding, primer/preparation and paint from approved sources;
 - ceiling becomes a real service target;
@@ -222,8 +224,9 @@ P3.5 direction:
 - client Info must come from approved Ivanov Remonti sources;
 - reuse the merged generic authoring/pricing foundation rather than creating parallel mechanisms.
 
-Non-goals at this first step:
-- no P3.5 code;
+Non-goals for P3.5a:
+- no ceiling authoring yet;
+- no plaster or reinforced/base putty in this slice;
 - no broad service catalog;
 - no Object/Edit Core;
 - no Materials/Colors/Images/Assets implementation;
@@ -236,26 +239,25 @@ Non-goals at this first step:
 
 ## 8. NEXT EXACT STEP
 
-**P3.5 source audit + one concrete bounded proposal only.**
+**P3.5a — implement the approved bounded wall-finishing slice.**
 
-The Work Controller must:
+Exact scope:
 
-1. read `START_HERE.md`;
-2. read this `PROJECT_STATE.md`;
-3. read Current Work Issue #21;
-4. verify actual `main` / HEAD / open PR state;
-5. read only task-relevant permanent contracts:
-   - `docs/MASTER_SPEC.md`
-   - `docs/SERVICE_OPERATION_REGISTRY.md`
-   - `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
-   - `docs/DELIVERY_STRATEGY.md`
-6. audit relevant current `Traqnivanov/Remonti-` service pages + `narachnik/` guides;
-7. use `kalkulator-combined.html` only where a quantity/formula question actually requires it;
-8. identify the real finishing chain/dependencies and current implementation gaps;
-9. propose the **smallest useful P3.5 implementation sequence**;
-10. run full Criteria Check + Uniqueness Interrupt Gate + regression/dependency review;
-11. explain the proposal to Owner in plain Bulgarian;
-12. **STOP for Owner approval before any P3.5 code.**
+1. work only on `feat/p3-5a-wall-finishing`;
+2. reuse the merged generic operation-authoring mechanism;
+3. add separate real wall operations:
+   - Шлайфане;
+   - Грунд;
+   - Боядисване;
+4. wall targets only in P3.5a;
+5. use the existing wall net-area/opening-deduction quantity truth where applicable;
+6. preserve independent service inclusion and dynamic per-offer EUR unit price;
+7. preserve compact mobile authoring, persistence, Undo/Redo and Offer ↔ Model behavior;
+8. add/adjust tests for operation authoring, quantity, pricing/persistence and regression;
+9. run browser/mobile visual verification before requesting review;
+10. **do not implement ceiling, plaster or reinforced/base putty in P3.5a**;
+11. report the exact user-visible result and verification evidence;
+12. **STOP for Work Controller review; no merge without explicit Owner merge approval.**
 
 There is currently:
 - no P3.5 feature branch;
