@@ -5,6 +5,7 @@ import {
   addOperationAssignment,
   findOperationAssignment,
   gypsumPuttyOperation,
+  paintOperation,
   setOperationTargets,
 } from "./operation-authoring";
 import {
@@ -205,6 +206,34 @@ describe("project persistence boundary", () => {
       "room-1.wall-right",
     ]);
     expect(assignment?.clientInfo).toEqual(gypsumPuttyOperation.clientInfo);
+  });
+
+  it("round-trips P3.5a paint scope and entered EUR unit price", () => {
+    let project = addOperationAssignment(
+      createOpeningProofProject("paint-persistence"),
+      paintOperation,
+    );
+    project = setOperationTargets(project, paintOperation, [
+      "room-1.wall-front",
+      "room-1.wall-right",
+    ]);
+    project = setAssignmentUnitPriceEur(
+      project,
+      paintOperation.assignmentId,
+      4.25,
+    );
+
+    const restored = deserializeProjectState(serializeProjectState(project));
+    const assignment = findOperationAssignment(restored, paintOperation);
+
+    expect(assignment?.serviceCode).toBe("paint");
+    expect(assignment?.quantityRuleId).toBe("wall-net-area-openings-v1");
+    expect(assignment?.targetEntityIds).toEqual([
+      "room-1.wall-front",
+      "room-1.wall-right",
+    ]);
+    expect(assignment?.unitPriceEur).toBe(4.25);
+    expect(assignment?.clientInfo).toEqual(paintOperation.clientInfo);
   });
 
   it("preserves stable proof opening ids through persistence", () => {
