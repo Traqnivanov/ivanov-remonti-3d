@@ -238,6 +238,7 @@ let projectSession = options.session
 const projectRepository = options.repository;
 let previewMode = appEntry === "direct-client";
 let offerInteraction = createInitialOfferInteraction();
+let expandedOperationId: string | null = null;
 let autoCutaway = true;
 
 const appNode = document.querySelector<HTMLDivElement>("#app");
@@ -945,6 +946,8 @@ function renderOperationAuthoring(): void {
   const assignment = findOperationAssignment(project, gypsumPuttyOperation);
 
   if (!assignment) {
+    expandedOperationId = null;
+
     const addButton = document.createElement("button");
     addButton.id = "addGypsumPuttyButton";
     addButton.type = "button";
@@ -957,6 +960,7 @@ function renderOperationAuthoring(): void {
         getCurrentProjectState(projectHistory),
         gypsumPuttyOperation,
       );
+      expandedOperationId = gypsumPuttyOperation.assignmentId;
       offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
       setOperationStatus("");
       commitCanonicalProject(nextProject);
@@ -968,33 +972,55 @@ function renderOperationAuthoring(): void {
   const card = document.createElement("div");
   card.className = "operation-card";
 
-  const head = document.createElement("div");
-  head.className = "operation-card-head";
+  const summaryButton = document.createElement("button");
+  summaryButton.id = "gypsumPuttySummaryButton";
+  summaryButton.type = "button";
+  summaryButton.className = "operation-summary";
+
+  const expanded =
+    expandedOperationId === gypsumPuttyOperation.assignmentId;
+  summaryButton.setAttribute("aria-expanded", String(expanded));
+
+  const summaryText = document.createElement("span");
+  summaryText.className = "operation-summary-text";
 
   const title = document.createElement("strong");
   title.textContent = assignment.label;
 
-  const removeButton = document.createElement("button");
-  removeButton.id = "removeGypsumPuttyButton";
-  removeButton.type = "button";
-  removeButton.className = "operation-remove";
-  removeButton.textContent = "Премахни";
-  removeButton.addEventListener("click", () => {
-    if (!currentCapabilities().canAuthorProject) return;
+  const summaryMeta = document.createElement("span");
+  summaryMeta.className = "operation-summary-meta";
+  const wallCount = assignment.targetEntityIds.filter((id) =>
+    wallIds.includes(id as WallId),
+  ).length;
+  summaryMeta.textContent = assignment.included
+    ? `${wallCount} ${wallCount === 1 ? "стена" : "стени"}`
+    : "Изключена";
 
-    const nextProject = removeOperationAssignment(
-      getCurrentProjectState(projectHistory),
-      gypsumPuttyOperation,
-    );
-    if (offerInteraction.selectedServiceId === gypsumPuttyOperation.assignmentId) {
-      offerInteraction = showWholeResult();
-    }
-    setOperationStatus("");
-    commitCanonicalProject(nextProject);
+  summaryText.append(title, summaryMeta);
+
+  const chevron = document.createElement("span");
+  chevron.className = "operation-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+  chevron.textContent = expanded ? "▴" : "▾";
+
+  summaryButton.append(summaryText, chevron);
+  summaryButton.addEventListener("click", () => {
+    expandedOperationId = expanded ? null : gypsumPuttyOperation.assignmentId;
+    offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
+    renderOperationAuthoring();
+    syncViewerFocus();
+    renderOffer();
   });
 
-  head.append(title, removeButton);
-  card.append(head);
+  card.append(summaryButton);
+
+  if (!expanded) {
+    host.append(card);
+    return;
+  }
+
+  const editor = document.createElement("div");
+  editor.className = "operation-editor";
 
   const includedRow = document.createElement("label");
   includedRow.className = "check-row";
@@ -1029,12 +1055,12 @@ function renderOperationAuthoring(): void {
   const includedText = document.createElement("span");
   includedText.textContent = "Включена в офертата";
   includedRow.append(includedCheckbox, includedText);
-  card.append(includedRow);
+  editor.append(includedRow);
 
   const targetTitle = document.createElement("div");
   targetTitle.className = "operation-target-title";
-  targetTitle.textContent = "Стени";
-  card.append(targetTitle);
+  targetTitle.textContent = "Избери стени";
+  editor.append(targetTitle);
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -1085,14 +1111,39 @@ function renderOperationAuthoring(): void {
     const text = document.createElement("span");
     text.textContent = labelById[wallId];
     row.append(checkbox, text);
-    card.append(row);
+    editor.append(row);
   }
 
-  const meta = document.createElement("p");
-  meta.className = "operation-meta";
-  meta.textContent = "m² · нето след отвори · DEV цена";
-  card.append(meta);
+  const footer = document.createElement("div");
+  footer.className = "operation-editor-footer";
 
+  const meta = document.createElement("span");
+  meta.className = "operation-meta";
+  meta.textContent = "m² · нето след отвори";
+
+  const removeButton = document.createElement("button");
+  removeButton.id = "removeGypsumPuttyButton";
+  removeButton.type = "button";
+  removeButton.className = "operation-remove";
+  removeButton.textContent = "Премахни";
+  removeButton.addEventListener("click", () => {
+    if (!currentCapabilities().canAuthorProject) return;
+
+    const nextProject = removeOperationAssignment(
+      getCurrentProjectState(projectHistory),
+      gypsumPuttyOperation,
+    );
+    expandedOperationId = null;
+    if (offerInteraction.selectedServiceId === gypsumPuttyOperation.assignmentId) {
+      offerInteraction = showWholeResult();
+    }
+    setOperationStatus("");
+    commitCanonicalProject(nextProject);
+  });
+
+  footer.append(meta, removeButton);
+  editor.append(footer);
+  card.append(editor);
   host.append(card);
 }
 
