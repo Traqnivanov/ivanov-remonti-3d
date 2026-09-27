@@ -681,7 +681,23 @@ input[type="number"] {
   width: 118px;
   min-height: 40px;
   padding: 7px 9px;
+  border: 1px solid #40536d;
+  border-radius: 8px;
+  background: #111c2e;
+  color: #ffffff;
+  outline: none;
   text-align: right;
+  font-weight: 750;
+}
+
+.price-input-wrap input::placeholder {
+  color: #71839a;
+  font-weight: 500;
+}
+
+.price-input-wrap input:focus {
+  border-color: #e8b84b;
+  box-shadow: 0 0 0 2px rgba(232, 184, 75, .14);
 }
 
 .price-input-wrap > span {
