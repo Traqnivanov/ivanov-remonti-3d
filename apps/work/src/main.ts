@@ -330,14 +330,6 @@ app.innerHTML = `
           <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
         </section>
 
-        <section class="section">
-          <div class="section-title">Quantity source</div>
-          <div class="kpi"><span>Правило</span><strong id="finePuttyRuleId"></strong></div>
-          <div class="kpi"><span>Цена</span><strong>DEV fixture</strong></div>
-          <p style="color:#7688a0;font-size:11px;line-height:1.5;margin:10px 0 0">
-            DEV цената е технически fixture, не production Price Book.
-          </p>
-        </section>
       </aside>
 
       <section class="viewer-wrap">
@@ -439,8 +431,6 @@ renderServiceScopeControls();
 renderWallTargets();
 renderOperationAuthoring();
 renderM2Schema(mustGet("m2Schema"), project);
-mustGet("finePuttyRuleId").textContent =
-  getFinePuttyAssignment(project).quantityRuleId;
 viewer.setProject(project);
 syncViewerFocus();
 renderOffer();
