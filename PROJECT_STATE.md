@@ -214,20 +214,32 @@ The global **Uniqueness Interrupt Gate** applies at every P3.3 checkpoint. If a 
 **P3.4 — Dynamic Price Core + room/offer totals**
 Current Work Issue: #18
 
+### P3.4a — MERGED / VERIFIED
+- PR #19 merged;
+- merge commit: `8aa86bdfe7aae9cd915608487c2c96b551114e67`;
+- CI #326 / `36325256289`: SUCCESS;
+- canonical `unitPriceEur` exists per service assignment;
+- blank price remains missing, not `0 €`;
+- explicit `0 €` remains distinct from blank;
+- dynamic line/offer calculation foundation is in place;
+- entered EUR price persists through Save/Open.
+
 Owner-locked pricing truth:
-- **EUR ONLY**;
-- **NO fixed global product prices**;
-- Work user enters the unit price for the concrete service/offer;
-- changing price updates line total and overall total immediately;
-- entered price is canonical Project State and persists through Save/Open;
-- saved offers do not silently change because of later prices elsewhere;
-- DEV/test fixtures may contain example values only for tests.
+- EUR only;
+- no fixed global product prices;
+- price is entered in Work for the concrete offer/service;
+- saved offer keeps the entered price;
+- test fixtures are not business truth.
 
-Target chain:
-**canonical quantity × entered EUR unit price → line total → room/offer total**
+**CURRENT NEXT: P3.4b — visible Work pricing + live totals.**
 
-Legacy `ivanov-tools/offer.html` remains workflow reference only. Its old prices and BGN logic are not product truth.
+Bounded next:
+1. add mobile-first Work price input for the currently edited service;
+2. update line total immediately from canonical quantity × entered EUR price;
+3. show coherent offer total;
+4. if any included line has no price, show **„Цена не е въведена“** and mark the total incomplete;
+5. Client remains read-only;
+6. price edits enter Undo/Redo and Save/Open;
+7. no new services and no fixed Price Book.
 
-The former blocker “choose starting Price Book values” is **RESOLVED / SUPERSEDED** by Owner decision.
-
-Owner approved the missing-price rule. Next bounded implementation is P3.4a: canonical per-line EUR price state + persistence + calculation foundation, without expanding the visible UI yet.
+No P3.4b implementation has started.
