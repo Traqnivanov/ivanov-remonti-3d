@@ -731,3 +731,20 @@ Active behavior:
 
 Reason:
 manual opt-in for the ceiling adds unnecessary work to normal offer preparation. The default should optimize the common Work flow while preserving exact scope and pricing truth.
+
+
+## 27.09.2026 — Desktop Work redesign is split into D1.1–D1.5 and executed strictly one by one
+
+**Owner decision after live desktop review:** the current Work layout requires too much vertical movement between scheme, services and offer and will not scale to the planned number of controls/services.
+
+Approved desktop direction:
+- Desktop Work becomes a three-zone workbench: **geometry left → persistent 3D center → services/offer right**;
+- the goal is faster real offer preparation, not a generic planner-style redesign;
+- the distinctive mechanism remains the direct link **object/surface → service → scope → quantity → EUR price → Info**;
+- Mobile Work and Client Preview are separate later UX tasks and are not redesigned inside D1.
+
+Approved bounded sequence:
+**D1.1 skeleton → D1.2 left panel → D1.3 right Smart Offer panel → D1.4 contextual 3D↔Work link → D1.5 desktop acceptance QA.**
+
+Execution rule:
+**only one D1 step may be active at a time.** Completing or approving D1.1 does not authorize D1.2 automatically.
