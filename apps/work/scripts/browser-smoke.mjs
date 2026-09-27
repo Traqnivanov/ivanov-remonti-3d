@@ -1206,6 +1206,22 @@ async function runMobileWorkSmoke() {
     );
     await delay(100);
     await saveScreenshot(session, "/tmp/p34b-service-scope-mobile.png");
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-fine-putty-1]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelectorAll("#offerRows .offer-row").length === 0 && document.querySelector("#offerTotalKpi").textContent.trim() === "—" && document.querySelector("#offerTotalStatus").textContent.includes("Няма избрани услуги")',
+      "Mobile P3.4b scope: empty service scope is incorrectly treated as an incomplete offer",
+    );
+    await saveScreenshot(session, "/tmp/p34b-empty-service-scope-mobile.png");
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-fine-putty-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
     await assertEval(
       session,
       '["#undoProjectButton", "#redoProjectButton"].every((selector) => document.querySelector(selector)?.getBoundingClientRect().height >= 44)',
