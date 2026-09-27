@@ -238,7 +238,12 @@ let projectSession = options.session
   : null;
 const projectRepository = options.repository;
 let previewMode = appEntry === "direct-client";
-let offerInteraction = createInitialOfferInteraction();
+const initialIncludedService = project.serviceAssignments.find(
+  (assignment) => assignment.included,
+);
+let offerInteraction = initialIncludedService
+  ? selectOfferService(initialIncludedService.id)
+  : showWholeResult();
 let expandedOperationId: string | null = null;
 let autoCutaway = true;
 
@@ -1378,6 +1383,14 @@ function renderOfferSummary(
 ): void {
   const total = mustGet("offerTotalKpi");
   const status = mustGet("offerTotalStatus");
+
+  if (summary.lines.length === 0) {
+    total.textContent = "—";
+    total.dataset.state = "empty";
+    status.textContent = "Няма избрани услуги.";
+    status.dataset.state = "empty";
+    return;
+  }
 
   if (summary.complete) {
     total.textContent = `${formatMoney(summary.pricedSubtotalEur)} €`;
