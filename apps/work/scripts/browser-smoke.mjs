@@ -878,6 +878,25 @@ async function runWorkSmoke() {
       `Boolean(document.querySelector('[data-service-id="assignment-gypsum-putty-1"]')) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")`,
       "P3.3c: adding gypsum putty did not create a calculated focused offer line",
     );
+    await assertEval(
+      session,
+      'document.querySelector("#gypsumPuttySummaryButton")?.getAttribute("aria-expanded") === "true"',
+      "P3.3c: newly added gypsum putty did not open its editor",
+    );
+    await evaluate(session, 'document.querySelector("#gypsumPuttySummaryButton").click()');
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("#gypsumPuttySummaryButton")?.getAttribute("aria-expanded") === "false" && !document.querySelector("[data-operation-target]")',
+      "P3.3c: compact service row did not collapse its settings",
+    );
+    await evaluate(session, 'document.querySelector("#gypsumPuttySummaryButton").click()');
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("#gypsumPuttySummaryButton")?.getAttribute("aria-expanded") === "true" && Boolean(document.querySelector("[data-operation-target]"))',
+      "P3.3c: compact service row did not reopen its settings",
+    );
     await evaluate(
       session,
       `(() => { const input = document.querySelector('[data-operation-target="room-1.wall-front"]'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()`,
@@ -1118,12 +1137,21 @@ async function runMobileWorkSmoke() {
       'document.querySelector("#removeGypsumPuttyButton")?.getBoundingClientRect().height >= 44 && Array.from(document.querySelectorAll("#operationAuthoring .check-row")).every((el) => el.getBoundingClientRect().height >= 44)',
       "Mobile P3.3c: gypsum putty authoring controls are below the 44px touch target",
     );
+    await evaluate(session, 'document.querySelector("#gypsumPuttySummaryButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#gypsumPuttySummaryButton")?.getBoundingClientRect().height >= 44 && document.querySelector("#gypsumPuttySummaryButton")?.getAttribute("aria-expanded") === "false" && !document.querySelector("#operationAuthoring .check-row")',
+      "Mobile P3.3c: compact gypsum row did not collapse cleanly",
+    );
     await evaluate(
       session,
       'document.querySelector("#operationAuthoring").scrollIntoView({ block: "center", behavior: "instant" })',
     );
     await delay(100);
     await saveScreenshot(session, "/tmp/p33c-gypsum-authoring-mobile.png");
+    await evaluate(session, 'document.querySelector("#gypsumPuttySummaryButton").click()');
+    await delay(60);
     await evaluate(session, 'document.querySelector("#removeGypsumPuttyButton").click()');
     await delay(80);
     await assertEval(
