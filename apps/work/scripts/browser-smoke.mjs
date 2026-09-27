@@ -830,7 +830,7 @@ async function runWorkSmoke() {
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
     await assertEval(
       session,
-      '!document.querySelector("#serviceRowLaminate") && !document.querySelector("[data-service-include=\"assignment-laminate-flooring-1\"]").checked',
+      '!document.querySelector("#serviceRowLaminate") && !document.querySelector(`[data-service-include="assignment-laminate-flooring-1"]`).checked',
       "P3.4b scope: Laminate must not be in a new offer until explicitly selected",
     );
     await assertEval(
@@ -867,7 +867,7 @@ async function runWorkSmoke() {
     const finePuttyFocusedView = await captureElement(session, "#viewer canvas");
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-service-include=\"assignment-laminate-flooring-1\"]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      '(() => { const input = document.querySelector(`[data-service-include="assignment-laminate-flooring-1"]`); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(100);
     await assertEval(
@@ -893,7 +893,7 @@ async function runWorkSmoke() {
 
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-service-include=\"assignment-laminate-flooring-1\"]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      '(() => { const input = document.querySelector(`[data-service-include="assignment-laminate-flooring-1"]`); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(100);
     await assertEval(
@@ -905,12 +905,12 @@ async function runWorkSmoke() {
 
     await assertEval(
       session,
-      '!document.querySelector("[data-service-include=\"assignment-gypsum-putty-1\"]").checked && !document.querySelector("[data-service-id=\"assignment-gypsum-putty-1\"]")',
+      '!document.querySelector(`[data-service-include="assignment-gypsum-putty-1"]`).checked && !document.querySelector("[data-service-id=\"assignment-gypsum-putty-1\"]")',
       "P3.4b scope: gypsum putty must start outside the offer",
     );
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-service-include=\"assignment-gypsum-putty-1\"]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      '(() => { const input = document.querySelector(`[data-service-include="assignment-gypsum-putty-1"]`); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(100);
     await assertEval(
@@ -963,12 +963,12 @@ async function runWorkSmoke() {
     );
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-service-include=\"assignment-gypsum-putty-1\"]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      '(() => { const input = document.querySelector(`[data-service-include="assignment-gypsum-putty-1"]`); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(80);
     await assertEval(
       session,
-      `!document.querySelector('[data-service-id="assignment-gypsum-putty-1"]') && !document.querySelector("[data-service-include=\"assignment-gypsum-putty-1\"]").checked`,
+      `!document.querySelector('[data-service-id="assignment-gypsum-putty-1"]') && !document.querySelector(`[data-service-include="assignment-gypsum-putty-1"]`).checked`,
       "P3.4b scope: deselecting gypsum putty did not remove it from the offer",
     );
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
@@ -1212,7 +1212,7 @@ async function runMobileWorkSmoke() {
     );
     await assertEval(
       session,
-      '!document.querySelector("[data-service-include=\"assignment-laminate-flooring-1\"]").checked && !document.querySelector("[data-service-include=\"assignment-gypsum-putty-1\"]").checked',
+      '!document.querySelector(`[data-service-include="assignment-laminate-flooring-1"]`).checked && !document.querySelector(`[data-service-include="assignment-gypsum-putty-1"]`).checked',
       "Mobile P3.4b scope: optional services must start deselected",
     );
     await assertEval(
@@ -1233,7 +1233,7 @@ async function runMobileWorkSmoke() {
     await saveScreenshot(session, "/tmp/p34b-dynamic-pricing-mobile.png");
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-service-include=\"assignment-laminate-flooring-1\"]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      '(() => { const input = document.querySelector(`[data-service-include="assignment-laminate-flooring-1"]`); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(80);
     await assertEval(
@@ -1246,7 +1246,7 @@ async function runMobileWorkSmoke() {
     await saveScreenshot(session, "/tmp/p31d-laminate-mobile-client.png");
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-service-include=\"assignment-laminate-flooring-1\"]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      '(() => { const input = document.querySelector(`[data-service-include="assignment-laminate-flooring-1"]`); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(80);
     await assertEval(
@@ -1257,7 +1257,7 @@ async function runMobileWorkSmoke() {
 
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-service-include=\"assignment-gypsum-putty-1\"]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      '(() => { const input = document.querySelector(`[data-service-include="assignment-gypsum-putty-1"]`); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(80);
     await assertEval(
@@ -1282,7 +1282,7 @@ async function runMobileWorkSmoke() {
     await delay(60);
     await evaluate(
       session,
-      '(() => { const input = document.querySelector("[data-service-include=\"assignment-gypsum-putty-1\"]"); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+      '(() => { const input = document.querySelector(`[data-service-include="assignment-gypsum-putty-1"]`); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
     );
     await delay(80);
     await assertEval(
