@@ -167,6 +167,38 @@ function calculateWallNetAreaOpeningsQuantity(
   };
 }
 
+function calculateCeilingAreaQuantity(
+  project: ProjectState,
+  assignment: ServiceAssignment,
+): QuantityResult {
+  if (!assignment.included) {
+    return {
+      ruleId: "ceiling-area-v1",
+      ruleVersion: "1.0.0",
+      unit: "m2",
+      value: 0,
+      sourceEntityIds: [],
+      usedOverride: false,
+    };
+  }
+
+  if (
+    assignment.targetEntityIds.length !== 1 ||
+    assignment.targetEntityIds[0] !== "room-1.ceiling"
+  ) {
+    throw new Error("ceiling-area-v1 requires exactly the room ceiling target.");
+  }
+
+  return {
+    ruleId: "ceiling-area-v1",
+    ruleVersion: "1.0.0",
+    unit: "m2",
+    value: project.room.widthM * project.room.lengthM,
+    sourceEntityIds: ["room-1.ceiling"],
+    usedOverride: false,
+  };
+}
+
 function calculateFloorAreaQuantity(
   project: ProjectState,
   assignment: ServiceAssignment,
@@ -201,6 +233,7 @@ function calculateFloorAreaQuantity(
 
 const quantityRuleCalculators: Record<string, QuantityRuleCalculator> = {
   "wall-net-area-openings-v1": calculateWallNetAreaOpeningsQuantity,
+  "ceiling-area-v1": calculateCeilingAreaQuantity,
   "floor-area-v1": calculateFloorAreaQuantity,
 };
 
