@@ -25,6 +25,9 @@ import {
   addOperationAssignment,
   findOperationAssignment,
   gypsumPuttyOperation,
+  paintOperation,
+  primerOperation,
+  sandingOperation,
 } from "./operation-authoring";
 
 describe("fine putty quantity", () => {
@@ -320,6 +323,59 @@ describe("gypsum putty proof operation", () => {
     expect(line?.quantity.value).toBeCloseTo(46.8 - 1.89 - 1.32, 8);
     expect(line?.price.id).toBe(devGypsumPuttyPriceBookItem.id);
     expect(line?.totalEur).toBeCloseTo(line!.quantity.value, 8);
+  });
+});
+
+
+describe("P3.5a wall finishing core", () => {
+  it("reuses opening-aware net wall quantity for sanding, primer and paint", () => {
+    for (const definition of [sandingOperation, primerOperation, paintOperation]) {
+      let project = createOpeningProofProject(`p35a-${definition.serviceCode}`);
+      project = addOperationAssignment(project, definition);
+
+      const assignment = findOperationAssignment(project, definition);
+      expect(assignment).toBeDefined();
+
+      const quantity = calculateAssignmentQuantity(project, assignment!);
+      expect(quantity?.ruleId).toBe("wall-net-area-openings-v1");
+      expect(quantity?.value).toBeCloseTo(46.8 - 1.89 - 1.32, 8);
+      expect(quantity?.sourceEntityIds).toContain("room-1.door-1");
+      expect(quantity?.sourceEntityIds).toContain("room-1.window-1");
+    }
+  });
+
+  it("keeps P3.5a pricing dynamic and separate for each selected operation", () => {
+    let project = createDefaultProject("p35a-dynamic-prices");
+
+    for (const definition of [sandingOperation, primerOperation, paintOperation]) {
+      project = addOperationAssignment(project, definition);
+    }
+
+    project = setAssignmentUnitPriceEur(
+      project,
+      sandingOperation.assignmentId,
+      2,
+    );
+    project = setAssignmentUnitPriceEur(
+      project,
+      primerOperation.assignmentId,
+      1.5,
+    );
+    project = setAssignmentUnitPriceEur(
+      project,
+      paintOperation.assignmentId,
+      4.25,
+    );
+
+    expect(
+      calculateDynamicOfferLine(project, sandingOperation.assignmentId)?.totalEur,
+    ).toBeCloseTo(46.8 * 2, 8);
+    expect(
+      calculateDynamicOfferLine(project, primerOperation.assignmentId)?.totalEur,
+    ).toBeCloseTo(46.8 * 1.5, 8);
+    expect(
+      calculateDynamicOfferLine(project, paintOperation.assignmentId)?.totalEur,
+    ).toBeCloseTo(46.8 * 4.25, 8);
   });
 });
 
