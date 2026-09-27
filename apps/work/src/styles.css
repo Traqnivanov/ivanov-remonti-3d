@@ -627,6 +627,71 @@ input[type="number"] {
 }
 .offer-meta { display: flex; justify-content: space-between; gap: 12px; color: #aebdd0; font-size: 13px; }
 .offer-total { color: #e8b84b; font-weight: 800; }
+.offer-total.missing-price { color: #d7a86e; font-weight: 650; }
+
+.offer-summary {
+  margin: 4px 0 12px;
+  padding: 12px;
+  border: 1px solid #34465f;
+  border-radius: 10px;
+  background: #0b1422;
+}
+
+.offer-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.offer-summary-row span {
+  color: #8fa1b8;
+  font-size: 12px;
+}
+
+.offer-summary-row strong {
+  color: #e8b84b;
+  font-size: 17px;
+}
+
+#offerTotalKpi[data-state="incomplete"] {
+  color: #d7a86e;
+  font-size: 14px;
+}
+
+#offerTotalStatus {
+  margin: 5px 0 0;
+  color: #8194ad;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+#offerTotalStatus[data-state="incomplete"] {
+  color: #caa06d;
+}
+
+.price-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.price-input-wrap input {
+  width: 118px;
+  min-height: 40px;
+  padding: 7px 9px;
+  text-align: right;
+}
+
+.price-input-wrap > span {
+  color: #d7e0eb;
+  white-space: nowrap;
+}
+
+.app-shell:not(.preview-mode) .client-price-value {
+  display: none;
+}
 
 .info-card {
   margin-top: 12px;
@@ -918,6 +983,20 @@ input[type="number"] {
 
   .operation-card .check-row {
     min-height: 44px;
+  }
+
+  .price-input-wrap {
+    width: min(100%, 190px);
+  }
+
+  .price-input-wrap input {
+    min-width: 0;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .offer-summary {
+    padding: 12px 11px;
   }
 }
 
