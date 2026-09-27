@@ -661,3 +661,25 @@ Durable formulation:
 
 **Uniqueness Interrupt Gate:**  
 **discover stronger solution → STOP affected work → compare/evidence → impact/risk → Owner decision when material → supersede/sync → continue.**
+
+
+## 27.09.2026 — Owner replaces fixed Price Book with dynamic per-offer pricing
+
+**Owner decision:** Smart Offer will not use fixed global product prices as the canonical pricing model.
+
+Active pricing truth:
+- currency is **EUR only**;
+- Work user enters the unit price for the concrete service/offer;
+- changing the price recalculates the line and overall offer immediately;
+- the entered price is persisted with the offer/project so Save/Open preserves the quote;
+- a later price entered elsewhere does not silently rewrite an existing saved offer;
+- test/DEV fixtures may contain example prices, but they are not business truth;
+- legacy `ivanov-tools/offer.html` prices are workflow/reference evidence only and are not imported as fixed canonical prices.
+
+**SUPERSEDED:** the earlier staged-roadmap wording requiring a central/versioned real Price Book as P3.4 product truth.
+
+Durable mechanism:
+
+**canonical quantity × Work-entered EUR unit price → line total → offer total**
+
+Pricing remains independent from geometry and renderer, but no fixed catalog is required as the source of price truth.
