@@ -790,6 +790,10 @@ input[type="number"] {
   font-size: 11px;
 }
 
+.workbench-zone-title {
+  display: none;
+}
+
 .workbench-services {
   margin-bottom: 14px;
   padding-bottom: 2px;
@@ -809,6 +813,10 @@ input[type="number"] {
 
   .app-shell.has-project-bar:not(.preview-mode) {
     grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .app-shell:not(.preview-mode) .workbench-zone-title {
+    display: block;
   }
 
   .app-shell:not(.preview-mode) .workspace {
