@@ -1,7 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import { createDefaultProject } from "./domain";
-import { calculateSupportedOfferLine } from "./calculation";
+import {
+  calculateDynamicOfferLine,
+  calculateSupportedOfferLine,
+  setAssignmentUnitPriceEur,
+} from "./calculation";
 import {
   addOperationAssignment,
   findOperationAssignment,
@@ -447,6 +451,59 @@ describe("Supabase project read repository", () => {
       2 * reopened.project.room.lengthM * reopened.project.room.heightM,
       8,
     );
+  });
+
+  it("saves and reopens the entered EUR price for the same offer line", async () => {
+    let project = createDefaultProject("project-price-roundtrip");
+    project = setAssignmentUnitPriceEur(
+      project,
+      "assignment-fine-putty-1",
+      6.5,
+    );
+
+    const saveClient = createClientForSave({
+      updateResult: {
+        data: {
+          id: "project-price-roundtrip",
+          work_version: 2,
+          updated_at: "2026-09-27T15:00:00.000Z",
+        },
+        error: null,
+      },
+    });
+    const saveRepository = createSupabaseProjectReadRepository(
+      saveClient.client,
+      "owner-1",
+    );
+
+    await saveRepository.save(prepareSaveProject(project, 1));
+
+    const savedPayload = saveClient.spies.update.mock.calls[0]?.[0] as {
+      work_state?: unknown;
+    };
+
+    const openClient = createClientForOpen({
+      data: makeRow("project-price-roundtrip", {
+        work_version: 2,
+        work_state: savedPayload.work_state,
+        updated_at: "2026-09-27T15:00:00.000Z",
+      }),
+      error: null,
+    });
+    const openRepository = createSupabaseProjectReadRepository(
+      openClient.client,
+      "owner-1",
+    );
+
+    const reopened = await openRepository.open("project-price-roundtrip");
+    const line = calculateDynamicOfferLine(
+      reopened.project,
+      "assignment-fine-putty-1",
+    );
+
+    expect(line?.unitPriceEur).toBe(6.5);
+    expect(line?.priceStatus).toBe("priced");
+    expect(line?.totalEur).toBeCloseTo(line!.quantity.value * 6.5, 8);
   });
 
   it("returns STALE_WRITE when the database has a newer work version", async () => {
