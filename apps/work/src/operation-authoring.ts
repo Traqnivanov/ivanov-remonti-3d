@@ -90,6 +90,34 @@ export function removeOperationAssignment(
   };
 }
 
+export function setServiceAssignmentIncluded(
+  project: ProjectState,
+  assignmentId: string,
+  included: boolean,
+): ProjectState {
+  let found = false;
+
+  const serviceAssignments = project.serviceAssignments.map((assignment) => {
+    if (assignment.id !== assignmentId) return assignment;
+    found = true;
+
+    if (included && assignment.targetEntityIds.length === 0) {
+      throw new Error("An included service requires at least one target.");
+    }
+
+    return { ...assignment, included };
+  });
+
+  if (!found) {
+    throw new Error(`Missing service assignment: ${assignmentId}`);
+  }
+
+  return {
+    ...project,
+    serviceAssignments,
+  };
+}
+
 export function setOperationIncluded(
   project: ProjectState,
   definition: AuthorableOperationDefinition,
