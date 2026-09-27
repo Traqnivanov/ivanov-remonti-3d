@@ -139,7 +139,7 @@ Outputs:
 - short ⓘ Info;
 - exact net m²;
 - quantity per selected operation;
-- Price Book lookup;
+- Work-entered EUR unit price;
 - total EUR price;
 - final client result.
 
@@ -217,7 +217,7 @@ It is useful when the user can:
 8. apply paint/material where relevant;
 9. add/move outlets, switches, lights and basic furniture;
 10. calculate m² / linear meters / pieces;
-11. price labor from Price Book;
+11. enter the labor unit price in EUR for the concrete offer;
 12. present a clear interactive Smart Offer to the client.
 
 ## 12. Risk control
@@ -238,7 +238,7 @@ The application has five independent cores:
 
 1. **Geometry Core** — rooms, surfaces, openings, objects.
 2. **Service Link Engine** — services linked to exact geometry/objects and client presentation mode.
-3. **Quantity & Price Core** — m², lm, pieces, norms, Price Book.
+3. **Quantity & Price Core** — m², lm, pieces, norms, dynamic per-offer EUR unit prices and totals.
 4. **Renderer** — editor visualization and client-quality output.
 5. **Smart Offer UI** — interactive client-facing offer with service ↔ model navigation and Info.
 
@@ -260,10 +260,11 @@ The active staged direction from the current merged baseline is:
    - prove the mechanism with one additional real operation from the Service Registry;
    - preserve backward compatibility and existing Fine Putty/Laminate/Openings behavior.
 
-2. **P3.4 — Price Core + room/offer totals**
-   - versioned real Price Book;
-   - line totals and coherent room/offer totals;
-   - historical quote-price safety;
+2. **P3.4 — Dynamic Price Core + room/offer totals**
+   - Work-entered EUR unit price per concrete offer/service; no fixed global product-price table;
+   - line totals and coherent room/offer totals recalculate immediately;
+   - entered unit prices persist with the offer/project so saved quotes remain stable;
+   - test fixtures may use example prices but are not product truth;
    - audit `ivanov-tools/offer.html` as workflow reference before implementing matching quote concepts.
 
 3. **P3.5 — Real wall/ceiling finishing stack**
@@ -287,7 +288,7 @@ The active staged direction from the current merged baseline is:
 
 6. **P3.8 — Complete Room Result + acceptance**
    - close the approved one-complete-room direction end-to-end;
-   - real services, finishes, core objects, quantities, Price Book/totals, Info, offer↔model interaction, Save/Open and coherent Client/Final Result;
+   - real services, finishes, core objects, quantities, dynamic offer prices/totals, Info, offer↔model interaction, Save/Open and coherent Client/Final Result;
    - mobile-first + desktop + persistence regression acceptance.
 
 7. **P4 — Protected Publishing / real Client Viewer**
