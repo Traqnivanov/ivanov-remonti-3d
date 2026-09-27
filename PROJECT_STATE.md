@@ -211,17 +211,17 @@ The global **Uniqueness Interrupt Gate** applies at every P3.3 checkpoint. If a 
 
 ## 7. NEXT EXACT STEP
 
-**P3.3c — generic Work operation authoring + third real operation.**
+**P3.3 is functionally complete and final acceptance is PASS.**
 
-P3.3a and P3.3b are now merged into `main`.
+- P3.3a merged;
+- P3.3b merged;
+- P3.3c compact operation authoring merged;
+- P3.3d acceptance PR #17 is verified SUCCESS and contains tests only.
 
-Exact next:
-1. audit the approved source definition for **Гипсова шпакловка** only;
-2. define the smallest generic Work flow to add/remove/include the operation and choose exact wall targets;
-3. reuse the generic quantity rule and separate price reference; no new assignment-specific calculation branch;
-4. source Client Info from the approved Ivanov Remonti page/guide;
-5. verify Undo/Redo + Save/Open + Offer↔Model behavior;
-6. mobile-first QA;
-7. do not expand into the broader finishing catalog in this block.
+Exact next administrative gate:
+1. Owner approval to merge test-only PR #17;
+2. merge #17;
+3. close Current Work Issue #13 and sync P3.3 CLOSED;
+4. then prepare the short concrete proposal for **P3.4 — Price Core + room/offer totals**, including the required audit of `ivanov-tools/offer.html` as workflow reference before implementation.
 
-Uniqueness Interrupt Gate remains active throughout P3.3c.
+No P3.4 code is authorized before that proposal / Criteria / Uniqueness check.
