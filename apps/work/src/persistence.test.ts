@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { setAssignmentUnitPriceEur } from "./calculation";
-import { createDefaultProject, createOpeningProofProject, findLaminateFlooringAssignment, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
+import { createDefaultProject, createOpeningProofProject, findFinePuttyCeilingAssignment, findLaminateFlooringAssignment, getFinePuttyAssignment, getLaminateFlooringAssignment } from "./domain";
 import {
   addOperationAssignment,
+  addOperationScopeAssignments,
   findOperationAssignment,
+  findOperationCeilingAssignment,
   gypsumPuttyOperation,
   paintOperation,
   setOperationTargets,
@@ -32,7 +34,7 @@ describe("project persistence boundary", () => {
     expect(persisted.rooms[0]!.openings).toEqual([]);
     expect(persisted.rooms[0]!.objects).toEqual([]);
     expect(persisted.rooms[0]!.materials).toEqual([]);
-    expect(persisted.serviceAssignments).toHaveLength(2);
+    expect(persisted.serviceAssignments).toHaveLength(3);
     expect(persisted.projectNotes).toEqual([]);
     expect(persisted.presentation).toEqual({});
     expect(persisted).not.toHaveProperty("camera");
@@ -148,13 +150,14 @@ describe("project persistence boundary", () => {
     it("keeps an existing Fine Putty-only persisted v1 project valid without injecting Laminate", () => {
     const persisted = serializeProjectState(createDefaultProject("existing-v1-project"));
     persisted.serviceAssignments = persisted.serviceAssignments.filter(
-      (assignment) => assignment.serviceCode === "fine-putty",
+      (assignment) => assignment.id === "assignment-fine-putty-1",
     );
 
     const restored = deserializeProjectState(persisted);
 
     expect(restored.serviceAssignments).toHaveLength(1);
     expect(getFinePuttyAssignment(restored).serviceCode).toBe("fine-putty");
+    expect(findFinePuttyCeilingAssignment(restored)).toBeUndefined();
     expect(findLaminateFlooringAssignment(restored)).toBeUndefined();
   });
 
@@ -208,8 +211,8 @@ describe("project persistence boundary", () => {
     expect(assignment?.clientInfo).toEqual(gypsumPuttyOperation.clientInfo);
   });
 
-  it("round-trips P3.5a paint scope and entered EUR unit price", () => {
-    let project = addOperationAssignment(
+  it("round-trips Paint wall and ceiling scopes with separate EUR prices", () => {
+    let project = addOperationScopeAssignments(
       createOpeningProofProject("paint-persistence"),
       paintOperation,
     );
@@ -222,18 +225,35 @@ describe("project persistence boundary", () => {
       paintOperation.assignmentId,
       4.25,
     );
+    project = setAssignmentUnitPriceEur(
+      project,
+      paintOperation.ceilingAssignmentId,
+      5.5,
+    );
 
     const restored = deserializeProjectState(serializeProjectState(project));
-    const assignment = findOperationAssignment(restored, paintOperation);
+    const wallAssignment = findOperationAssignment(restored, paintOperation);
+    const ceilingAssignment = findOperationCeilingAssignment(
+      restored,
+      paintOperation,
+    );
 
-    expect(assignment?.serviceCode).toBe("paint");
-    expect(assignment?.quantityRuleId).toBe("wall-net-area-openings-v1");
-    expect(assignment?.targetEntityIds).toEqual([
+    expect(wallAssignment?.serviceCode).toBe("paint");
+    expect(wallAssignment?.quantityRuleId).toBe("wall-net-area-openings-v1");
+    expect(wallAssignment?.targetEntityIds).toEqual([
       "room-1.wall-front",
       "room-1.wall-right",
     ]);
-    expect(assignment?.unitPriceEur).toBe(4.25);
-    expect(assignment?.clientInfo).toEqual(paintOperation.clientInfo);
+    expect(wallAssignment?.unitPriceEur).toBe(4.25);
+    expect(wallAssignment?.clientInfo).toEqual(paintOperation.clientInfo);
+
+    expect(ceilingAssignment?.serviceCode).toBe("paint");
+    expect(ceilingAssignment?.quantityRuleId).toBe("ceiling-area-v1");
+    expect(ceilingAssignment?.targetEntityIds).toEqual(["room-1.ceiling"]);
+    expect(ceilingAssignment?.unitPriceEur).toBe(5.5);
+    expect(ceilingAssignment?.clientInfo).toEqual(
+      paintOperation.ceilingClientInfo,
+    );
   });
 
   it("preserves stable proof opening ids through persistence", () => {
@@ -259,12 +279,21 @@ describe("project persistence boundary", () => {
       "room-1.floor",
       "room-1.ceiling",
     ]);
-    expect(parsed.serviceAssignments[0]!.targetEntityIds).toEqual(
-      getFinePuttyAssignment(project).targetEntityIds,
-    );
-    expect(parsed.serviceAssignments[1]!.targetEntityIds).toEqual(
-      getLaminateFlooringAssignment(project).targetEntityIds,
-    );
+    expect(
+      parsed.serviceAssignments.find(
+        (assignment) => assignment.id === "assignment-fine-putty-1",
+      )?.targetEntityIds,
+    ).toEqual(getFinePuttyAssignment(project).targetEntityIds);
+    expect(
+      parsed.serviceAssignments.find(
+        (assignment) => assignment.id === "assignment-fine-putty-ceiling-1",
+      )?.targetEntityIds,
+    ).toEqual(["room-1.ceiling"]);
+    expect(
+      parsed.serviceAssignments.find(
+        (assignment) => assignment.id === "assignment-laminate-flooring-1",
+      )?.targetEntityIds,
+    ).toEqual(getLaminateFlooringAssignment(project).targetEntityIds);
   });
 
   it("rejects unsupported future schema versions instead of guessing", () => {
