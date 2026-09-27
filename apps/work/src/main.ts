@@ -372,9 +372,7 @@ app.innerHTML = `
             <label class="price-input-wrap work-only" id="unitPriceWorkControl">
               <input
                 id="unitPriceInput"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
                 inputmode="decimal"
                 placeholder="Въведи цена"
                 aria-label="Единична цена в евро"
@@ -1312,7 +1310,9 @@ function renderOffer(
   unitPriceInput.dataset.assignmentId = detailLine.assignmentId;
   unitPriceInput.value =
     priceInputRaw ??
-    (detailLine.unitPriceEur === null ? "" : String(detailLine.unitPriceEur));
+    (detailLine.unitPriceEur === null
+      ? ""
+      : formatPriceInputValue(detailLine.unitPriceEur));
   unitPriceInput.setCustomValidity("");
 
   mustGet("unitPriceKpi").textContent =
@@ -1470,6 +1470,10 @@ function formatMoney(value: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
+}
+
+function formatPriceInputValue(value: number): string {
+  return value.toFixed(2).replace(".", ",");
 }
 
 function escapeHtml(value: string): string {
