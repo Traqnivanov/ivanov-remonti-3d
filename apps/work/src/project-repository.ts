@@ -65,9 +65,15 @@ export function prepareNewProjectDraft(
   const normalizedTitle = requireNonBlank(title, "Project title");
   const projectId = requireNonBlank(createProjectId(), "Project id");
 
+  const project = createDefaultProject(projectId);
+  project.serviceAssignments = project.serviceAssignments.map((assignment) => ({
+    ...assignment,
+    included: false,
+  }));
+
   return {
     title: normalizedTitle,
-    project: createDefaultProject(projectId),
+    project,
   };
 }
 
