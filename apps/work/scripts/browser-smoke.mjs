@@ -829,6 +829,16 @@ async function runWorkSmoke() {
     );
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#quantityTextLaminate").textContent.includes("m²")', "Work P3.1c: Laminate offer row is missing");
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("Цена не е въведена") && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта") && document.querySelector("#offerTotalStatus").textContent.includes("2 позиции")',
+      "P3.4b: blank prices are not presented as an incomplete offer",
+    );
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display !== "none" && getComputedStyle(document.querySelector("#unitPriceKpi")).display === "none"',
+      "P3.4b: Work should expose the price input and hide the client-only price value",
+    );
 
     const finePuttyFocusedView = await captureElement(session, "#viewer canvas");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
@@ -1016,6 +1026,43 @@ async function runWorkSmoke() {
       "P3.2d: invalid opening edit mutated canonical geometry or quantity",
     );
 
+    await evaluate(session, 'document.querySelector("#serviceRow").click()');
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#unitPriceInput"); input.value = "6.5"; input.dispatchEvent(new Event("input", { bubbles: true })); })()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#totalKpi").textContent.includes("286,00") && document.querySelector("#offerTotalStatus").textContent.includes("1 позиция") && document.querySelector("#offerTotalStatus").textContent.includes("286,00")',
+      "P3.4b: live price draft did not recalculate line and offer totals",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("#unitPriceInput").dispatchEvent(new Event("change", { bubbles: true }))',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#unitPriceInput").value === "6.5" && document.querySelector("#lineTotalText").textContent.includes("286,00")',
+      "P3.4b: confirmed EUR price did not remain in canonical Work state",
+    );
+
+    await evaluate(session, 'document.querySelector("#undoProjectButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("Цена не е въведена") && document.querySelector("#unitPriceInput").value === ""',
+      "P3.4b: Undo did not restore the missing-price state",
+    );
+    await evaluate(session, 'document.querySelector("#redoProjectButton").click()');
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#unitPriceInput").value === "6.5"',
+      "P3.4b: Redo did not restore the entered EUR price",
+    );
+
     await evaluate(
       session,
       'document.querySelector(".openings-section").scrollIntoView({ block: "center", behavior: "instant" })',
@@ -1097,6 +1144,11 @@ async function runWorkSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector("#exitPreviewBtn")).display !== "none"', "Work preview: owner return control is missing");
     await assertEval(
       session,
+      'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && getComputedStyle(document.querySelector("#unitPriceKpi")).display !== "none" && document.querySelector("#unitPriceKpi").textContent.includes("6,50") && document.querySelector("#totalKpi").textContent.includes("286,00")',
+      "P3.4b: Client Preview did not keep pricing read-only and visible",
+    );
+    await assertEval(
+      session,
       'document.querySelector("#projectBarStatus").textContent.includes("Има промени")',
       "Work preview: dirty project state was lost while persistence controls were hidden",
     );
@@ -1130,6 +1182,22 @@ async function runMobileWorkSmoke() {
       'document.querySelector("#addGypsumPuttyButton")?.getBoundingClientRect().height >= 44',
       "Mobile P3.3c: gypsum putty add control is missing or too small",
     );
+    await assertEval(
+      session,
+      'document.querySelector("#unitPriceInput")?.getBoundingClientRect().height >= 44 && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта")',
+      "Mobile P3.4b: price input is missing, too small, or incomplete total is not visible",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#unitPriceInput"); input.value = "6.5"; input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await evaluate(
+      session,
+      'document.querySelector("#offerDetailsSection").scrollIntoView({ block: "center", behavior: "instant" })',
+    );
+    await delay(100);
+    await saveScreenshot(session, "/tmp/p34b-dynamic-pricing-mobile.png");
     await evaluate(session, 'document.querySelector("#addGypsumPuttyButton").click()');
     await delay(80);
     await assertEval(
@@ -1246,6 +1314,11 @@ async function runMobileClientSmoke() {
     await assertEval(session, 'getComputedStyle(document.querySelector(".panel.left")).display === "none"', "Mobile Client: authoring panel is visible");
     await assertEval(
       session,
+      'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта")',
+      "Mobile Client P3.4b: editable pricing leaked or incomplete total is missing",
+    );
+    await assertEval(
+      session,
       'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#serviceRowLaminate").getBoundingClientRect().height >= 44',
       "Mobile Client P3.1c: Laminate row is missing or too small for touch",
     );
@@ -1281,7 +1354,16 @@ async function runDirectClientSmoke() {
       'getComputedStyle(document.querySelector(".openings-section")).display === "none"',
       "Client P3.2d: opening authoring controls leaked into Client mode",
     );
-    await assertEval(session, 'document.querySelector("#lineTotalText").textContent.includes("ТЕСТОВА ЦЕНА")', "Client: prototype price is not clearly marked as test price");
+    await assertEval(
+      session,
+      'document.querySelector("#lineTotalText").textContent.includes("Цена не е въведена") && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта")',
+      "Client P3.4b: missing prices are not clearly presented as incomplete",
+    );
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && getComputedStyle(document.querySelector("#unitPriceKpi")).display !== "none" && document.querySelector("#unitPriceKpi").textContent.includes("Цена не е въведена")',
+      "Client P3.4b: price editor leaked into read-only Client mode",
+    );
     await assertEval(session, 'Boolean(document.querySelector("#serviceRowLaminate"))', "Client P3.1c: Laminate offer row is missing");
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
     await assertEval(session, 'document.querySelector("#serviceRowLaminate").classList.contains("selected") && document.querySelector("#infoTitle").textContent.includes("Ламинат")', "Client P3.1c: Laminate interaction is not available in read-only Client view");
