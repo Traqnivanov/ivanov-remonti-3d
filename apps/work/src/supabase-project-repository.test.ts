@@ -1,6 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import { createDefaultProject } from "./domain";
+import { calculateSupportedOfferLine } from "./calculation";
+import {
+  addOperationAssignment,
+  findOperationAssignment,
+  gypsumPuttyOperation,
+  setOperationTargets,
+} from "./operation-authoring";
 import {
   ProjectRepositoryError,
   prepareNewProjectDraft,
@@ -373,6 +380,73 @@ describe("Supabase project read repository", () => {
     );
     expect(spies.eqVersion).toHaveBeenCalledWith("work_version", 1);
     expect(spies.from).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves and reopens gypsum putty with the same targets, Info and quantity", async () => {
+    let project = addOperationAssignment(
+      createDefaultProject("project-gypsum-roundtrip"),
+      gypsumPuttyOperation,
+    );
+    project = setOperationTargets(project, gypsumPuttyOperation, [
+      "room-1.wall-left",
+      "room-1.wall-right",
+    ]);
+
+    const saveClient = createClientForSave({
+      updateResult: {
+        data: {
+          id: "project-gypsum-roundtrip",
+          work_version: 2,
+          updated_at: "2026-09-27T12:00:00.000Z",
+        },
+        error: null,
+      },
+    });
+    const saveRepository = createSupabaseProjectReadRepository(
+      saveClient.client,
+      "owner-1",
+    );
+
+    await saveRepository.save(prepareSaveProject(project, 1));
+
+    const savedPayload = saveClient.spies.update.mock.calls[0]?.[0] as {
+      work_state?: unknown;
+    };
+    expect(savedPayload.work_state).toEqual(serializeProjectState(project));
+
+    const openClient = createClientForOpen({
+      data: makeRow("project-gypsum-roundtrip", {
+        work_version: 2,
+        work_state: savedPayload.work_state,
+        updated_at: "2026-09-27T12:00:00.000Z",
+      }),
+      error: null,
+    });
+    const openRepository = createSupabaseProjectReadRepository(
+      openClient.client,
+      "owner-1",
+    );
+
+    const reopened = await openRepository.open("project-gypsum-roundtrip");
+    const assignment = findOperationAssignment(
+      reopened.project,
+      gypsumPuttyOperation,
+    );
+    const line = calculateSupportedOfferLine(
+      reopened.project,
+      gypsumPuttyOperation.assignmentId,
+    );
+
+    expect(assignment?.targetEntityIds).toEqual([
+      "room-1.wall-left",
+      "room-1.wall-right",
+    ]);
+    expect(assignment?.clientInfo).toEqual(gypsumPuttyOperation.clientInfo);
+    expect(line?.quantity.ruleId).toBe("wall-net-area-openings-v1");
+    expect(line?.quantity.value).toBeCloseTo(
+      2 * reopened.project.room.lengthM * reopened.project.room.heightM,
+      8,
+    );
   });
 
   it("returns STALE_WRITE when the database has a newer work version", async () => {
