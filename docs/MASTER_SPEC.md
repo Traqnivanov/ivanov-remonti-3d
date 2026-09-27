@@ -143,7 +143,7 @@ Info съдържанието се структурира кратко:
 - материали;
 - услуги;
 - количества;
-- Price Book;
+- динамични EUR цени за конкретната оферта;
 - цени;
 - проектни бележки;
 - client Info;
@@ -161,7 +161,7 @@ Read-only интерактивна Smart Offer среда:
 - обща цена;
 - краен резултат.
 
-Клиентът не може да променя project geometry, service scope, quantities, prices или Price Book.
+Клиентът не може да променя project geometry, service scope, quantities или prices.
 
 Viewer actions като camera, zoom, selected service и hidden wall са session state и не променят проекта.
 
@@ -195,7 +195,7 @@ Viewer actions като camera, zoom, selected service и hidden wall са sessi
 ## 12. План за изграждане без объркване
 
 1. **Фаза A — Geometry foundation:** помещение, размери, камера, под/таван/стени, врати/прозорци, cutaway, Save/Open.
-2. **Фаза B — Smart Offer proof:** една стена + свързана услуга + интерактивно маркиране + ⓘ Info + m² + Price Book + цена.
+2. **Фаза B — Smart Offer proof:** една стена + свързана услуга + интерактивно маркиране + ⓘ Info + m² + въведена EUR цена + сума.
 3. **Фаза C — Пълна стая:** всички повърхности + услуги + двупосочна връзка модел ↔ оферта.
 4. **Фаза D — Обекти:** контакти, ключове, осветление, радиатори, врати, мебели, санитария.
 5. **Фаза E — Материали и client quality:** custom textures, реалистични материали, висококачествен краен изглед.
@@ -281,7 +281,7 @@ Ivanov Remonti избира за всяка оферта:
 
 Client Viewer получава само необходимото за визуализацията и офертата.
 
-Price Book, internal formulas, unreleased prices, private notes, admin capabilities, secrets и други client projects не се изпращат към клиентския viewer.
+Internal pricing controls, internal formulas, private notes, admin capabilities, secrets и други client projects не се изпращат към клиентския viewer.
 
 Клиентското преживяване и защитата на вътрешния engine се оценяват заедно като част от Ivanov Unique Standard.
 
