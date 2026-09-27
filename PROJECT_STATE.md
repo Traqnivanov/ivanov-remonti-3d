@@ -2,240 +2,263 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #13 — `[CURRENT WORK] P3.3 — Generic Operation Authoring Core` — AUTHORIZED / not yet implemented.
+**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **PLANNING / AUDIT ONLY; NO IMPLEMENTATION AUTHORIZED YET.**
 
-This file answers only: **where is the project now, what is active, what can affect the next work, and what is NEXT.**  
+This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
 
 ---
 
-## 1. Repository / active work
+## 1. Repository / current checkpoint
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
-- Stable product-code baseline: `main` after merged P3.2; current `main` also includes the approved roadmap / source-rule / Uniqueness-gate documentation sync.
-- P3.2 merge commit: `f55a0bcea1c298bdf773aa2ec970f0df7a13c896`
-- Slice 2 merge commit inside main history: `4e281f15dd343048fd353ccf30f12596d69fcc98`
-- Continuity consolidation merge commit: `358db09e31fde049d04403e36a14aa95250e8eaa`
-- Active feature branch: none yet for P3.3c
-- Active PR: none yet for P3.3c
-- Active Current Work Issue: **#13 — P3.3 Generic Operation Authoring Core**
-- PR #12: **MERGED / CLOSED**
-- PR #10: **MERGED / CLOSED**
-- P3.1 merge commit: `0631821405b7013554963c80b0d8481da9ace579`
-- PR #8: **MERGED / CLOSED**
+- Stable branch: `main`
+- Active feature branch: **none**
+- Active PR: **none**
+- Active Current Work Issue: **#21 — P3.5 Real wall/ceiling finishing stack**
+- P3.3: **MERGED / VERIFIED / CLOSED**
+- P3.4: **MERGED / VERIFIED / CLOSED**
+- Latest product-code merge: PR #20
+- PR #20 merge commit: `126e9877c425329867cf9963497467091008e1d2`
+- Final verified P3.4b head before merge: `745fa385947315721102c82ce459651182b28b71`
+- Final P3.4b CI: #351 / `36333699252` — **SUCCESS**
 
-Every new chat must verify the actual branch / HEAD / PR state before changing anything.
-
----
-
-## 2. Product phase
-
-### First Vertical Slice — MERGED / CLOSED
-
-Proved the core Smart Offer mechanism:
-- true Three.js room;
-- stable model entities;
-- Work vs Client capability split;
-- service ↔ exact model location;
-- Offer → Model and Model → Offer;
-- geometry-derived quantity;
-- Price Book fixture;
-- client Info;
-- mobile-first and desktop QA.
-
-History: PR #3 and its closed work records.
-
-### Slice 2 — Persistence — MERGED / CLOSED
-
-Proved the real persistent Work foundation:
-- private Work Auth;
-- Supabase Postgres + RLS;
-- Create / List / Open / Save;
-- versioned canonical Project State;
-- stale-write rejection;
-- Work-only persistence UI;
-- dirty/error/conflict recovery;
-- reload/reopen of the same canonical project;
-- Viewer Session State kept outside persisted Project State.
-
-History: PR #4 / closed Issue #6.
-
-### Current product implementation
-
-**P3.2 — Door + Window Openings — MERGED / CLOSED**
-
-Current checkpoint:
-- **P3.2a — Opening domain + persistence foundation: PASS**
-- **P3.2b — Opening geometry proof: PASS**
-- **P3.2c — Fine Putty net wall quantity: PASS**
-- **P3.2d — Work opening controls + live persistence acceptance: PASS**
-- **P3.2 overall acceptance: PASS / MERGED**
-- PR #12 merge commit: `f55a0bcea1c298bdf773aa2ec970f0df7a13c896`
-
-P3.1 — Floor Finish vertical slice remains **MERGED / CLOSED**
-
-Current checkpoint:
-- **P3.1a — multi-service domain/runtime foundation: PASS**
-- **P3.1b — floor quantity + DEV pricing: PASS**
-- **P3.1c — Smart Offer interaction: PASS**
-- **P3.1d — floor visual result + persistence acceptance: PASS**
-- **P3.1 overall acceptance: PASS / MERGED**
-
-Owner-approved P3.1 direction:
-- expand the proven Smart Offer mechanism through a real floor-finish vertical slice;
-- preserve Fine Putty as a regression baseline;
-- do not broaden into openings, furniture, uploaded materials, publishing or unrelated Slice 3 work.
+Every new chat must verify actual branch / HEAD / PR / Issue state before changing anything.
 
 ---
 
-## 3. Current live persistence truth
+## 2. Product identity / North Star
 
-Dedicated Supabase project remains the canonical persisted application truth.
+Product: **Ivanov Remonti Smart Offer**
 
-Three bounded QA projects now prove backward compatibility, P3.1, and P3.2 live persistence:
+North Star:
 
-### Existing Slice 2 QA project
-- title: `QA — P2.4b Create List Open`;
-- `work_version = 3`;
-- geometry: `4.2 × 4.8 × 2.7 m`;
-- service assignments: **Fine Putty only**;
-- remained unchanged throughout P3.1.
+**обект ↔ услуга ↔ точно място в модела ↔ количество ↔ цена ↔ Info ↔ краен резултат**
 
-### P3.1 QA project
-- title: `P3.1 QA Floor`;
-- project ID: `67e7f6ff-16b8-4278-8cd0-6d2c0beab4ff`;
-- `work_version = 2`;
-- geometry: `4.3 × 4.8 × 2.6 m`;
-- service assignments: **Fine Putty + Laminate**;
-- Laminate target: `room-1.floor`;
-- Laminate quantity after reload/open: **20.64 m²**;
-- DB row ID and persisted `projectId`: matching;
-- `presentation = {}`;
-- camera/zoom/selection/cutaway Viewer Session State: not persisted;
-- real authenticated Create → Save v1→v2 → reload → Open: PASS.
-
-### P3.2 QA project
-- title: `P3.2 QA Openings`;
-- project ID: `add1f9af-5e4a-4b60-b047-5fa20e2e8c31`;
-- `work_version = 2`;
-- geometry: `4.2 × 4.8 × 2.6 m`;
-- openings: exactly **1 door + 1 window**;
-- door: `0.9 × 2.1 m`, front wall;
-- window: `1.3 × 1.1 m`, sill `0.9 m`, right wall;
-- persisted total opening area: **3.32 m²**;
-- persisted Fine Putty net area recomputed directly from Supabase state: **43.48 m²**;
-- Fine Putty rule: `wall-net-area-openings-v1`;
-- `presentation = {}`;
-- authenticated UI proof: door + window → **43.59 m²** → window width `1.2 → 1.3` → **43.48 m²** → dirty → Save `v1 → v2` → reload/reopen: PASS;
-- older Slice 2 and P3.1 QA projects remained untouched.
-
-Current verified security posture remains unchanged:
-- RLS enabled on `projects` and `work_users`;
-- `anon` has no Work-project SELECT/INSERT/UPDATE;
-- authenticated project access is owner + active Work-user scoped;
-- authenticated browser has no project DELETE and cannot mutate `work_users`;
-- no privileged Supabase credential is shipped to the browser.
-
----
-
-## 4. Active durable direction
-
-The shortest authoritative product direction is now in `START_HERE.md`:
+End-to-end target:
 
 **real object → editable model → service → exact place → quantity → price → Info → final result → protected interactive client offer**
 
-Important current guardrails:
+This is not:
+- a generic CAD clone;
+- a room-planning toy;
+- a construction animation.
+
+The product must create practical value for real Ivanov Remonti work and a clear, trustworthy client offer.
+
+---
+
+## 3. Stable merged foundation
+
+### Persistence / security foundation
+Already proved and merged:
+- private Work Auth;
+- Supabase Postgres as canonical persisted application truth;
+- RLS;
+- Create / List / Open / Save;
+- optimistic concurrency / stale-write rejection;
+- canonical Project State persistence;
+- Viewer Session State kept outside persisted Project State;
+- Work-only mutation capability;
+- Client remains read-only.
+
+Current verified security posture:
+- RLS enabled on `projects` and `work_users`;
+- anonymous users do not receive Work-project mutation access;
+- browser does not ship privileged Supabase credentials;
+- project access remains owner + active Work-user scoped.
+
+### Geometry / interaction foundation
+Merged and verified:
+- true Three.js room;
+- stable room/surface entities;
+- Work vs Client capability profiles;
+- Offer → Model and Model → Offer;
+- room dimensions;
+- door/window openings;
+- opening-aware wall quantities;
+- floor target / Laminate proof;
+- mobile-first + desktop regression QA.
+
+### Generic operation authoring — P3.3 CLOSED
+P3.3 established:
+- generic quantity dispatch by operation/rule identity rather than literal assignment ID;
+- quantity-unit foundation;
+- canonical Project State Undo/Redo;
+- generic service add/include/target behavior;
+- compact service authoring on mobile;
+- Gypsum Putty as the first additional real Registry operation;
+- Save/Open acceptance through the repository path.
+
+Important accepted UX:
+- services remain compact by default;
+- only the actively edited service opens its settings;
+- old always-expanded service-card direction is superseded.
+
+### Dynamic pricing / totals — P3.4 CLOSED
+Merged PRs:
+- P3.4a PR #19 → `8aa86bdfe7aae9cd915608487c2c96b551114e67`
+- P3.4b PR #20 → `126e9877c425329867cf9963497467091008e1d2`
+
+Owner-locked pricing truth:
+- **EUR ONLY**;
+- there are **no fixed global product prices** as canonical pricing truth;
+- Work enters the unit price for the concrete offer/service;
+- the entered price is persisted with that offer/project;
+- blank price is **not** `0 €`;
+- explicit `0 €` remains distinguishable from blank;
+- line total = canonical quantity × entered EUR unit price;
+- offer total recalculates from included priced lines;
+- selected service with no price shows **„Цена не е въведена“** and makes the offer incomplete;
+- only services explicitly selected for execution enter the offer;
+- unchecked services do not require price and do not affect totals/completeness;
+- real new projects start with **no services selected**;
+- zero selected services shows **„Няма избрани услуги“**, not „Непълна оферта“;
+- Client/Preview sees prices and totals read-only;
+- price edits participate in canonical Project State / Undo / Redo;
+- Save/Open preserves the entered price;
+- old visible `Quantity source / DEV fixture` proof UI is removed;
+- test/DEV fixture prices may exist only as test compatibility data, never as business truth.
+
+---
+
+## 4. Source-of-truth contract
+
+Always use these sources in their correct role:
+
+### Real service truth
+`Traqnivanov/Remonti-` on `main`
+- current service pages define the real Ivanov Remonti service/scope;
+- relevant Lom pages may add confirmed content;
+- do not invent service meaning from memory.
+
+### Service taxonomy / operations
+`docs/SERVICE_OPERATION_REGISTRY.md`
+- keeps distinct operations distinct;
+- **„Мазилка“ ≠ „шпакловка“**;
+- the public family „Шпакловка“ may contain Fine Putty, Gypsum Putty, reinforced/base putty, drywall joint treatment, sanding, primer/preparation, etc.
+
+### Client-facing Info
+Source priority:
+**relevant current service page → relevant `narachnik/` guide → main-site brand/tone → explicit Owner/project note**
+
+Do not invent unsupported diagnosis, technical fact or project-specific reason.
+
+### Quantity / geometry / materials calculation legacy reference
+Only:
+`Traqnivanov/ivanov-tools/kalkulator-combined.html` — **Калкулатор M²**
+
+Do not use:
+- `calculator.html`
+- `room.html`
+
+as fallback formula sources.
+
+### Legacy office tools
+`ivanov-tools/offer.html`, clients/contract/advance tools may be audited later as workflow references only when their matching product capability is reached.  
+Do not port old Firebase/localStorage architecture or legacy prices.
+
+---
+
+## 5. Active durable product guardrails
+
+- mobile-first UX/QA;
 - Work/Edit and Client/View remain separate capability profiles;
-- mobile is the first UX/QA priority;
-- quantities come from confirmed domain geometry + approved rules;
-- offer pricing stays separate from renderer/geometry; prices are entered dynamically in Work per concrete offer and stored in EUR;
-- client receives a Published Revision/Snapshot, never the mutable Work draft;
-- Client is read-only with Link or Link + PIN per approved delivery contract;
-- EUR only;
-- final Client/Result quality must aim toward a believable real-room result, while Work view stays fast/practical;
-- real colors/palettes and intentional user-supplied materials/images on supported surfaces/objects are part of the end-state target;
-- next major product direction after Persistence is **one complete room before broad service-family expansion**, unless Owner explicitly changes it;
-- the approved staged path is now recorded in `docs/DELIVERY_STRATEGY.md §15`: **P3.3 → P3.4 → P3.5 → P3.6 → P3.7 → P3.8 Complete Room → P4 Publishing → P5 broader service families → P6 Office workflow → P7 Photo Assist → P8 advanced outputs → Protection Gate**;
-- **Uniqueness Interrupt Gate is always active:** an approved decision is the protected current baseline, not immutable. If a materially stronger mechanism/logic/sequence is found during work, stop the affected scope, compare benefit + dependencies + impact/risk, obtain Owner approval when the product decision changes, supersede/sync the old truth, then continue. No silent substitution and no unrelated restart.
+- true interactive 3D remains;
+- quantities derive from confirmed domain geometry + approved rules;
+- pricing remains separate from geometry/renderer;
+- Client never edits canonical Project State;
+- Viewer Session State is not persistent business truth;
+- one complete room comes before broad service-family expansion;
+- final Client/Result quality should become believable/realistic while Work remains fast/practical;
+- colors/materials/user images/assets are part of later approved complete-room direction;
+- Published Revision/Snapshot remains required before real client delivery;
+- repo remains public during development by Owner choice;
+- Production Protection Gate remains mandatory before production-ready claim.
 
-Detailed rules are read from the dependency map in `START_HERE.md` only when the active task requires them.
+Approved staged path:
+**P3.3 → P3.4 → P3.5 → P3.6 → P3.7 → P3.8 Complete Room → P4 Publishing → P5 broader service families → P6 Office workflow → P7 Photo Assist → P8 advanced outputs → Production Protection Gate**
 
----
+### Uniqueness Interrupt Gate
+Approved decisions are protected current baselines, not immutable forever.
 
-## 5. Known deferred / blocking-before-release items
+If a materially stronger mechanism/sequence is discovered:
+**detect → stop affected scope → compare benefit → assess dependencies/impact/risk → Owner decision when material → supersede/sync old truth → continue**
 
-These do not block planning of the next slice, but must not be forgotten:
-
-1. **Password recovery redirect**
-   - localhost default was exposed during testing;
-   - fix before password recovery is exposed to users.
-
-2. **Supabase leaked-password protection**
-   - Security Advisor warning remains;
-   - review/enable when appropriate before production/final release.
-
-3. **Production Protection Gate**
-   - repo remains public during development by Owner decision;
-   - production/final release requires the approved repository/source/security protection review.
-
-4. **Published client delivery UX**
-   - Published Revision/Snapshot is approved;
-   - stable-link vs revision-specific-link behavior remains a later product decision.
+Do not use this as permission to restart unrelated accepted work.
 
 ---
 
-## 6. Current Work
+## 6. Known deferred / pre-release items
 
-**P3.3 — Generic Operation Authoring Core — AUTHORIZED / NOT YET IMPLEMENTED**
+These do not block P3.5 planning, but must not be forgotten:
+
+1. Password recovery redirect still needs production-safe handling before user-facing recovery.
+2. Supabase leaked-password protection warning requires later review before production.
+3. Published client delivery:
+   - Published Revision/Snapshot approved;
+   - stable-link vs revision-specific-link UX remains a later decision.
+4. Production Protection Gate:
+   - repo/source protection;
+   - credentials/security/RLS/client access review;
+   - asset/privacy review;
+   - production hardening.
+
+---
+
+## 7. CURRENT WORK — P3.5
 
 Current Work Issue:
-- Issue #13 — `[CURRENT WORK] P3.3 — Generic Operation Authoring Core`.
+**#21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack`**
 
-Approved purpose:
-- remove proof-only Fine Putty/Laminate assignment-specific coupling before more services are added;
-- establish generic operation → target → quantity rule → quantity → Price Book reference → Info → presentation-mode flow;
-- introduce the safe authoring/change boundary and Undo/Redo foundation before authoring expands;
-- prove the generic mechanism with one additional real Registry operation;
-- preserve P3.1/P3.2 behavior and old persisted projects.
+Status:
+**PLANNING / AUDIT ONLY. NO P3.5 IMPLEMENTATION AUTHORIZED YET.**
 
-P3.3 is intentionally bounded. Production Price Book/totals, broad finishing catalog, objects, uploaded materials/images, Publishing and AI remain outside this block.
+P3.5 direction:
+- real finishing operations, not one generic „Шпакловка“;
+- audit ordinary plaster/leveling, reinforced/base putty, gypsum putty, fine putty, sanding, primer/preparation and paint from approved sources;
+- ceiling becomes a real service target;
+- quantity/opening-deduction behavior must be correct per operation;
+- client Info must come from approved Ivanov Remonti sources;
+- reuse the merged generic authoring/pricing foundation rather than creating parallel mechanisms.
 
-There is currently:
-- no P3.3 feature branch yet;
-- no P3.3 PR yet;
-- no P3.3 product-code implementation yet.
-
-The global **Uniqueness Interrupt Gate** applies at every P3.3 checkpoint. If a materially stronger mechanism is discovered, the affected work stops before further implementation and follows the approved compare → impact/risk → Owner decision when material → supersede/sync → continue flow.
+Non-goals at this first step:
+- no P3.5 code;
+- no broad service catalog;
+- no Object/Edit Core;
+- no Materials/Colors/Images/Assets implementation;
+- no Publishing;
+- no Photo/AI;
+- no unrelated redesign;
+- no fixed price catalog.
 
 ---
 
-## 7. NEXT EXACT STEP
+## 8. NEXT EXACT STEP
 
-**P3.4 — Dynamic Price Core + room/offer totals**
-Current Work Issue: #18
+**P3.5 source audit + one concrete bounded proposal only.**
 
-### P3.4a — MERGED / VERIFIED
-- PR #19 merged;
-- canonical per-offer EUR unit price;
-- blank price ≠ zero;
-- persistence + calculation foundation.
+The Work Controller must:
 
-### P3.4b — MERGED / VERIFIED
-- PR #20 merged;
-- merge commit: `126e9877c425329867cf9963497467091008e1d2`;
-- CI #351 / `36333699252`: SUCCESS.
+1. read `START_HERE.md`;
+2. read this `PROJECT_STATE.md`;
+3. read Current Work Issue #21;
+4. verify actual `main` / HEAD / open PR state;
+5. read only task-relevant permanent contracts:
+   - `docs/MASTER_SPEC.md`
+   - `docs/SERVICE_OPERATION_REGISTRY.md`
+   - `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
+   - `docs/DELIVERY_STRATEGY.md`
+6. audit relevant current `Traqnivanov/Remonti-` service pages + `narachnik/` guides;
+7. use `kalkulator-combined.html` only where a quantity/formula question actually requires it;
+8. identify the real finishing chain/dependencies and current implementation gaps;
+9. propose the **smallest useful P3.5 implementation sequence**;
+10. run full Criteria Check + Uniqueness Interrupt Gate + regression/dependency review;
+11. explain the proposal to Owner in plain Bulgarian;
+12. **STOP for Owner approval before any P3.5 code.**
 
-Accepted pricing/scope behavior:
-- EUR only;
-- no fixed global product prices;
-- Work enters unit price for the concrete offer/service;
-- only checked services enter the offer;
-- unchecked services do not require price and do not affect completeness/totals;
-- new real projects start with no services selected;
-- zero selected services shows **„Няма избрани услуги“**;
-- selected services with missing price show **„Цена не е въведена“** and make the offer incomplete;
-- entered price updates line/offer totals and persists through Save/Open;
-- Client sees pricing read-only;
-- obsolete visible DEV pricing proof UI is removed.
+There is currently:
+- no P3.5 feature branch;
+- no P3.5 PR;
+- no P3.5 product-code implementation.
 
-**No next implementation has started after merge #20.**
