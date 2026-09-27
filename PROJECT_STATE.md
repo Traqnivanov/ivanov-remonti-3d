@@ -211,17 +211,30 @@ The global **Uniqueness Interrupt Gate** applies at every P3.3 checkpoint. If a 
 
 ## 7. NEXT EXACT STEP
 
-**P3.3 is functionally complete and final acceptance is PASS.**
+**P3.3 — CLOSED / VERIFIED.**
 
-- P3.3a merged;
-- P3.3b merged;
-- P3.3c compact operation authoring merged;
-- P3.3d acceptance PR #17 is verified SUCCESS and contains tests only.
+Completed and merged:
+- P3.3a — generic quantity / price-reference boundary;
+- P3.3b — canonical Project State Undo/Redo;
+- P3.3c — compact generic Work service authoring with **Гипсова шпакловка** proof;
+- P3.3d — Save/Open final acceptance.
 
-Exact next administrative gate:
-1. Owner approval to merge test-only PR #17;
-2. merge #17;
-3. close Current Work Issue #13 and sync P3.3 CLOSED;
-4. then prepare the short concrete proposal for **P3.4 — Price Core + room/offer totals**, including the required audit of `ivanov-tools/offer.html` as workflow reference before implementation.
+Final acceptance:
+- PR #17 merged;
+- merge commit: `b7b779ce2dcf82c273ec6710ccf79fe439314fd5`;
+- reverified CI run #325 / `36323953709`: SUCCESS.
 
-No P3.4 code is authorized before that proposal / Criteria / Uniqueness check.
+Accepted interaction rule:
+**added services stay compact by default; tap one service to open only its settings.**
+The always-expanded service-card direction is superseded and must not be reused for future service families.
+
+**CURRENT NEXT: P3.4 — Price Core + room/offer totals.**
+
+Before any P3.4 implementation:
+1. audit `Traqnivanov/ivanov-tools/offer.html` only as workflow reference;
+2. define the smallest real Price Book + line/room/offer total mechanism;
+3. preserve historical quote-price safety;
+4. run Criteria Check + Uniqueness Interrupt Gate;
+5. stop for Owner approval before implementation if the proposal changes product behavior materially.
+
+No P3.4 code has started.
