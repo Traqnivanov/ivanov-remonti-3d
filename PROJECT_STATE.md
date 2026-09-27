@@ -216,30 +216,26 @@ Current Work Issue: #18
 
 ### P3.4a — MERGED / VERIFIED
 - PR #19 merged;
-- merge commit: `8aa86bdfe7aae9cd915608487c2c96b551114e67`;
-- CI #326 / `36325256289`: SUCCESS;
-- canonical `unitPriceEur` exists per service assignment;
-- blank price remains missing, not `0 €`;
-- explicit `0 €` remains distinct from blank;
-- dynamic line/offer calculation foundation is in place;
-- entered EUR price persists through Save/Open.
+- canonical per-offer EUR unit price;
+- blank price ≠ zero;
+- persistence + calculation foundation.
 
-Owner-locked pricing truth:
+### P3.4b — MERGED / VERIFIED
+- PR #20 merged;
+- merge commit: `126e9877c425329867cf9963497467091008e1d2`;
+- CI #351 / `36333699252`: SUCCESS.
+
+Accepted pricing/scope behavior:
 - EUR only;
 - no fixed global product prices;
-- price is entered in Work for the concrete offer/service;
-- saved offer keeps the entered price;
-- test fixtures are not business truth.
+- Work enters unit price for the concrete offer/service;
+- only checked services enter the offer;
+- unchecked services do not require price and do not affect completeness/totals;
+- new real projects start with no services selected;
+- zero selected services shows **„Няма избрани услуги“**;
+- selected services with missing price show **„Цена не е въведена“** and make the offer incomplete;
+- entered price updates line/offer totals and persists through Save/Open;
+- Client sees pricing read-only;
+- obsolete visible DEV pricing proof UI is removed.
 
-**CURRENT NEXT: P3.4b — visible Work pricing + live totals.**
-
-Bounded next:
-1. add mobile-first Work price input for the currently edited service;
-2. update line total immediately from canonical quantity × entered EUR price;
-3. show coherent offer total;
-4. if any included line has no price, show **„Цена не е въведена“** and mark the total incomplete;
-5. Client remains read-only;
-6. price edits enter Undo/Redo and Save/Open;
-7. no new services and no fixed Price Book.
-
-No P3.4b implementation has started.
+**No next implementation has started after merge #20.**
