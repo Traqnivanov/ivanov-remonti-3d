@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **P3.5a VERIFIED, BUT OWNER REVIEW REOPENED SCOPE BEFORE MERGE: ceiling must be a real default-included service scope where applicable.**
+**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **P3.5b DEFAULT CEILING SCOPE IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; AWAITING OWNER LIVE-PREVIEW REVIEW.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -14,7 +14,7 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 - Repo: `Traqnivanov/ivanov-remonti-3d`
 - Stable branch: `main`
 - Active feature branch: **`feat/p3-5a-wall-finishing`**
-- Active PR: **#22 — `P3.5a — Wall finishing: Sanding, Primer, Paint` — DRAFT / NOT MERGE-READY after Owner live-preview review**
+- Active PR: **#22 — `P3.5a — Wall finishing: Sanding, Primer, Paint` — DRAFT / awaiting Owner review of the corrected live preview**
 - Active Current Work Issue: **#21 — P3.5 Real wall/ceiling finishing stack**
 - P3.3: **MERGED / VERIFIED / CLOSED**
 - P3.4: **MERGED / VERIFIED / CLOSED**
@@ -214,7 +214,7 @@ Current Work Issue:
 **#21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack`**
 
 Status:
-**P3.5a wall-only implementation is technically verified, but Owner live-preview review found a product blocker before merge: ceiling must be selectable as a real service scope and included by default when an applicable service is selected. PR #22 is back to DRAFT.**
+**P3.5b ceiling-scope correction is implemented and verified. Applicable finishing services now default to walls + ceiling, with ceiling independently removable and separately priced. PR #22 remains DRAFT until Owner reviews the live result.**
 
 P3.5 direction:
 - **Owner-approved 27.09.2026:** P3.5a first implements wall-only `Шлайфане → Грунд → Боядисване` on the existing generic core;
@@ -241,7 +241,7 @@ Non-goals for P3.5a:
 
 ## 8. NEXT EXACT STEP
 
-**P3.5b CEILING SCOPE — bounded design/implementation before PR #22 can return to merge gate.**
+**OWNER LIVE-PREVIEW REVIEW — verify the corrected default ceiling scope before PR #22 can return to merge gate.**
 
 P3.5a is implemented and verified on `feat/p3-5a-wall-finishing`.
 
@@ -269,5 +269,14 @@ Owner live-preview decision:
 - walls and ceiling still remain separate priced scopes/offer lines when unit prices can differ;
 - this must not create fake duplicate catalog services such as “Paint walls” and “Paint ceiling”.
 
-**NEXT: implement and verify the smallest ceiling-scope extension needed to satisfy this rule, then return PR #22 to Owner visual review. Do not merge before that review and explicit Owner merge approval.**
+Verified implementation evidence:
+- feature head: `cab113478d250c4e74221a6367f883cb5f543881`;
+- CI run #36343470472: SUCCESS;
+- 17/17 test files, 161/161 tests PASS;
+- build + desktop/mobile browser smoke PASS;
+- visual artifact `p35b-ceiling-scope-mobile.png` confirms the checked default ceiling scope;
+- GitHub Pages deployment #36343537517: SUCCESS;
+- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+
+**NEXT: Owner reviews the live preview. Keep PR #22 DRAFT and do not merge until explicit Owner approval after that review.**
 
