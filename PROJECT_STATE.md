@@ -211,30 +211,21 @@ The global **Uniqueness Interrupt Gate** applies at every P3.3 checkpoint. If a 
 
 ## 7. NEXT EXACT STEP
 
-**P3.3 — CLOSED / VERIFIED.**
+**P3.4 — Price Core + room/offer totals**
+Current Work Issue: #18
 
-Completed and merged:
-- P3.3a — generic quantity / price-reference boundary;
-- P3.3b — canonical Project State Undo/Redo;
-- P3.3c — compact generic Work service authoring with **Гипсова шпакловка** proof;
-- P3.3d — Save/Open final acceptance.
+Owner-locked currency rule:
+**EUR ONLY** — no BGN display, no EUR/BGN conversion, no dual-currency reuse from legacy tools.
 
-Final acceptance:
-- PR #17 merged;
-- merge commit: `b7b779ce2dcf82c273ec6710ccf79fe439314fd5`;
-- reverified CI run #325 / `36323953709`: SUCCESS.
+Current audited direction:
+- central versioned Price Book;
+- service → quantity → unit price → line total;
+- coherent room/offer total;
+- saved/historical offers must not silently change when future Price Book values change;
+- Price Book remains separate from geometry/renderer;
+- legacy `ivanov-tools/offer.html` is workflow reference only.
 
-Accepted interaction rule:
-**added services stay compact by default; tap one service to open only its settings.**
-The always-expanded service-card direction is superseded and must not be reused for future service families.
+**BLOCKER BEFORE CODE:** choose/verify the starting real Price Book values.
+The legacy `offer.html` EUR prices are not automatically accepted as current truth.
 
-**CURRENT NEXT: P3.4 — Price Core + room/offer totals.**
-
-Before any P3.4 implementation:
-1. audit `Traqnivanov/ivanov-tools/offer.html` only as workflow reference;
-2. define the smallest real Price Book + line/room/offer total mechanism;
-3. preserve historical quote-price safety;
-4. run Criteria Check + Uniqueness Interrupt Gate;
-5. stop for Owner approval before implementation if the proposal changes product behavior materially.
-
-No P3.4 code has started.
+No P3.4 implementation has started.
