@@ -835,7 +835,7 @@ async function runWorkSmoke() {
     );
     await assertEval(
       session,
-      'document.querySelector("#lineTotalText").textContent.includes("Цена не е въведена") && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта") && document.querySelector("#offerTotalStatus").textContent.includes("1 позиция")',
+      'document.querySelector("#lineTotalText").textContent.includes("Цена не е въведена") && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта") && document.querySelector("#offerTotalStatus").textContent.includes("2 позиции")',
       "P3.4b: only included services may make the offer incomplete",
     );
     await assertEval(
@@ -872,7 +872,7 @@ async function runWorkSmoke() {
     await delay(100);
     await assertEval(
       session,
-      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#offerTotalStatus").textContent.includes("2 позиции")',
+      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#offerTotalStatus").textContent.includes("3 позиции")',
       "P3.4b scope: selecting Laminate did not add it to the offer and missing-price count",
     );
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
@@ -898,7 +898,7 @@ async function runWorkSmoke() {
     await delay(100);
     await assertEval(
       session,
-      '!document.querySelector("#serviceRowLaminate") && document.querySelector("#offerTotalStatus").textContent.includes("1 позиция")',
+      '!document.querySelector("#serviceRowLaminate") && document.querySelector("#offerTotalStatus").textContent.includes("2 позиции")',
       "P3.4b scope: deselected Laminate still affects the offer",
     );
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
@@ -973,7 +973,7 @@ async function runWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      `!document.querySelector("[data-service-id=assignment-gypsum-putty-1]") && !document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked`,
+      `!document.querySelector("[data-service-id=assignment-gypsum-putty-1]") && !document.querySelector("[data-service-id=assignment-gypsum-putty-ceiling-1]") && !document.querySelector("[data-service-include=assignment-gypsum-putty-1]").checked`,
       "P3.4b scope: deselecting gypsum putty did not remove it from the offer",
     );
 
@@ -984,8 +984,8 @@ async function runWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      'Boolean(document.querySelector("[data-service-id=assignment-paint-1]")) && document.querySelector("#infoTitle").textContent.includes("Боядисване") && document.querySelector("#quantityKpi").textContent.includes("43,59") && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true"',
-      "P3.5a: Paint did not enter the offer with calculated wall quantity and expanded authoring",
+      'Boolean(document.querySelector("[data-service-id=assignment-paint-1]")) && Boolean(document.querySelector("[data-service-id=assignment-paint-ceiling-1]")) && document.querySelector(\'[data-operation-id="assignment-paint-1"][data-operation-scope="ceiling"]\')?.checked && document.querySelector("#infoTitle").textContent.includes("Боядисване") && document.querySelector("#quantityKpi").textContent.includes("43,59") && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true"',
+      "P3.5b: Paint did not enter with walls + ceiling included by default",
     );
     await evaluate(
       session,
@@ -995,8 +995,39 @@ async function runWorkSmoke() {
     await assertEval(
       session,
       'document.querySelector("#totalKpi").textContent.includes("185,26")',
-      "P3.5a: Paint dynamic EUR price did not calculate the line total",
+      "P3.5b: Paint wall EUR price did not calculate the line total",
     );
+    await evaluate(
+      session,
+      'document.querySelector("[data-service-id=assignment-paint-ceiling-1]").click()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("#quantityKpi").textContent.includes("20,16") && document.querySelector("#infoTitle").textContent.includes("Таван")',
+      "P3.5b: Paint ceiling did not expose its own 20,16 m² scope",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#unitPriceInput"); input.value = "5.5"; input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("#totalKpi").textContent.includes("110,88")',
+      "P3.5b: Paint ceiling did not keep an independent EUR price",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector(\'[data-operation-id="assignment-paint-1"][data-operation-scope="ceiling"]\'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      '!document.querySelector("[data-service-id=assignment-paint-ceiling-1]") && Boolean(document.querySelector("[data-service-id=assignment-paint-1]")) && document.querySelector("[data-service-include=assignment-paint-1]").checked',
+      "P3.5b: removing only the Paint ceiling scope also removed the wall service",
+    );
+    await evaluate(session, 'document.querySelector("[data-service-id=assignment-paint-1]").click()');
     await evaluate(
       session,
       `(() => { const input = document.querySelector(\'[data-operation-id="assignment-paint-1"][data-operation-target="room-1.wall-front"]\'); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); })()`,
@@ -1005,7 +1036,7 @@ async function runWorkSmoke() {
     await assertEval(
       session,
       'document.querySelector("#quantityKpi").textContent.includes("34,56") && document.querySelector("#totalKpi").textContent.includes("146,88")',
-      "P3.5a: Paint exact wall scope did not update quantity and price",
+      "P3.5b: Paint exact wall scope did not remain independent after removing ceiling",
     );
     await evaluate(
       session,
@@ -1014,8 +1045,8 @@ async function runWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      '!document.querySelector("[data-service-id=assignment-paint-1]") && !document.querySelector("[data-service-include=assignment-paint-1]").checked',
-      "P3.5a: Paint still affects the offer after deselection",
+      '!document.querySelector("[data-service-id=assignment-paint-1]") && !document.querySelector("[data-service-id=assignment-paint-ceiling-1]") && !document.querySelector("[data-service-include=assignment-paint-1]").checked',
+      "P3.5b: Paint still affects the offer after full service deselection",
     );
 
     await evaluate(session, 'document.querySelector("#serviceRow").click()');
@@ -1109,8 +1140,8 @@ async function runWorkSmoke() {
     await delay(60);
     await assertEval(
       session,
-      'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#totalKpi").textContent.includes("286,00") && document.querySelector("#offerTotalKpi").textContent.includes("286,00") && document.querySelector("#offerTotalStatus").textContent.includes("Всички включени позиции")',
-      "P3.4b: selected-service price did not complete the offer correctly",
+      'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#totalKpi").textContent.includes("286,00") && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта") && document.querySelector("#offerTotalStatus").textContent.includes("1 позиция")',
+      "P3.5b: pricing Fine Putty walls must not silently price the ceiling",
     );
     await evaluate(
       session,
@@ -1120,7 +1151,7 @@ async function runWorkSmoke() {
     await assertEval(
       session,
       'document.querySelector("#unitPriceInput").value === "6,50" && document.querySelector("#lineTotalText").textContent.includes("286,00")',
-      "P3.4b: confirmed EUR price did not remain in canonical Work state",
+      "P3.4b: confirmed wall EUR price did not remain in canonical Work state",
     );
 
     await evaluate(session, 'document.querySelector("#undoProjectButton").click()');
@@ -1135,8 +1166,30 @@ async function runWorkSmoke() {
     await assertEval(
       session,
       'document.querySelector("#lineTotalText").textContent.includes("286,00") && document.querySelector("#unitPriceInput").value === "6,50"',
-      "P3.4b: Redo did not restore the entered EUR price",
+      "P3.4b: Redo did not restore the entered wall EUR price",
     );
+
+    await evaluate(
+      session,
+      'document.querySelector("[data-service-id=assignment-fine-putty-ceiling-1]").click()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("#quantityKpi").textContent.includes("20,64") && document.querySelector("#infoTitle").textContent.includes("Таван")',
+      "P3.5b: Fine Putty ceiling did not use the resized room ceiling area",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#unitPriceInput"); input.value = "7"; input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#totalKpi").textContent.includes("144,48") && document.querySelector("#offerTotalKpi").textContent.includes("430,48") && document.querySelector("#offerTotalStatus").textContent.includes("Всички включени позиции")',
+      "P3.5b: separate ceiling price did not complete Fine Putty wall + ceiling totals",
+    );
+    await evaluate(session, 'document.querySelector("#serviceRow").click()');
 
     await evaluate(
       session,
@@ -1315,7 +1368,7 @@ async function runMobileWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      '!document.querySelector("#serviceRowLaminate") && document.querySelector("#offerTotalKpi").textContent.includes("283,34")',
+      '!document.querySelector("#serviceRowLaminate") && document.querySelector("#offerTotalKpi").textContent.includes("Непълна оферта") && document.querySelector("#offerTotalStatus").textContent.includes("283,34")',
       "Mobile P3.4b scope: deselected Laminate still blocks the completed offer",
     );
 
@@ -1357,14 +1410,15 @@ async function runMobileWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      'document.querySelector("#operationSummary-paint")?.getBoundingClientRect().height >= 44 && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true" && Array.from(document.querySelectorAll("#operationAuthoring .check-row")).every((el) => el.getBoundingClientRect().height >= 44)',
-      "Mobile P3.5a: Paint authoring is missing or below the 44px touch target",
+      'document.querySelector("#operationSummary-paint")?.getBoundingClientRect().height >= 44 && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true" && Boolean(document.querySelector("[data-service-id=assignment-paint-ceiling-1]")) && document.querySelector(\'[data-operation-id="assignment-paint-1"][data-operation-scope="ceiling"]\')?.checked && Array.from(document.querySelectorAll("#operationAuthoring .check-row")).every((el) => el.getBoundingClientRect().height >= 44)',
+      "Mobile P3.5b: Paint walls + default ceiling authoring is missing or below the 44px touch target",
     );
     await evaluate(
       session,
       'document.querySelector("#operationAuthoring").scrollIntoView({ block: "center", behavior: "instant" })',
     );
     await delay(100);
+    await saveScreenshot(session, "/tmp/p35b-ceiling-scope-mobile.png");
     await saveScreenshot(session, "/tmp/p35a-wall-finishing-mobile.png");
     await evaluate(
       session,
