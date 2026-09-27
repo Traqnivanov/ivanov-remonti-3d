@@ -328,23 +328,6 @@ app.innerHTML = `
           <div id="m2Schema"></div>
         </section>
 
-        <section class="section work-only">
-          <div class="section-title">Услуги за изпълнение</div>
-          <div id="serviceScopeControls" class="service-scope-list"></div>
-          <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
-        </section>
-
-        <section class="section work-only" id="finePuttyTargetsSection">
-          <div class="section-title">Фина шпакловка · обхват</div>
-          <div id="wallTargets"></div>
-        </section>
-
-        <section class="section work-only" id="operationSettingsSection">
-          <div class="section-title">Настройки на услуга</div>
-          <div id="operationAuthoring"></div>
-          <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
-        </section>
-
       </aside>
 
       <section class="viewer-wrap">
@@ -369,6 +352,25 @@ app.innerHTML = `
 
       <aside class="panel right">
         <h2>Smart Offer</h2>
+
+        <div class="workbench-services work-only">
+          <section class="section">
+            <div class="section-title">Услуги за изпълнение</div>
+            <div id="serviceScopeControls" class="service-scope-list"></div>
+            <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
+          </section>
+
+          <section class="section" id="finePuttyTargetsSection">
+            <div class="section-title">Фина шпакловка · обхват</div>
+            <div id="wallTargets"></div>
+          </section>
+
+          <section class="section" id="operationSettingsSection">
+            <div class="section-title">Настройки на услуга</div>
+            <div id="operationAuthoring"></div>
+            <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
+          </section>
+        </div>
 
         <div id="offerRows"></div>
 
