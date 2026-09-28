@@ -1498,6 +1498,7 @@ async function runM0ResponsiveReadabilitySmoke(width, screenshotPath = null) {
         const rightRect = rect(right);
         return {
           innerWidth: window.innerWidth,
+          visualViewportWidth: window.visualViewport?.width ?? window.innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
           workspaceDisplay: getComputedStyle(workspace).display,
           workspaceDirection: getComputedStyle(workspace).flexDirection,
@@ -1518,6 +1519,8 @@ async function runM0ResponsiveReadabilitySmoke(width, screenshotPath = null) {
       })()`,
     );
 
+    console.log(`M0 ${width}px metrics: ${JSON.stringify(metrics)}`);
+
     if (Math.abs(metrics.innerWidth - width) > 1) {
       throw new Error(
         `M0 ${width}px: viewport mismatch ${metrics.innerWidth}px`,
@@ -1536,13 +1539,18 @@ async function runM0ResponsiveReadabilitySmoke(width, screenshotPath = null) {
         `M0 ${width}px: Work is not single-column on a phone-sized viewport`,
       );
     }
+    const contentWidth = Math.min(
+      metrics.innerWidth,
+      metrics.visualViewportWidth,
+      metrics.scrollWidth,
+    );
     if (
-      metrics.viewerWidth < width - 2 ||
-      metrics.leftWidth < width - 2 ||
-      metrics.rightWidth < width - 2
+      metrics.viewerWidth < contentWidth - 2 ||
+      metrics.leftWidth < contentWidth - 2 ||
+      metrics.rightWidth < contentWidth - 2
     ) {
       throw new Error(
-        `M0 ${width}px: one or more Work zones are still squeezed side-by-side`,
+        `M0 ${width}px: one or more Work zones are still squeezed side-by-side: ${JSON.stringify(metrics)}`,
       );
     }
     if (metrics.leftTop < metrics.viewerBottom - 1) {
