@@ -259,8 +259,11 @@ const initialIncludedService = project.serviceAssignments.find(
 let offerInteraction = initialIncludedService
   ? selectOfferService(initialIncludedService.id)
   : showWholeResult();
+type RightWorkbenchTab = "services" | "scope" | "offer";
+
 let expandedOperationId: string | null = null;
 let expandedOpeningId: string | null = null;
+let rightWorkbenchTab: RightWorkbenchTab = "services";
 const desktopWorkbenchMedia = window.matchMedia("(min-width: 981px)");
 let autoCutaway = true;
 
@@ -363,14 +366,39 @@ app.innerHTML = `
       </section>
 
       <aside class="panel right">
-        <h2 class="workbench-zone-title work-only">Работа и оферта</h2>
+        <div class="right-workbench-sticky">
+          <h2 class="workbench-zone-title work-only">Работа и оферта</h2>
 
-        <div class="workbench-services work-only">
-          <section class="section">
+          <section class="offer-summary" id="offerSummarySection">
+            <div class="offer-summary-row">
+              <span>Общо</span>
+              <strong id="offerTotalKpi">—</strong>
+            </div>
+            <p id="offerTotalStatus"></p>
+          </section>
+
+          <nav class="right-workbench-tabs work-only" aria-label="Работа и оферта">
+            <button type="button" data-right-tab="services" class="active">Услуги</button>
+            <button type="button" data-right-tab="scope">Обхват</button>
+            <button type="button" data-right-tab="offer">Цена / Info</button>
+          </nav>
+        </div>
+
+        <div id="rightWorkbenchServices" class="right-workbench-panel work-only active" data-right-panel="services">
+          <section class="section right-services-section">
             <div class="section-title">Услуги за изпълнение</div>
+            <label class="service-filter">
+              <span class="sr-only">Търси услуга</span>
+              <input id="serviceFilterInput" type="search" placeholder="Търси услуга" autocomplete="off" />
+            </label>
             <div id="serviceScopeControls" class="service-scope-list"></div>
+            <p id="serviceFilterEmpty" class="right-panel-empty" hidden>Няма услуга с това име.</p>
             <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
           </section>
+        </div>
+
+        <div id="rightWorkbenchScope" class="right-workbench-panel work-only" data-right-panel="scope">
+          <p id="scopeEmptyState" class="right-panel-empty">Избери услуга, за да настроиш точния обхват.</p>
 
           <section class="section" id="finePuttyTargetsSection">
             <div class="section-title">Фина шпакловка · обхват</div>
@@ -384,46 +412,40 @@ app.innerHTML = `
           </section>
         </div>
 
-        <h2 class="smart-offer-heading">Smart Offer</h2>
-        <div id="offerRows"></div>
+        <div id="rightWorkbenchOffer" class="right-workbench-panel" data-right-panel="offer">
+          <h2 class="smart-offer-heading">Smart Offer</h2>
+          <div id="offerRows"></div>
 
-        <section class="offer-summary" id="offerSummarySection">
-          <div class="offer-summary-row">
-            <span>Общо</span>
-            <strong id="offerTotalKpi">—</strong>
+          <section class="section" id="offerDetailsSection">
+            <div class="section-title">Оферта</div>
+            <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
+            <div class="kpi price-kpi">
+              <span id="unitPriceLabel">Ед. цена</span>
+              <label class="price-input-wrap work-only" id="unitPriceWorkControl">
+                <input
+                  id="unitPriceInput"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Въведи цена"
+                  aria-label="Единична цена в евро"
+                />
+                <span id="unitPriceSuffix">€/m²</span>
+              </label>
+              <strong id="unitPriceKpi" class="client-price-value">—</strong>
+            </div>
+            <div class="kpi"><span id="totalLabel">Сума</span><strong id="totalKpi">—</strong></div>
+          </section>
+
+          <div class="info-card" id="offerInfoCard">
+            <h3><span class="info-glyph" aria-hidden="true">i</span> <span id="infoTitle"></span></h3>
+            <b>Какво е</b><p id="infoWhat"></p>
+            <b>Защо се прави</b><p id="infoWhy"></p>
+            <b>Какво получавате</b><p id="infoResult"></p>
+            <b>Какво включва тази позиция</b><p id="infoIncludes"></p>
           </div>
-          <p id="offerTotalStatus"></p>
-        </section>
 
-        <section class="section" id="offerDetailsSection">
-          <div class="section-title">Оферта</div>
-          <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
-          <div class="kpi price-kpi">
-            <span id="unitPriceLabel">Ед. цена</span>
-            <label class="price-input-wrap work-only" id="unitPriceWorkControl">
-              <input
-                id="unitPriceInput"
-                type="text"
-                inputmode="decimal"
-                placeholder="Въведи цена"
-                aria-label="Единична цена в евро"
-              />
-              <span id="unitPriceSuffix">€/m²</span>
-            </label>
-            <strong id="unitPriceKpi" class="client-price-value">—</strong>
-          </div>
-          <div class="kpi"><span id="totalLabel">Сума</span><strong id="totalKpi">—</strong></div>
-        </section>
-
-        <div class="info-card" id="offerInfoCard">
-          <h3><span class="info-glyph" aria-hidden="true">i</span> <span id="infoTitle"></span></h3>
-          <b>Какво е</b><p id="infoWhat"></p>
-          <b>Защо се прави</b><p id="infoWhy"></p>
-          <b>Какво получавате</b><p id="infoResult"></p>
-          <b>Какво включва тази позиция</b><p id="infoIncludes"></p>
+          <button id="showResultBtn" style="width:100%;margin-top:12px">Виж целия резултат</button>
         </div>
-
-        <button id="showResultBtn" style="width:100%;margin-top:12px">Виж целия резултат</button>
       </aside>
     </main>
   </div>
@@ -468,10 +490,25 @@ renderLeftGeometrySummary();
 viewer.setProject(project);
 syncViewerFocus();
 renderOffer();
+renderRightWorkbench();
 wireControls();
 setPreviewMode(previewMode);
 
 function wireControls(): void {
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-right-tab]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const tab = button.dataset.rightTab as RightWorkbenchTab | undefined;
+        if (!tab) return;
+        setRightWorkbenchTab(tab);
+      });
+    });
+
+  mustGet<HTMLInputElement>("serviceFilterInput").addEventListener("input", () => {
+    renderServiceScopeControls();
+  });
+
   mustGet("addDoorButton").addEventListener("click", () => {
     addOpeningFromWork("door");
   });
@@ -527,14 +564,22 @@ function wireControls(): void {
     if (!serviceId) return;
 
     offerInteraction = selectOfferService(serviceId);
+    if (desktopWorkbenchMedia.matches) {
+      rightWorkbenchTab = "offer";
+    }
     syncViewerFocus();
     renderOffer();
+    renderRightWorkbench();
   });
 
   mustGet("showResultBtn").addEventListener("click", () => {
     offerInteraction = showWholeResult();
+    if (desktopWorkbenchMedia.matches) {
+      rightWorkbenchTab = "offer";
+    }
     syncViewerFocus();
     renderOffer();
+    renderRightWorkbench();
   });
 }
 
@@ -653,6 +698,7 @@ function renderCanonicalProjectState(): void {
   viewer.setProject(project);
   syncViewerFocus();
   renderOffer();
+  renderRightWorkbench();
   syncProjectBar();
 }
 
@@ -993,6 +1039,57 @@ function setOpeningStatus(
   status.dataset.state = state;
 }
 
+function setRightWorkbenchTab(tab: RightWorkbenchTab): void {
+  rightWorkbenchTab = tab;
+  renderRightWorkbench();
+}
+
+function renderRightWorkbench(): void {
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-right-tab]")
+    .forEach((button) => {
+      const active = button.dataset.rightTab === rightWorkbenchTab;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-selected", String(active));
+    });
+
+  document
+    .querySelectorAll<HTMLElement>("[data-right-panel]")
+    .forEach((panel) => {
+      panel.classList.toggle(
+        "active",
+        panel.dataset.rightPanel === rightWorkbenchTab,
+      );
+    });
+
+  renderRightScopeEmptyState();
+}
+
+function renderRightScopeEmptyState(): void {
+  const empty = mustGet<HTMLElement>("scopeEmptyState");
+  const finePuttyVisible =
+    !mustGet<HTMLElement>("finePuttyTargetsSection").hidden;
+  const operationVisible =
+    !mustGet<HTMLElement>("operationSettingsSection").hidden;
+
+  if (finePuttyVisible || operationVisible) {
+    empty.hidden = true;
+    return;
+  }
+
+  const selectedAssignment = offerInteraction.selectedServiceId
+    ? project.serviceAssignments.find(
+        (assignment) => assignment.id === offerInteraction.selectedServiceId,
+      )
+    : null;
+
+  empty.hidden = false;
+  empty.textContent =
+    selectedAssignment?.included
+      ? "За избраната услуга няма допълнителен избор на обхват."
+      : "Избери услуга, за да настроиш точния обхват.";
+}
+
 function renderServiceScopeControls(): void {
   const host = mustGet("serviceScopeControls");
   host.replaceChildren();
@@ -1026,8 +1123,18 @@ function renderServiceScopeControls(): void {
       operationDefinition: definition,
     })),
   ];
+  const filterInput = mustGet<HTMLInputElement>("serviceFilterInput");
+  const filterQuery = filterInput.value.trim().toLocaleLowerCase("bg-BG");
+  const visibleServices = filterQuery
+    ? services.filter((service) =>
+        service.label.toLocaleLowerCase("bg-BG").includes(filterQuery),
+      )
+    : services;
+  mustGet<HTMLElement>("serviceFilterEmpty").hidden =
+    visibleServices.length !== 0;
 
-  for (const service of services) {
+
+  for (const service of visibleServices) {
     const included = service.scopeAssignmentIds.some(
       (assignmentId) =>
         project.serviceAssignments.find((item) => item.id === assignmentId)
@@ -1124,6 +1231,9 @@ function renderServiceScopeControls(): void {
           offerInteraction = selectOfferService(service.primaryAssignmentId);
           if (service.operationDefinition) {
             expandedOperationId = service.operationDefinition.assignmentId;
+          }
+          if (desktopWorkbenchMedia.matches) {
+            rightWorkbenchTab = "scope";
           }
         } else {
           if (
