@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.1 desktop + M0 mobile usability fix are implemented/verified; awaiting Owner real-device mobile review before D1.2.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.2 ACTIVE: left Desktop Work panel only. Mobile polish deferred to later dedicated Mobile Work phase.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,33 +259,33 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER REAL-DEVICE MOBILE REVIEW — M0 readability/useability repair.**
+**D1.2 ONLY — Left Desktop Work panel.**
 
-Why M0 was inserted before D1.2:
-- Owner real-device screenshot showed unreadable mobile text;
-- a phone/wide-phone viewport could still receive the narrow 220px-left-column + 3D side-by-side layout;
-- this made Work technically open but practically hard to use.
+Owner decision:
+- continue Desktop D1 now;
+- M0 remains only as a usable mobile baseline;
+- final mobile polishing/redesign is deferred to the dedicated Mobile Work phase.
 
-M0 verified result:
-- phone/wide-phone Work becomes **single-column**;
-- 3D is full-width;
-- geometry and offer sections use full-width below it;
-- key mobile labels/services are >=14px;
-- number inputs use 16px text and 46px height;
-- primary service/touch controls are >=44/46px;
-- no Mobile Work redesign beyond this usability repair.
+D1.2 scope:
+- compact **Room / Openings / Scheme** organization in the left Desktop Work panel;
+- reduce vertical heaviness and wasted height;
+- make the M² scheme **secondary/collapsible**;
+- preserve the D1.1 three-zone desktop skeleton;
+- preserve all geometry/opening behavior and data.
 
-Verification:
-- branch: `feat/d1-1-desktop-workbench`;
-- DRAFT PR #24;
-- current verified head: `29548628c5e5d44b6e6bfabe7165ce0b6d61e980`;
-- CI `36375140804`: **SUCCESS**;
-- 17/17 test files, 161/161 tests: **PASS**;
-- mobile project-open handoff: **PASS**;
-- M0 readability checks: **PASS at 360 / 390 / 412 / 720 CSS px**;
-- visual QA at 390 / 412 / wide-phone: inspected;
-- Pages deploy `36375224800`: **SUCCESS** from exact verified head;
-- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+Non-goals:
+- no D1.3 right Smart Offer redesign;
+- no D1.4 contextual 3D↔Work link;
+- no D1.5 final desktop acceptance;
+- no service/quantity/EUR price/persistence changes;
+- no Mobile Work redesign;
+- no Client Preview redesign.
 
-**NEXT: Owner checks the live preview on the real phone. D1.2 remains STOPPED until that review.**
+Active branch:
+`feat/d1-2-left-work-panel`
+
+Base:
+verified D1.1/M0 head `29548628c5e5d44b6e6bfabe7165ce0b6d61e980`.
+
+**NEXT after implementation: technical QA → exact desktop visual QA → permanent live preview → Owner review → STOP. Do not begin D1.3 automatically.**
 
