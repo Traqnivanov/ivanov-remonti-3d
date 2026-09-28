@@ -1065,6 +1065,53 @@ async function runWorkSmoke() {
 
     await assertEval(
       session,
+      'document.querySelector("[data-right-tab=services]")?.classList.contains("active") && getComputedStyle(document.querySelector("#rightWorkbenchServices")).display !== "none" && getComputedStyle(document.querySelector("#rightWorkbenchScope")).display === "none" && getComputedStyle(document.querySelector("#rightWorkbenchOffer")).display === "none"',
+      "D1.3: desktop right panel did not start on Services",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#offerSummarySection").getBoundingClientRect().top < document.querySelector("#rightWorkbenchServices").getBoundingClientRect().top',
+      "D1.3: total summary is not persistent above the work tabs",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#serviceFilterInput"); input.value = "боя"; input.dispatchEvent(new Event("input", { bubbles: true })); })()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelectorAll("#serviceScopeControls .service-scope-toggle").length === 1 && document.querySelector("#serviceScopeControls").textContent.includes("Боядисване")',
+      "D1.3: service search did not filter the scalable service list",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#serviceFilterInput"); input.value = ""; input.dispatchEvent(new Event("input", { bubbles: true })); })()',
+    );
+    await delay(60);
+
+    await evaluate(session, 'document.querySelector("[data-right-tab=scope]").click()');
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("[data-right-tab=scope]").classList.contains("active") && getComputedStyle(document.querySelector("#rightWorkbenchScope")).display !== "none" && getComputedStyle(document.querySelector("#rightWorkbenchServices")).display === "none"',
+      "D1.3: Scope tab did not isolate scope authoring",
+    );
+
+    await evaluate(session, 'document.querySelector("[data-right-tab=offer]").click()');
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("[data-right-tab=offer]").classList.contains("active") && getComputedStyle(document.querySelector("#rightWorkbenchOffer")).display !== "none" && getComputedStyle(document.querySelector("#unitPriceWorkControl")).display !== "none"',
+      "D1.3: Price/Info tab did not expose the offer authoring area",
+    );
+    await saveScreenshot(session, "/tmp/d13-right-smart-offer.png");
+
+    await evaluate(session, 'document.querySelector("[data-right-tab=services]").click()');
+    await delay(60);
+
+    await assertEval(
+      session,
       '!document.querySelector("#serviceRowLaminate") && !document.querySelector("[data-service-include=assignment-laminate-flooring-1]").checked',
       "P3.4b scope: Laminate must not be in a new offer until explicitly selected",
     );
