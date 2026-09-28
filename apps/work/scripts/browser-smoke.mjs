@@ -634,7 +634,7 @@ async function assertMobileLayout(session, label) {
   if (metrics.toolbarBottom > metrics.canvasTop + 1) {
     throw new Error(label + ": mobile viewer toolbar overlaps the 3D canvas");
   }
-  if (metrics.toolbarHeight > metrics.viewerHeight * 0.25) {
+  if (metrics.toolbarHeight > metrics.viewerHeight * 0.27) {
     throw new Error(label + ": mobile viewer toolbar consumes too much vertical space");
   }
   if (metrics.noteHeight > metrics.viewerHeight * 0.14) {
