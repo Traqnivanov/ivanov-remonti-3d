@@ -999,6 +999,70 @@ async function runWorkSmoke() {
     );
     await delay(80);
     await saveScreenshot(session, "/tmp/d11-desktop-workbench.png");
+
+    await assertEval(
+      session,
+      '!document.querySelector("#m2SchemeDetails").open && document.querySelector("#m2SchemaCompactSummary").textContent.includes("Стени") && document.querySelector("#m2SchemaCompactSummary").textContent.includes("Таван")',
+      "D1.2: M² scheme is not secondary/collapsed with a useful compact summary on desktop",
+    );
+    await assertEval(
+      session,
+      'document.querySelectorAll(".opening-card").length >= 2 && Array.from(document.querySelectorAll(".opening-card")).every((card) => !card.open) && Array.from(document.querySelectorAll(".opening-card-summary")).every((summary) => summary.getBoundingClientRect().height >= 44)',
+      "D1.2: desktop openings are not compact collapsed rows",
+    );
+    const d12CollapsedMetrics = await evaluate(
+      session,
+      `(() => {
+        const left = document.querySelector(".panel.left");
+        const room = document.querySelector(".room-section");
+        const openings = document.querySelector(".openings-section");
+        const scheme = document.querySelector("#m2SchemeDetails");
+        const panelRect = left.getBoundingClientRect();
+        const schemeRect = scheme.getBoundingClientRect();
+        return {
+          panelHeight: Math.round(panelRect.height),
+          contentBottom: Math.round(schemeRect.bottom - panelRect.top + left.scrollTop),
+          scrollHeight: left.scrollHeight,
+          schemeHeight: Math.round(schemeRect.height),
+          roomHeight: Math.round(room.getBoundingClientRect().height),
+          openingsHeight: Math.round(openings.getBoundingClientRect().height),
+        };
+      })()`,
+    );
+    if (d12CollapsedMetrics.schemeHeight > 60) {
+      throw new Error(
+        "D1.2: collapsed M² scheme still consumes too much height: " +
+          JSON.stringify(d12CollapsedMetrics),
+      );
+    }
+
+    await evaluate(
+      session,
+      'document.querySelector(".opening-card-summary").click()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector(".opening-card").open && document.querySelector(".opening-card .opening-fields")?.getBoundingClientRect().height > 0 && Array.from(document.querySelectorAll(".opening-card")).filter((card) => card.open).length === 1',
+      "D1.2: opening summary did not expand exactly one editor",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("#m2SchemeDetails > summary").click()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#m2SchemeDetails").open && document.querySelector("#m2Schema")?.getBoundingClientRect().height > 0',
+      "D1.2: M² scheme cannot be expanded on demand",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("#m2SchemeDetails > summary").click(); document.querySelector(".opening-card-summary").click()',
+    );
+    await delay(80);
+    await saveScreenshot(session, "/tmp/d12-left-work-panel.png");
+
     await assertEval(
       session,
       '!document.querySelector("#serviceRowLaminate") && !document.querySelector("[data-service-include=assignment-laminate-flooring-1]").checked',

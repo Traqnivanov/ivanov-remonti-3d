@@ -41,6 +41,7 @@ import {
 } from "./calculation";
 import { RoomViewer } from "./viewer";
 import { renderM2Schema } from "./m2-schema";
+import { summarizeRoomGeometry } from "./geometry";
 import { getModeCapabilities, type AppEntry } from "./capabilities";
 import {
   FINE_PUTTY_ASSIGNMENT_ID,
@@ -259,6 +260,8 @@ let offerInteraction = initialIncludedService
   ? selectOfferService(initialIncludedService.id)
   : showWholeResult();
 let expandedOperationId: string | null = null;
+let expandedOpeningId: string | null = null;
+const desktopWorkbenchMedia = window.matchMedia("(min-width: 981px)");
 let autoCutaway = true;
 
 const appNode = document.querySelector<HTMLDivElement>("#app");
@@ -304,7 +307,7 @@ app.innerHTML = `
       <aside class="panel left">
         <h2>Работен проект</h2>
 
-        <section class="section">
+        <section class="section left-work-section room-section">
           <div class="section-title">Размери на стаята</div>
           <div class="dims">
             <label>Ширина, m<input id="widthInput" type="number" min="1" step="0.1"></label>
@@ -313,8 +316,11 @@ app.innerHTML = `
           </div>
         </section>
 
-        <section class="section work-only openings-section">
-          <div class="section-title">Отвори</div>
+        <section class="section work-only openings-section left-work-section">
+          <div class="left-section-head">
+            <div class="section-title">Отвори</div>
+            <span id="openingsCount" class="left-section-meta"></span>
+          </div>
           <div id="openingsEditor"></div>
           <div class="opening-add-actions">
             <button id="addDoorButton" type="button">Добави врата</button>
@@ -323,10 +329,16 @@ app.innerHTML = `
           <p id="openingsStatus" class="opening-status" role="status" aria-live="polite"></p>
         </section>
 
-        <section class="section">
-          <div class="section-title">M² схема · същата геометрия</div>
-          <div id="m2Schema"></div>
-        </section>
+        <details id="m2SchemeDetails" class="section m2-scheme-details left-work-section">
+          <summary class="m2-scheme-summary">
+            <span>М² схема</span>
+            <span id="m2SchemaCompactSummary" class="left-section-meta"></span>
+          </summary>
+          <div class="m2-scheme-body">
+            <div class="section-title">Същата геометрия</div>
+            <div id="m2Schema"></div>
+          </div>
+        </details>
 
       </aside>
 
@@ -444,11 +456,15 @@ for (const input of [widthInput, lengthInput, heightInput]) {
   input.addEventListener("change", updateDimensions);
 }
 
+mustGet<HTMLDetailsElement>("m2SchemeDetails").open =
+  !desktopWorkbenchMedia.matches;
+
 renderOpeningEditor();
 renderServiceScopeControls();
 renderWallTargets();
 renderOperationAuthoring();
 renderM2Schema(mustGet("m2Schema"), project);
+renderLeftGeometrySummary();
 viewer.setProject(project);
 syncViewerFocus();
 renderOffer();
@@ -633,6 +649,7 @@ function renderCanonicalProjectState(): void {
   renderWallTargets();
   renderOperationAuthoring();
   renderM2Schema(mustGet("m2Schema"), project);
+  renderLeftGeometrySummary();
   viewer.setProject(project);
   syncViewerFocus();
   renderOffer();
@@ -764,6 +781,10 @@ function updateDimensions(): void {
 function renderOpeningEditor(): void {
   const host = mustGet("openingsEditor");
   host.replaceChildren();
+  mustGet("openingsCount").textContent =
+    project.room.openings.length === 0
+      ? "няма"
+      : `${project.room.openings.length} ${project.room.openings.length === 1 ? "отвор" : "отвора"}`;
 
   if (!project.room.openings.length) {
     const empty = document.createElement("p");
@@ -774,12 +795,29 @@ function renderOpeningEditor(): void {
   }
 
   project.room.openings.forEach((opening) => {
-    const card = document.createElement("div");
+    const card = document.createElement("details");
     card.className = "opening-card";
     card.dataset.openingId = opening.id;
+    card.open =
+      !desktopWorkbenchMedia.matches ||
+      expandedOpeningId === opening.id;
 
-    const head = document.createElement("div");
-    head.className = "opening-card-head";
+    card.addEventListener("toggle", () => {
+      if (!desktopWorkbenchMedia.matches) return;
+      if (card.open) {
+        expandedOpeningId = opening.id;
+        host
+          .querySelectorAll<HTMLDetailsElement>(".opening-card[open]")
+          .forEach((other) => {
+            if (other !== card) other.open = false;
+          });
+      } else if (expandedOpeningId === opening.id) {
+        expandedOpeningId = null;
+      }
+    });
+
+    const summary = document.createElement("summary");
+    summary.className = "opening-card-summary";
 
     const title = document.createElement("strong");
     title.textContent =
@@ -787,17 +825,33 @@ function renderOpeningEditor(): void {
         ? `Врата ${openingOrdinal(opening, "door")}`
         : `Прозорец ${openingOrdinal(opening, "window")}`;
 
+    const meta = document.createElement("span");
+    meta.className = "opening-card-meta";
+    meta.textContent =
+      `${openingWallLabels[opening.hostSurfaceId]} · ${formatNumber(opening.widthM)} × ${formatNumber(opening.heightM)} m`;
+
+    summary.append(title, meta);
+    card.append(summary);
+
+    const body = document.createElement("div");
+    body.className = "opening-card-body";
+
+    const tools = document.createElement("div");
+    tools.className = "opening-card-tools";
+
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.className = "opening-remove";
     removeButton.textContent = "Премахни";
     removeButton.addEventListener("click", () => {
       if (!currentCapabilities().canAuthorProject) return;
+      if (expandedOpeningId === opening.id) {
+        expandedOpeningId = null;
+      }
       applyOpeningMutation(removeOpening(project, opening.id));
     });
-
-    head.append(title, removeButton);
-    card.append(head);
+    tools.append(removeButton);
+    body.append(tools);
 
     const grid = document.createElement("div");
     grid.className = "opening-fields";
@@ -817,6 +871,7 @@ function renderOpeningEditor(): void {
         renderOpeningEditor();
         return;
       }
+      expandedOpeningId = opening.id;
       applyOpeningMutation(
         updateOpening(project, opening.id, {
           hostSurfaceId: wallSelect.value as WallId,
@@ -842,7 +897,8 @@ function renderOpeningEditor(): void {
       );
     }
 
-    card.append(grid);
+    body.append(grid);
+    card.append(body);
     host.append(card);
   });
 }
@@ -890,6 +946,7 @@ function openingNumberField(
     }
 
     const nextValue = Number.parseFloat(input.value);
+    expandedOpeningId = opening.id;
     applyOpeningMutation(
       updateOpening(project, opening.id, {
         [field]: nextValue,
@@ -904,6 +961,7 @@ function addOpeningFromWork(kind: Opening["kind"]): void {
   if (!currentCapabilities().canAuthorProject) return;
 
   const id = `room-1.${kind}-${crypto.randomUUID()}`;
+  expandedOpeningId = id;
   applyOpeningMutation(addOpening(project, kind, id));
 }
 
@@ -918,6 +976,12 @@ function applyOpeningMutation(result: OpeningMutationResult): void {
   nextProject.room.openings = result.openings;
   setOpeningStatus("", "idle");
   commitCanonicalProject(nextProject);
+}
+
+function renderLeftGeometrySummary(): void {
+  const geometry = summarizeRoomGeometry(project);
+  mustGet("m2SchemaCompactSummary").textContent =
+    `Стени ${formatNumber(geometry.grossWallsM2)} · Таван ${formatNumber(geometry.ceilingM2)} m²`;
 }
 
 function setOpeningStatus(
