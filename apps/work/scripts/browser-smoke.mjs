@@ -1461,6 +1461,125 @@ async function runWorkSmoke() {
   }
 }
 
+async function runM0ResponsiveReadabilitySmoke(width, screenshotPath = null) {
+  const session = await createSession();
+  try {
+    await session.call("Emulation.setDeviceMetricsOverride", {
+      width,
+      height: 844,
+      deviceScaleFactor: 2,
+      mobile: false,
+      screenWidth: width,
+      screenHeight: 844,
+    });
+    await session.call("Emulation.setTouchEmulationEnabled", {
+      enabled: true,
+      maxTouchPoints: 5,
+    });
+    await authorizeQaWork(session);
+
+    const metrics = await evaluate(
+      session,
+      `(() => {
+        const workspace = document.querySelector(".workspace");
+        const viewer = document.querySelector(".viewer-wrap");
+        const left = document.querySelector(".panel.left");
+        const right = document.querySelector(".panel.right");
+        const serviceText = document.querySelector(".service-scope-toggle span");
+        const sectionTitle = document.querySelector(".section-title");
+        const projectTitle = document.querySelector(".project-bar-current strong");
+        const viewerButton = document.querySelector(".viewer-toolbar button");
+        const numberInput = document.querySelector('input[type="number"]');
+        const firstService = document.querySelector(".service-scope-toggle");
+        const rect = (el) => el?.getBoundingClientRect();
+        const px = (el, property) => parseFloat(getComputedStyle(el)[property]);
+        const viewerRect = rect(viewer);
+        const leftRect = rect(left);
+        const rightRect = rect(right);
+        return {
+          innerWidth: window.innerWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+          workspaceDisplay: getComputedStyle(workspace).display,
+          workspaceDirection: getComputedStyle(workspace).flexDirection,
+          viewerWidth: viewerRect?.width ?? 0,
+          leftWidth: leftRect?.width ?? 0,
+          rightWidth: rightRect?.width ?? 0,
+          leftTop: leftRect?.top ?? 0,
+          viewerBottom: viewerRect?.bottom ?? 0,
+          serviceFont: px(serviceText, "fontSize"),
+          sectionTitleFont: px(sectionTitle, "fontSize"),
+          projectTitleFont: px(projectTitle, "fontSize"),
+          viewerButtonFont: px(viewerButton, "fontSize"),
+          viewerButtonHeight: rect(viewerButton)?.height ?? 0,
+          numberInputFont: px(numberInput, "fontSize"),
+          numberInputHeight: rect(numberInput)?.height ?? 0,
+          serviceHeight: rect(firstService)?.height ?? 0,
+        };
+      })()`,
+    );
+
+    if (Math.abs(metrics.innerWidth - width) > 1) {
+      throw new Error(
+        `M0 ${width}px: viewport mismatch ${metrics.innerWidth}px`,
+      );
+    }
+    if (metrics.scrollWidth > metrics.innerWidth + 1) {
+      throw new Error(
+        `M0 ${width}px: horizontal overflow ${metrics.scrollWidth}px`,
+      );
+    }
+    if (
+      metrics.workspaceDisplay !== "flex" ||
+      metrics.workspaceDirection !== "column"
+    ) {
+      throw new Error(
+        `M0 ${width}px: Work is not single-column on a phone-sized viewport`,
+      );
+    }
+    if (
+      metrics.viewerWidth < width - 2 ||
+      metrics.leftWidth < width - 2 ||
+      metrics.rightWidth < width - 2
+    ) {
+      throw new Error(
+        `M0 ${width}px: one or more Work zones are still squeezed side-by-side`,
+      );
+    }
+    if (metrics.leftTop < metrics.viewerBottom - 1) {
+      throw new Error(
+        `M0 ${width}px: geometry panel still overlaps/sits beside the 3D viewer`,
+      );
+    }
+    if (
+      metrics.serviceFont < 14 ||
+      metrics.sectionTitleFont < 12 ||
+      metrics.projectTitleFont < 16 ||
+      metrics.viewerButtonFont < 13 ||
+      metrics.numberInputFont < 16
+    ) {
+      throw new Error(
+        `M0 ${width}px: text remains below the readability floor: ${JSON.stringify(metrics)}`,
+      );
+    }
+    if (
+      metrics.viewerButtonHeight < 44 ||
+      metrics.numberInputHeight < 44 ||
+      metrics.serviceHeight < 44
+    ) {
+      throw new Error(
+        `M0 ${width}px: touch target remains below 44px: ${JSON.stringify(metrics)}`,
+      );
+    }
+
+    if (screenshotPath) {
+      await saveScreenshot(session, screenshotPath);
+    }
+    throwBrowserErrors(session);
+  } finally {
+    session.close();
+  }
+}
+
 async function runMobileWorkSmoke() {
   const session = await createSession({ mobile: true });
   try {
@@ -1774,5 +1893,8 @@ await runLoginSmoke();
 await runWorkSmoke();
 await runDirectClientSmoke();
 await runMobileWorkSmoke();
+await runM0ResponsiveReadabilitySmoke(390, "/tmp/m0-mobile-readable-390.png");
+await runM0ResponsiveReadabilitySmoke(412, "/tmp/m0-mobile-readable-412.png");
+await runM0ResponsiveReadabilitySmoke(720, "/tmp/m0-mobile-readable-wide.png");
 await runMobileClientSmoke();
-console.log("Browser smoke passed: private login + desktop Work + desktop Client + mobile Work + mobile Owner Preview + mobile Client");
+console.log("Browser smoke passed: private login + desktop Work + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");
