@@ -856,7 +856,7 @@ input[type="number"] {
   .preview-mode .workspace { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 900px) {
   .project-bar {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
@@ -875,12 +875,12 @@ input[type="number"] {
   }
 
   .project-bar-current strong {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .project-bar-status {
     min-height: 0;
-    font-size: 12px;
+    font-size: 13px;
     white-space: nowrap;
   }
 
@@ -938,7 +938,7 @@ input[type="number"] {
   }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 900px) {
   html,
   body,
   #app,
@@ -959,8 +959,8 @@ input[type="number"] {
     padding: 10px 12px;
   }
 
-  .brand strong { font-size: 14px; }
-  .brand span { font-size: 11px; }
+  .brand strong { font-size: 16px; }
+  .brand span { font-size: 13px; }
 
   .mode-switch {
     margin-left: 0;
@@ -973,8 +973,9 @@ input[type="number"] {
   .mode-switch button {
     flex: 1 1 0;
     min-width: 0;
-    padding: 8px 9px;
-    font-size: 13px;
+    min-height: 46px;
+    padding: 10px 11px;
+    font-size: 15px;
   }
 
   .workspace {
@@ -984,7 +985,7 @@ input[type="number"] {
 
   .viewer-wrap {
     order: 1;
-    min-height: 510px;
+    min-height: min(62svh, 520px);
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
@@ -1022,10 +1023,10 @@ input[type="number"] {
 
   .viewer-toolbar button {
     min-width: 0;
-    min-height: 38px;
-    padding: 6px 5px;
-    border-radius: 7px;
-    font-size: 11px;
+    min-height: 44px;
+    padding: 8px 6px;
+    border-radius: 8px;
+    font-size: 13px;
     line-height: 1.1;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -1042,10 +1043,108 @@ input[type="number"] {
 
   .viewer-note {
     left: 8px;
-    right: auto;
+    right: 8px;
     bottom: 8px;
-    padding: 5px 7px;
+    padding: 7px 9px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .panel {
+    padding: 14px 12px;
+  }
+
+  .panel h2 {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .section {
+    padding: 14px 12px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  label,
+  .opening-empty,
+  .opening-status,
+  .service-scope-help,
+  .operation-summary-meta,
+  .operation-meta,
+  #offerTotalStatus {
+    font-size: 13px;
+  }
+
+  input[type="number"],
+  .opening-fields select,
+  .opening-fields input {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .opening-card-head strong,
+  .service-scope-toggle span,
+  .operation-summary-text strong,
+  .info-card b,
+  .info-card p,
+  .kpi span,
+  .offer-summary-row span {
+    font-size: 14px;
+  }
+
+  .opening-add-actions button,
+  .opening-remove,
+  .operation-summary,
+  .service-scope-toggle,
+  .check-row,
+  .price-input-wrap input {
+    min-height: 46px;
+    font-size: 14px;
+  }
+
+  .service-scope-toggle input,
+  .check-row input {
+    width: 20px;
+    height: 20px;
+  }
+
+  .m2-wall-label,
+  .m2-dimension,
+  .m2-height {
     font-size: 11px;
+  }
+
+  .m2-dimension-main {
+    font-size: 14px;
+  }
+
+  .m2-summary span {
+    font-size: 12px;
+  }
+
+  .m2-summary strong {
+    font-size: 15px;
+  }
+
+  .offer-row {
+    padding: 14px 13px;
+  }
+
+  .offer-row strong,
+  .offer-meta {
+    font-size: 14px;
+  }
+
+  .offer-summary-row strong {
+    font-size: 18px;
+  }
+
+  .info-card h3 {
+    font-size: 16px;
   }
 
   .preview-mode:not(.direct-client-entry) .topbar {
@@ -1331,7 +1430,7 @@ input[type="number"] {
   line-height: 1.5;
 }
 
-@media (max-width: 680px) {
+@media (max-width: 900px) {
   .work-login-shell {
     align-items: start;
     padding: 18px 12px;
