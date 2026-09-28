@@ -238,7 +238,7 @@ type StartSmartOfferAppOptions = {
   repository: ProjectRepository | null;
 };
 
-function startSmartOfferApp(
+export function startSmartOfferApp(
   options: StartSmartOfferAppOptions,
 ): void {
 activeViewer?.dispose();
@@ -328,23 +328,6 @@ app.innerHTML = `
           <div id="m2Schema"></div>
         </section>
 
-        <section class="section work-only">
-          <div class="section-title">Услуги за изпълнение</div>
-          <div id="serviceScopeControls" class="service-scope-list"></div>
-          <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
-        </section>
-
-        <section class="section work-only" id="finePuttyTargetsSection">
-          <div class="section-title">Фина шпакловка · обхват</div>
-          <div id="wallTargets"></div>
-        </section>
-
-        <section class="section work-only" id="operationSettingsSection">
-          <div class="section-title">Настройки на услуга</div>
-          <div id="operationAuthoring"></div>
-          <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
-        </section>
-
       </aside>
 
       <section class="viewer-wrap">
@@ -368,8 +351,28 @@ app.innerHTML = `
       </section>
 
       <aside class="panel right">
-        <h2>Smart Offer</h2>
+        <h2 class="workbench-zone-title work-only">Работа и оферта</h2>
 
+        <div class="workbench-services work-only">
+          <section class="section">
+            <div class="section-title">Услуги за изпълнение</div>
+            <div id="serviceScopeControls" class="service-scope-list"></div>
+            <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
+          </section>
+
+          <section class="section" id="finePuttyTargetsSection">
+            <div class="section-title">Фина шпакловка · обхват</div>
+            <div id="wallTargets"></div>
+          </section>
+
+          <section class="section" id="operationSettingsSection">
+            <div class="section-title">Настройки на услуга</div>
+            <div id="operationAuthoring"></div>
+            <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <h2 class="smart-offer-heading">Smart Offer</h2>
         <div id="offerRows"></div>
 
         <section class="offer-summary" id="offerSummarySection">

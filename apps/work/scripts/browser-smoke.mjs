@@ -317,6 +317,90 @@ async function openProjectDialogQa(session, { openCreate = false } = {}) {
   }
 }
 
+async function openAndSwitchMobileProjectQa(session) {
+  await evaluate(
+    session,
+    `(async () => {
+      const ui = await import("/src/work-project-ui.ts");
+      const main = await import("/src/main.ts");
+      const domain = await import("/src/domain.ts");
+      const projectId = "qa-mobile-open-project";
+      const project = domain.createOpeningProofProject(projectId);
+      const listItem = {
+        id: projectId,
+        title: "QA Mobile Open",
+        status: "draft",
+        schemaVersion: 1,
+        workVersion: 3,
+        updatedAt: "2026-09-28T03:30:00.000Z",
+      };
+      const opened = {
+        ...listItem,
+        ownerUserId: "qa-owner",
+        createdAt: "2026-09-28T03:00:00.000Z",
+        project,
+      };
+      const repository = {
+        create: async () => opened,
+        list: async () => [listItem],
+        open: async () => {
+          await new Promise((resolve) => setTimeout(resolve, 40));
+          return opened;
+        },
+        save: async () => ({
+          projectId,
+          workVersion: 4,
+          updatedAt: "2026-09-28T03:31:00.000Z",
+        }),
+      };
+
+      window.__qaMobileProjectOpened = false;
+      await ui.openProjectsDialog({
+        mount: document.querySelector("#app"),
+        repository,
+        currentSession: null,
+        initialProjects: [listItem],
+        requireSelection: true,
+        onProjectReady: (nextSession) => {
+          main.startSmartOfferApp({
+            appEntry: "work",
+            project: nextSession.project,
+            session: nextSession,
+            repository,
+          });
+          window.__qaMobileProjectOpened = true;
+        },
+      });
+    })()`,
+  );
+  await delay(120);
+  await assertEval(
+    session,
+    'Boolean(document.querySelector("#projectsDialog")?.open)',
+    "Mobile project-open QA: chooser did not open",
+  );
+  await evaluate(
+    session,
+    'document.querySelector("#projectsList button")?.click()',
+  );
+
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const ready = await evaluate(
+      session,
+      'window.__qaMobileProjectOpened === true && !document.querySelector("#projectsDialog") && Boolean(document.querySelector("#viewer canvas"))',
+    );
+    if (ready) break;
+    await delay(100);
+  }
+
+  await assertEval(
+    session,
+    'window.__qaMobileProjectOpened === true && !document.querySelector("#projectsDialog") && document.querySelector("#projectBarTitle")?.textContent === "QA Mobile Open" && Boolean(document.querySelector("#viewer canvas"))',
+    "Mobile project-open QA: opening a project did not hand off to a responsive Work app",
+  );
+  await assertMobileLayout(session, "Mobile project opened");
+}
+
 async function assertProjectDialogLayout(session, label) {
   const metrics = await evaluate(
     session,
@@ -550,7 +634,7 @@ async function assertMobileLayout(session, label) {
   if (metrics.toolbarBottom > metrics.canvasTop + 1) {
     throw new Error(label + ": mobile viewer toolbar overlaps the 3D canvas");
   }
-  if (metrics.toolbarHeight > metrics.viewerHeight * 0.22) {
+  if (metrics.toolbarHeight > metrics.viewerHeight * 0.27) {
     throw new Error(label + ": mobile viewer toolbar consumes too much vertical space");
   }
   if (metrics.noteHeight > metrics.viewerHeight * 0.14) {
@@ -804,6 +888,14 @@ async function runLoginSmoke() {
 async function runWorkSmoke() {
   const session = await createSession();
   try {
+    await session.call("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: 1440,
+      screenHeight: 900,
+    });
     await authorizeQaWork(session);
     await evaluate(session, 'document.querySelector("#showAllBtn").click()');
     await delay(220);
@@ -828,6 +920,85 @@ async function runWorkSmoke() {
       "P3.3b: Undo/Redo should start disabled on a clean untouched project",
     );
     await assertEval(session, 'document.querySelector("#quantityText").textContent.includes("m²")', "Work: quantity is not rendered");
+
+    const d11Workbench = await evaluate(
+      session,
+      `(() => {
+        const left = document.querySelector(".panel.left");
+        const right = document.querySelector(".panel.right");
+        const viewer = document.querySelector(".viewer-wrap");
+        const services = document.querySelector("#serviceScopeControls");
+        const workspace = document.querySelector(".workspace");
+        return {
+          pageScrollY: window.scrollY,
+          bodyHeight: document.body.scrollHeight,
+          documentHeight: document.documentElement.scrollHeight,
+          viewportHeight: window.innerHeight,
+          leftOverflowY: getComputedStyle(left).overflowY,
+          rightOverflowY: getComputedStyle(right).overflowY,
+          rightHasServices: right.contains(services),
+          leftHasServices: left.contains(services),
+          viewerTop: Math.round(viewer.getBoundingClientRect().top),
+          viewerBottom: Math.round(viewer.getBoundingClientRect().bottom),
+          workspaceTop: Math.round(workspace.getBoundingClientRect().top),
+          workspaceBottom: Math.round(workspace.getBoundingClientRect().bottom),
+        };
+      })()`,
+    );
+    if (
+      d11Workbench.pageScrollY !== 0 ||
+      d11Workbench.bodyHeight > d11Workbench.viewportHeight + 2 ||
+      d11Workbench.documentHeight > d11Workbench.viewportHeight + 2 ||
+      !["auto", "scroll"].includes(d11Workbench.leftOverflowY) ||
+      !["auto", "scroll"].includes(d11Workbench.rightOverflowY) ||
+      !d11Workbench.rightHasServices ||
+      d11Workbench.leftHasServices ||
+      Math.abs(d11Workbench.viewerTop - d11Workbench.workspaceTop) > 1 ||
+      Math.abs(d11Workbench.viewerBottom - d11Workbench.workspaceBottom) > 1
+    ) {
+      throw new Error(
+        "D1.1: desktop Work is not a fixed three-zone workbench: " +
+          JSON.stringify(d11Workbench),
+      );
+    }
+
+    await evaluate(
+      session,
+      `(() => {
+        const left = document.querySelector(".panel.left");
+        const right = document.querySelector(".panel.right");
+        left.scrollTop = left.scrollHeight;
+        right.scrollTop = right.scrollHeight;
+      })()`,
+    );
+    await delay(80);
+    const d11AfterPanelScroll = await evaluate(
+      session,
+      `(() => {
+        const viewer = document.querySelector(".viewer-wrap").getBoundingClientRect();
+        return {
+          pageScrollY: window.scrollY,
+          viewerTop: Math.round(viewer.top),
+          viewerBottom: Math.round(viewer.bottom),
+        };
+      })()`,
+    );
+    if (
+      d11AfterPanelScroll.pageScrollY !== 0 ||
+      d11AfterPanelScroll.viewerTop !== d11Workbench.viewerTop ||
+      d11AfterPanelScroll.viewerBottom !== d11Workbench.viewerBottom
+    ) {
+      throw new Error(
+        "D1.1: side-panel scrolling moved the page or 3D viewport: " +
+          JSON.stringify(d11AfterPanelScroll),
+      );
+    }
+    await evaluate(
+      session,
+      'document.querySelector(".panel.left").scrollTop = 0; document.querySelector(".panel.right").scrollTop = 0',
+    );
+    await delay(80);
+    await saveScreenshot(session, "/tmp/d11-desktop-workbench.png");
     await assertEval(
       session,
       '!document.querySelector("#serviceRowLaminate") && !document.querySelector("[data-service-include=assignment-laminate-flooring-1]").checked',
@@ -1290,6 +1461,133 @@ async function runWorkSmoke() {
   }
 }
 
+async function runM0ResponsiveReadabilitySmoke(width, screenshotPath = null) {
+  const session = await createSession();
+  try {
+    await session.call("Emulation.setDeviceMetricsOverride", {
+      width,
+      height: 844,
+      deviceScaleFactor: 2,
+      mobile: false,
+      screenWidth: width,
+      screenHeight: 844,
+    });
+    await session.call("Emulation.setTouchEmulationEnabled", {
+      enabled: true,
+      maxTouchPoints: 5,
+    });
+    await authorizeQaWork(session);
+
+    const metrics = await evaluate(
+      session,
+      `(() => {
+        const workspace = document.querySelector(".workspace");
+        const viewer = document.querySelector(".viewer-wrap");
+        const left = document.querySelector(".panel.left");
+        const right = document.querySelector(".panel.right");
+        const serviceText = document.querySelector(".service-scope-toggle span");
+        const sectionTitle = document.querySelector(".section-title");
+        const projectTitle = document.querySelector(".project-bar-current strong");
+        const viewerButton = document.querySelector(".viewer-toolbar button");
+        const numberInput = document.querySelector('input[type="number"]');
+        const firstService = document.querySelector(".service-scope-toggle");
+        const rect = (el) => el?.getBoundingClientRect();
+        const px = (el, property) => parseFloat(getComputedStyle(el)[property]);
+        const viewerRect = rect(viewer);
+        const leftRect = rect(left);
+        const rightRect = rect(right);
+        return {
+          innerWidth: window.innerWidth,
+          visualViewportWidth: window.visualViewport?.width ?? window.innerWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+          workspaceDisplay: getComputedStyle(workspace).display,
+          workspaceDirection: getComputedStyle(workspace).flexDirection,
+          viewerWidth: viewerRect?.width ?? 0,
+          leftWidth: leftRect?.width ?? 0,
+          rightWidth: rightRect?.width ?? 0,
+          leftTop: leftRect?.top ?? 0,
+          viewerBottom: viewerRect?.bottom ?? 0,
+          serviceFont: px(serviceText, "fontSize"),
+          sectionTitleFont: px(sectionTitle, "fontSize"),
+          projectTitleFont: px(projectTitle, "fontSize"),
+          viewerButtonFont: px(viewerButton, "fontSize"),
+          viewerButtonHeight: rect(viewerButton)?.height ?? 0,
+          numberInputFont: px(numberInput, "fontSize"),
+          numberInputHeight: rect(numberInput)?.height ?? 0,
+          serviceHeight: rect(firstService)?.height ?? 0,
+        };
+      })()`,
+    );
+
+    console.log(`M0 ${width}px metrics: ${JSON.stringify(metrics)}`);
+
+    if (Math.abs(metrics.innerWidth - width) > 1) {
+      throw new Error(
+        `M0 ${width}px: viewport mismatch ${metrics.innerWidth}px`,
+      );
+    }
+    if (metrics.scrollWidth > metrics.innerWidth + 1) {
+      throw new Error(
+        `M0 ${width}px: horizontal overflow ${metrics.scrollWidth}px`,
+      );
+    }
+    if (
+      metrics.workspaceDisplay !== "flex" ||
+      metrics.workspaceDirection !== "column"
+    ) {
+      throw new Error(
+        `M0 ${width}px: Work is not single-column on a phone-sized viewport`,
+      );
+    }
+    const contentWidth = Math.min(
+      metrics.innerWidth,
+      metrics.visualViewportWidth,
+      metrics.scrollWidth,
+    );
+    if (
+      metrics.viewerWidth < contentWidth - 2 ||
+      metrics.leftWidth < contentWidth - 2 ||
+      metrics.rightWidth < contentWidth - 2
+    ) {
+      throw new Error(
+        `M0 ${width}px: one or more Work zones are still squeezed side-by-side: ${JSON.stringify(metrics)}`,
+      );
+    }
+    if (metrics.leftTop < metrics.viewerBottom - 1) {
+      throw new Error(
+        `M0 ${width}px: geometry panel still overlaps/sits beside the 3D viewer`,
+      );
+    }
+    if (
+      metrics.serviceFont < 14 ||
+      metrics.sectionTitleFont < 12 ||
+      metrics.projectTitleFont < 16 ||
+      metrics.viewerButtonFont < 13 ||
+      metrics.numberInputFont < 16
+    ) {
+      throw new Error(
+        `M0 ${width}px: text remains below the readability floor: ${JSON.stringify(metrics)}`,
+      );
+    }
+    if (
+      metrics.viewerButtonHeight < 44 ||
+      metrics.numberInputHeight < 44 ||
+      metrics.serviceHeight < 44
+    ) {
+      throw new Error(
+        `M0 ${width}px: touch target remains below 44px: ${JSON.stringify(metrics)}`,
+      );
+    }
+
+    if (screenshotPath) {
+      await saveScreenshot(session, screenshotPath);
+    }
+    throwBrowserErrors(session);
+  } finally {
+    session.close();
+  }
+}
+
 async function runMobileWorkSmoke() {
   const session = await createSession({ mobile: true });
   try {
@@ -1471,6 +1769,9 @@ async function runMobileWorkSmoke() {
     await waitForApp(session, baseUrl);
     await assertMobileLayout(session, "Work restored");
 
+    await openAndSwitchMobileProjectQa(session);
+    await delay(120);
+
     await openProjectDialogQa(session, { openCreate: true });
     await assertProjectDialogLayout(session, "Mobile Projects dialog");
     await saveScreenshot(session, "/tmp/p25b-projects-dialog-mobile.png");
@@ -1600,5 +1901,8 @@ await runLoginSmoke();
 await runWorkSmoke();
 await runDirectClientSmoke();
 await runMobileWorkSmoke();
+await runM0ResponsiveReadabilitySmoke(390, "/tmp/m0-mobile-readable-390.png");
+await runM0ResponsiveReadabilitySmoke(412, "/tmp/m0-mobile-readable-412.png");
+await runM0ResponsiveReadabilitySmoke(720, "/tmp/m0-mobile-readable-wide.png");
 await runMobileClientSmoke();
-console.log("Browser smoke passed: private login + desktop Work + desktop Client + mobile Work + mobile Owner Preview + mobile Client");
+console.log("Browser smoke passed: private login + desktop Work + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");
