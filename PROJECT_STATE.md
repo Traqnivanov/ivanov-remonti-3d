@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.1 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; AWAITING OWNER LIVE-PREVIEW REVIEW. D1.2–D1.5 remain recorded but inactive.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.1 desktop skeleton verified, but Owner real-device mobile project-open blocker reopened acceptance. Fix candidate is deployed; awaiting Owner mobile recheck. D1.2–D1.5 remain inactive.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,30 +259,28 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER LIVE-PREVIEW REVIEW — D1.1 Desktop Workbench skeleton.**
+**OWNER REAL-DEVICE MOBILE RECHECK — project chooser → open project → responsive Work app.**
 
-Verified D1.1 result:
-- desktop Work uses three persistent zones:
-  - left = room geometry/openings/M²;
-  - center = persistent 3D viewer;
-  - right = service controls/scope + Smart Offer;
-- left/right panels scroll independently;
-- the 3D viewer does not move when side panels scroll;
-- service controls are separated from geometry;
-- service/quantity/EUR price/Undo/Redo/Save/Open behavior is unchanged;
-- Mobile Work and Client Preview were regression-tested, not redesigned.
+Owner evidence:
+- on real mobile, after entering Work and tapping a project, the app could hang/freeze;
+- this invalidates the previous automated mobile PASS for the project-open path;
+- root QA gap found: DEV smoke rendered Work with `repository=null` and never actually exercised `repository.open → startSmartOfferApp`.
+
+Current fix candidate:
+- releases/removes the project modal before mounting the full Work app;
+- shows **„Подготовка на проекта…“** during the handoff;
+- yields two browser paint frames before heavy Work/Three.js mount;
+- open/create have a 15s recoverable timeout instead of an indefinitely disabled chooser;
+- browser QA now actually taps a project and verifies full mobile Work mount.
 
 Verification:
-- branch: `feat/d1-1-desktop-workbench`;
-- stacked DRAFT PR: #24, base `feat/p3-5a-wall-finishing`;
-- final head: `d985b266c6a681c4845472dfa212f311476c72d9`;
-- CI run `36346318116`: **SUCCESS**;
+- D1.1 branch: `feat/d1-1-desktop-workbench`;
+- DRAFT PR #24;
+- current head: `3db1d75e7f3bafa9911edf1daba32af025545230`;
+- CI `36374293763`: **SUCCESS**;
 - 17/17 test files, 161/161 tests: **PASS**;
-- build + desktop/mobile/Client browser smoke: **PASS**;
-- dedicated desktop visual `d11-desktop-workbench.png`: inspected, no D1.1 blocker found;
-- mobile regression visual inspected; Smart Offer flow preserved;
-- GitHub Pages deploy `36346382975`: **SUCCESS** from the exact final head;
-- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+- desktop/mobile/Client browser smoke: **PASS**;
+- new mobile project-open integration: **PASS**.
 
-**NEXT: Owner reviews D1.1 on the live preview. Do not begin D1.2 and do not merge PR #24 without a separate Owner decision.**
+**NEXT: Owner rechecks the permanent live preview on a real phone. D1.2 remains STOPPED until that real-device gate passes.**
 
