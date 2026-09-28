@@ -311,37 +311,36 @@ Stable branch:
 Dependency stack:
 - P3.5 branch `feat/p3-5a-wall-finishing`, DRAFT PR #22;
 - D1.1 branch `feat/d1-1-desktop-workbench`, DRAFT PR #24;
-- active reviewed slice branch `feat/d1-2-left-work-panel`, DRAFT PR #25.
+- D1.2 branch `feat/d1-2-left-work-panel`, DRAFT PR #25;
+- active reviewed slice `feat/d1-3-right-smart-offer`, DRAFT PR #26.
 
 Active Current Work:
 - Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
-- D1.2 final head `a238a0139e1bc56f060aa6852c2111cb3159d52a`;
-- CI `36376182141` SUCCESS;
-- 17/17 test files, 161/161 tests PASS;
-- Pages deploy `36376277933` SUCCESS.
+- D1.3 final head `1caac00e60ef1cb0015430d583149cdd9644b30e`;
+- CI `36447858515` SUCCESS;
+- 17/17 test files, 161/161 tests PASS.
 
-D1.2 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
+D1.3 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
 
 Mobile decision:
 - M0 remains only a usable baseline;
-- final Mobile Work polishing/redesign is deferred until the dedicated Mobile Work phase.
+- final Mobile Work polish/redesign is deferred to the dedicated Mobile Work phase.
 
 ---
 
-## 10. CURRENT NEXT — OWNER REVIEW OF D1.2
+## 10. CURRENT NEXT — OWNER REVIEW OF D1.3
 
-Owner reviews:
+Owner reviews the permanent preview:
 `https://traqnivanov.github.io/ivanov-remonti-3d/`
 
-D1.2 changes only the Desktop Work left panel:
-- room dimensions remain visible;
-- opening editors collapse into compact rows;
-- one opening expands at a time;
-- M² scheme is collapsed/secondary with quick area summary;
-- full scheme remains available on demand.
+D1.3 changes only the Desktop Work right panel:
+- persistent total/status;
+- Services / Scope / Price+Info tabs;
+- service search/filter for scale;
+- no D1.4 3D contextual-link work yet.
 
 **STOP after Owner review.**
-Do not begin D1.3 and do not merge PR #25 without separate Owner approval.
+Do not begin D1.4 and do not merge PR #26 without separate Owner approval.
 
 ---
 
@@ -349,8 +348,8 @@ Do not begin D1.3 and do not merge PR #25 without separate Owner approval.
 
 0. **M0 Mobile usability baseline** — done; final mobile polish deferred.
 1. **D1.1 Desktop skeleton** — implemented/verified.
-2. **D1.2 Left Work panel** — implemented/verified, awaiting Owner review.
-3. **D1.3 Right Smart Offer panel** — not started.
+2. **D1.2 Left Work panel** — Owner live-reviewed and accepted.
+3. **D1.3 Right Smart Offer panel** — implemented/verified, awaiting Owner review.
 4. **D1.4 Unique context link** — not started.
 5. **D1.5 Desktop acceptance QA** — not started.
 
