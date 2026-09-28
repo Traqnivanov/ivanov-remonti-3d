@@ -981,7 +981,7 @@ function applyOpeningMutation(result: OpeningMutationResult): void {
 function renderLeftGeometrySummary(): void {
   const geometry = summarizeRoomGeometry(project);
   mustGet("m2SchemaCompactSummary").textContent =
-    `Стени ${formatNumber(geometry.grossWallsM2)} m² · Под/таван ${formatNumber(geometry.floorM2)} m²`;
+    `Стени ${formatNumber(geometry.grossWallsM2)} · Таван ${formatNumber(geometry.ceilingM2)} m²`;
 }
 
 function setOpeningStatus(
