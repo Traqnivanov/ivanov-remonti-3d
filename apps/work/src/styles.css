@@ -400,15 +400,32 @@ button.active, .primary { background: #c9943a; border-color: #e8b84b; color: #0a
 .m2-scheme-summary {
   min-height: 44px;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title arrow"
+    "meta arrow";
+  column-gap: 8px;
   align-items: center;
-  padding: 10px 12px;
+  padding: 7px 12px;
   cursor: pointer;
   list-style: none;
   color: #dce6f2;
   font-size: 12px;
   font-weight: 750;
+}
+
+.m2-scheme-summary > span:first-child {
+  grid-area: title;
+}
+
+.m2-scheme-summary .left-section-meta {
+  grid-area: meta;
+  text-align: left;
+}
+
+.m2-scheme-summary::after {
+  grid-area: arrow;
+  align-self: center;
 }
 
 .m2-scheme-summary::-webkit-details-marker,
