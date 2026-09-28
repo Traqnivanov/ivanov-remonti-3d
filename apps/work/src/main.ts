@@ -238,7 +238,7 @@ type StartSmartOfferAppOptions = {
   repository: ProjectRepository | null;
 };
 
-function startSmartOfferApp(
+export function startSmartOfferApp(
   options: StartSmartOfferAppOptions,
 ): void {
 activeViewer?.dispose();
