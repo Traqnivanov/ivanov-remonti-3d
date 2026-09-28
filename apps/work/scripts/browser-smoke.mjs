@@ -317,6 +317,90 @@ async function openProjectDialogQa(session, { openCreate = false } = {}) {
   }
 }
 
+async function openAndSwitchMobileProjectQa(session) {
+  await evaluate(
+    session,
+    `(async () => {
+      const ui = await import("/src/work-project-ui.ts");
+      const main = await import("/src/main.ts");
+      const domain = await import("/src/domain.ts");
+      const projectId = "qa-mobile-open-project";
+      const project = domain.createOpeningProofProject(projectId);
+      const listItem = {
+        id: projectId,
+        title: "QA Mobile Open",
+        status: "draft",
+        schemaVersion: 1,
+        workVersion: 3,
+        updatedAt: "2026-09-28T03:30:00.000Z",
+      };
+      const opened = {
+        ...listItem,
+        ownerUserId: "qa-owner",
+        createdAt: "2026-09-28T03:00:00.000Z",
+        project,
+      };
+      const repository = {
+        create: async () => opened,
+        list: async () => [listItem],
+        open: async () => {
+          await new Promise((resolve) => setTimeout(resolve, 40));
+          return opened;
+        },
+        save: async () => ({
+          projectId,
+          workVersion: 4,
+          updatedAt: "2026-09-28T03:31:00.000Z",
+        }),
+      };
+
+      window.__qaMobileProjectOpened = false;
+      await ui.openProjectsDialog({
+        mount: document.querySelector("#app"),
+        repository,
+        currentSession: null,
+        initialProjects: [listItem],
+        requireSelection: true,
+        onProjectReady: (nextSession) => {
+          main.startSmartOfferApp({
+            appEntry: "work",
+            project: nextSession.project,
+            session: nextSession,
+            repository,
+          });
+          window.__qaMobileProjectOpened = true;
+        },
+      });
+    })()`,
+  );
+  await delay(120);
+  await assertEval(
+    session,
+    'Boolean(document.querySelector("#projectsDialog")?.open)',
+    "Mobile project-open QA: chooser did not open",
+  );
+  await evaluate(
+    session,
+    'document.querySelector("#projectsList button")?.click()',
+  );
+
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const ready = await evaluate(
+      session,
+      'window.__qaMobileProjectOpened === true && !document.querySelector("#projectsDialog") && Boolean(document.querySelector("#viewer canvas"))',
+    );
+    if (ready) break;
+    await delay(100);
+  }
+
+  await assertEval(
+    session,
+    'window.__qaMobileProjectOpened === true && !document.querySelector("#projectsDialog") && document.querySelector("#projectBarTitle")?.textContent === "QA Mobile Open" && Boolean(document.querySelector("#viewer canvas"))',
+    "Mobile project-open QA: opening a project did not hand off to a responsive Work app",
+  );
+  await assertMobileLayout(session, "Mobile project opened");
+}
+
 async function assertProjectDialogLayout(session, label) {
   const metrics = await evaluate(
     session,
@@ -1557,6 +1641,9 @@ async function runMobileWorkSmoke() {
 
     await waitForApp(session, baseUrl);
     await assertMobileLayout(session, "Work restored");
+
+    await openAndSwitchMobileProjectQa(session);
+    await delay(120);
 
     await openProjectDialogQa(session, { openCreate: true });
     await assertProjectDialogLayout(session, "Mobile Projects dialog");
