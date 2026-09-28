@@ -310,53 +310,57 @@ Stable branch:
 
 P3.5 dependency:
 - branch `feat/p3-5a-wall-finishing`;
-- PR #22 is DRAFT and verified, but not merged;
-- Issue #21 is **PAUSED / DEPENDENCY**;
-- default finishing scope is walls + ceiling, with ceiling independently removable and separately priced.
+- PR #22 remains DRAFT / dependency;
+- Issue #21 remains PAUSED / DEPENDENCY.
 
-Active Current Work:
+Active D1/M0 work:
 - Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
 - branch `feat/d1-1-desktop-workbench`;
-- stacked DRAFT PR #24, base `feat/p3-5a-wall-finishing`;
-- D1.1 final head `d985b266c6a681c4845472dfa212f311476c72d9`;
-- CI `36346318116` SUCCESS;
-- 17/17 test files, 161/161 tests PASS;
-- Pages deploy `36346382975` SUCCESS.
+- stacked DRAFT PR #24;
+- D1.1 desktop skeleton is implemented;
+- Owner live review found two mobile blockers:
+  1. project-open hang;
+  2. unreadably small/squeezed mobile Work layout;
+- both have fix candidates implemented and verified.
 
-D1.1 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
+Current verified head:
+`29548628c5e5d44b6e6bfabe7165ce0b6d61e980`
+
+Verification:
+- CI `36375140804` SUCCESS;
+- 17/17 test files, 161/161 tests PASS;
+- project-open integration PASS;
+- M0 readability PASS at 360/390/412/720 CSS px;
+- Pages deploy `36375224800` SUCCESS.
 
 ---
 
-## 10. CURRENT NEXT — OWNER REVIEW OF D1.1
+## 10. CURRENT NEXT — OWNER REAL-DEVICE MOBILE REVIEW
 
-Owner reviews:
+Review:
 `https://traqnivanov.github.io/ivanov-remonti-3d/`
 
-What D1.1 changes:
-- Desktop Work only;
-- geometry left / persistent 3D center / services+offer right;
-- independent side-panel scrolling;
-- no business/service/price/persistence logic change.
+Check specifically:
+- project opens without hanging;
+- text is readable without zoom;
+- Work no longer shows a narrow geometry sidebar beside 3D on the phone;
+- 3D, geometry, services and offer are usable at full mobile width.
 
-What remains untouched:
-- Mobile Work redesign;
-- Client Preview redesign;
-- D1.2–D1.5 implementation.
-
-**STOP after Owner review.**
-Do not begin D1.2 and do not merge PR #24 without separate Owner approval.
+**STOP after review.**
+Do not begin D1.2 and do not merge PR #24 until Owner confirms the real-device mobile result.
 
 ---
 
 ## 11. APPROVED D1 SEQUENCE — DO NOT BATCH
 
-1. **D1.1 Desktop skeleton** — implemented/verified, awaiting Owner review.
-2. **D1.2 Left Work panel** — compact Room/Openings/Scheme; scheme secondary/collapsible.
-3. **D1.3 Right Smart Offer panel** — scalable Services/Scope/Price+Info.
-4. **D1.4 Unique context link** — 3D click → exact Work/service/offer context.
-5. **D1.5 Desktop acceptance QA** — real multi-service workflow + regression.
+0. **M0 Mobile usability repair** — implemented/verified, awaiting Owner real-device review.
+1. **D1.1 Desktop skeleton** — implemented/verified.
+2. **D1.2 Left Work panel** — not started.
+3. **D1.3 Right Smart Offer panel** — not started.
+4. **D1.4 Unique context link** — not started.
+5. **D1.5 Desktop acceptance QA** — not started.
 
-The five tasks are an approved roadmap, **not permission to implement them together**.
+The roadmap is approved, but only one step may be active at a time.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
