@@ -946,6 +946,84 @@ input[type="number"] {
   border-bottom: 1px solid #22334c;
 }
 
+.right-workbench-sticky {
+  background: rgba(13, 27, 46, .98);
+}
+
+.right-workbench-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.right-workbench-tabs button {
+  min-width: 0;
+  min-height: 40px;
+  padding: 7px 5px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.right-workbench-tabs button.active {
+  background: #c9943a;
+  border-color: #e8b84b;
+  color: #0a0e17;
+  font-weight: 800;
+}
+
+.right-workbench-panel {
+  min-width: 0;
+}
+
+.service-filter {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.service-filter input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #30415a;
+  border-radius: 8px;
+  background: #0a111d;
+  color: #e8eef7;
+  outline: none;
+}
+
+.service-filter input::placeholder {
+  color: #71839a;
+}
+
+.service-filter input:focus {
+  border-color: #e8b84b;
+  box-shadow: 0 0 0 2px rgba(232, 184, 75, .12);
+}
+
+.right-panel-empty {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px dashed #30415a;
+  border-radius: 9px;
+  color: #8fa1b8;
+  background: #0a111d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (min-width: 981px) {
   .app-shell:not(.preview-mode) {
     height: 100vh;
@@ -992,6 +1070,48 @@ input[type="number"] {
 
   .app-shell:not(.preview-mode) .panel.left .opening-status:empty {
     display: none;
+  }
+
+  .app-shell:not(.preview-mode) .panel.right {
+    padding: 0 12px 12px;
+  }
+
+  .app-shell:not(.preview-mode) .right-workbench-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    margin: 0 -12px 12px;
+    padding: 12px 12px 1px;
+    border-bottom: 1px solid #22334c;
+  }
+
+  .app-shell:not(.preview-mode) .right-workbench-sticky .workbench-zone-title {
+    margin-bottom: 8px;
+  }
+
+  .app-shell:not(.preview-mode) .right-workbench-sticky .offer-summary {
+    margin: 0 0 8px;
+    padding: 9px 10px;
+  }
+
+  .app-shell:not(.preview-mode) .right-workbench-sticky #offerTotalStatus {
+    margin-top: 3px;
+  }
+
+  .app-shell:not(.preview-mode) .right-workbench-panel:not(.active) {
+    display: none;
+  }
+
+  .app-shell:not(.preview-mode) .right-workbench-panel.active {
+    display: block;
+  }
+
+  .app-shell:not(.preview-mode) .right-services-section {
+    margin-top: 0;
+  }
+
+  .app-shell:not(.preview-mode) .smart-offer-heading {
+    margin-top: 2px;
   }
 
   .app-shell:not(.preview-mode) .workbench-zone-title {
@@ -1242,6 +1362,24 @@ input[type="number"] {
 
   .opening-card-summary strong {
     font-size: 14px;
+  }
+
+  .right-workbench-tabs {
+    display: none;
+  }
+
+  .right-workbench-panel {
+    display: block !important;
+  }
+
+  .right-workbench-sticky {
+    position: static;
+    background: transparent;
+  }
+
+  .service-filter input {
+    min-height: 46px;
+    font-size: 16px;
   }
 
   .panel {
