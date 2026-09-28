@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.2 ACTIVE: left Desktop Work panel only. Mobile polish deferred to later dedicated Mobile Work phase.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.2 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; awaiting Owner live-preview review. D1.3–D1.5 remain inactive.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,33 +259,28 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**D1.2 ONLY — Left Desktop Work panel.**
+**OWNER LIVE-PREVIEW REVIEW — D1.2 Left Desktop Work panel.**
 
-Owner decision:
-- continue Desktop D1 now;
-- M0 remains only as a usable mobile baseline;
-- final mobile polishing/redesign is deferred to the dedicated Mobile Work phase.
+Verified D1.2 result:
+- room dimensions remain immediately visible;
+- openings are compact desktop summary rows;
+- only one opening editor expands at a time;
+- adding/editing keeps the relevant opening expanded;
+- M² scheme is secondary/collapsed by default on desktop;
+- collapsed M² row shows quick wall + ceiling area values;
+- M² scheme expands on demand;
+- D1.1 persistent 3D workbench remains intact.
 
-D1.2 scope:
-- compact **Room / Openings / Scheme** organization in the left Desktop Work panel;
-- reduce vertical heaviness and wasted height;
-- make the M² scheme **secondary/collapsible**;
-- preserve the D1.1 three-zone desktop skeleton;
-- preserve all geometry/opening behavior and data.
+Verification:
+- branch: `feat/d1-2-left-work-panel`;
+- stacked DRAFT PR: #25, base `feat/d1-1-desktop-workbench`;
+- final head: `a238a0139e1bc56f060aa6852c2111cb3159d52a`;
+- CI `36376182141`: **SUCCESS**;
+- 17/17 test files, 161/161 tests: **PASS**;
+- build + desktop/mobile/Client browser smoke: **PASS**;
+- dedicated desktop visual `d12-left-work-panel.png`: inspected, no D1.2 blocker found;
+- Pages deploy `36376277933`: **SUCCESS** from exact head;
+- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
 
-Non-goals:
-- no D1.3 right Smart Offer redesign;
-- no D1.4 contextual 3D↔Work link;
-- no D1.5 final desktop acceptance;
-- no service/quantity/EUR price/persistence changes;
-- no Mobile Work redesign;
-- no Client Preview redesign.
-
-Active branch:
-`feat/d1-2-left-work-panel`
-
-Base:
-verified D1.1/M0 head `29548628c5e5d44b6e6bfabe7165ce0b6d61e980`.
-
-**NEXT after implementation: technical QA → exact desktop visual QA → permanent live preview → Owner review → STOP. Do not begin D1.3 automatically.**
+**NEXT: Owner reviews D1.2 on live preview. Do not begin D1.3 and do not merge PR #25 without a separate Owner decision.**
 
