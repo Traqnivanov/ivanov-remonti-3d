@@ -1002,7 +1002,7 @@ async function runWorkSmoke() {
 
     await assertEval(
       session,
-      '!document.querySelector("#m2SchemeDetails").open && document.querySelector("#m2SchemaCompactSummary").textContent.includes("Стени") && document.querySelector("#m2SchemaCompactSummary").textContent.includes("Под/таван")',
+      '!document.querySelector("#m2SchemeDetails").open && document.querySelector("#m2SchemaCompactSummary").textContent.includes("Стени") && document.querySelector("#m2SchemaCompactSummary").textContent.includes("Таван")',
       "D1.2: M² scheme is not secondary/collapsed with a useful compact summary on desktop",
     );
     await assertEval(
