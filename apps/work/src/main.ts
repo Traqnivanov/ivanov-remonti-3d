@@ -1233,7 +1233,8 @@ function renderServiceScopeControls(): void {
             expandedOperationId = service.operationDefinition.assignmentId;
           }
           if (desktopWorkbenchMedia.matches) {
-            rightWorkbenchTab = "scope";
+            rightWorkbenchTab =
+              service.kind === "single" ? "offer" : "scope";
           }
         } else {
           if (
