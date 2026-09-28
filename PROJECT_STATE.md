@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.2 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; awaiting Owner live-preview review. D1.3–D1.5 remain inactive.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.3 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; awaiting Owner live-preview review. D1.4–D1.5 remain inactive.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,28 +259,26 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER LIVE-PREVIEW REVIEW — D1.2 Left Desktop Work panel.**
+**OWNER LIVE-PREVIEW REVIEW — D1.3 Right Smart Offer panel.**
 
-Verified D1.2 result:
-- room dimensions remain immediately visible;
-- openings are compact desktop summary rows;
-- only one opening editor expands at a time;
-- adding/editing keeps the relevant opening expanded;
-- M² scheme is secondary/collapsed by default on desktop;
-- collapsed M² row shows quick wall + ceiling area values;
-- M² scheme expands on demand;
-- D1.1 persistent 3D workbench remains intact.
+Verified D1.3 result:
+- desktop right panel is split into **Услуги / Обхват / Цена / Info** rather than one long mixed stack;
+- current offer total/status stays persistent at the top while the panel scrolls;
+- Services includes search/filter for future catalog scale;
+- configurable service selection leads to Scope;
+- fixed-scope service selection leads to Offer/Price;
+- offer line selection keeps Price/Info context;
+- D1.1 three-zone shell and D1.2 left panel remain intact;
+- Mobile Work and Client Preview were regression-tested, not redesigned.
 
 Verification:
-- branch: `feat/d1-2-left-work-panel`;
-- stacked DRAFT PR: #25, base `feat/d1-1-desktop-workbench`;
-- final head: `a238a0139e1bc56f060aa6852c2111cb3159d52a`;
-- CI `36376182141`: **SUCCESS**;
+- branch: `feat/d1-3-right-smart-offer`;
+- stacked DRAFT PR: #26, base `feat/d1-2-left-work-panel`;
+- final head: `1caac00e60ef1cb0015430d583149cdd9644b30e`;
+- CI `36447858515`: **SUCCESS**;
 - 17/17 test files, 161/161 tests: **PASS**;
 - build + desktop/mobile/Client browser smoke: **PASS**;
-- dedicated desktop visual `d12-left-work-panel.png`: inspected, no D1.2 blocker found;
-- Pages deploy `36376277933`: **SUCCESS** from exact head;
-- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+- dedicated desktop visual `d13-right-smart-offer.png`: inspected, no blocker found.
 
-**NEXT: Owner reviews D1.2 on live preview. Do not begin D1.3 and do not merge PR #25 without a separate Owner decision.**
+**NEXT: Owner reviews D1.3 on live preview. Do not begin D1.4 and do not merge PR #26 without a separate Owner decision.**
 
