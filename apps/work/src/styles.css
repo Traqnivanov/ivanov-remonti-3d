@@ -383,10 +383,13 @@ button.active, .primary { background: #c9943a; border-color: #e8b84b; color: #0a
 
 .left-section-meta {
   min-width: 0;
+  overflow: hidden;
   color: #71839a;
   font-size: 10px;
   line-height: 1.3;
   text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .m2-scheme-details {
