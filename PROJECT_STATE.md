@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.1 desktop skeleton verified, but Owner real-device mobile project-open blocker reopened acceptance. Fix candidate is deployed; awaiting Owner mobile recheck. D1.2–D1.5 remain inactive.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.1 desktop + M0 mobile usability fix are implemented/verified; awaiting Owner real-device mobile review before D1.2.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,28 +259,33 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER REAL-DEVICE MOBILE RECHECK — project chooser → open project → responsive Work app.**
+**OWNER REAL-DEVICE MOBILE REVIEW — M0 readability/useability repair.**
 
-Owner evidence:
-- on real mobile, after entering Work and tapping a project, the app could hang/freeze;
-- this invalidates the previous automated mobile PASS for the project-open path;
-- root QA gap found: DEV smoke rendered Work with `repository=null` and never actually exercised `repository.open → startSmartOfferApp`.
+Why M0 was inserted before D1.2:
+- Owner real-device screenshot showed unreadable mobile text;
+- a phone/wide-phone viewport could still receive the narrow 220px-left-column + 3D side-by-side layout;
+- this made Work technically open but practically hard to use.
 
-Current fix candidate:
-- releases/removes the project modal before mounting the full Work app;
-- shows **„Подготовка на проекта…“** during the handoff;
-- yields two browser paint frames before heavy Work/Three.js mount;
-- open/create have a 15s recoverable timeout instead of an indefinitely disabled chooser;
-- browser QA now actually taps a project and verifies full mobile Work mount.
+M0 verified result:
+- phone/wide-phone Work becomes **single-column**;
+- 3D is full-width;
+- geometry and offer sections use full-width below it;
+- key mobile labels/services are >=14px;
+- number inputs use 16px text and 46px height;
+- primary service/touch controls are >=44/46px;
+- no Mobile Work redesign beyond this usability repair.
 
 Verification:
-- D1.1 branch: `feat/d1-1-desktop-workbench`;
+- branch: `feat/d1-1-desktop-workbench`;
 - DRAFT PR #24;
-- current head: `3db1d75e7f3bafa9911edf1daba32af025545230`;
-- CI `36374293763`: **SUCCESS**;
+- current verified head: `29548628c5e5d44b6e6bfabe7165ce0b6d61e980`;
+- CI `36375140804`: **SUCCESS**;
 - 17/17 test files, 161/161 tests: **PASS**;
-- desktop/mobile/Client browser smoke: **PASS**;
-- new mobile project-open integration: **PASS**.
+- mobile project-open handoff: **PASS**;
+- M0 readability checks: **PASS at 360 / 390 / 412 / 720 CSS px**;
+- visual QA at 390 / 412 / wide-phone: inspected;
+- Pages deploy `36375224800`: **SUCCESS** from exact verified head;
+- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
 
-**NEXT: Owner rechecks the permanent live preview on a real phone. D1.2 remains STOPPED until that real-device gate passes.**
+**NEXT: Owner checks the live preview on the real phone. D1.2 remains STOPPED until that review.**
 
