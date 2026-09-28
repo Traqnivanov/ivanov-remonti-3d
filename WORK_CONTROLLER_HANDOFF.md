@@ -308,54 +308,48 @@ P3.4 is **CLOSED**.
 Stable branch:
 `main`
 
-P3.5 dependency:
-- branch `feat/p3-5a-wall-finishing`;
-- PR #22 remains DRAFT / dependency;
-- Issue #21 remains PAUSED / DEPENDENCY.
+Dependency stack:
+- P3.5 branch `feat/p3-5a-wall-finishing`, DRAFT PR #22;
+- D1.1 branch `feat/d1-1-desktop-workbench`, DRAFT PR #24;
+- active reviewed slice branch `feat/d1-2-left-work-panel`, DRAFT PR #25.
 
-Active D1/M0 work:
+Active Current Work:
 - Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
-- branch `feat/d1-1-desktop-workbench`;
-- stacked DRAFT PR #24;
-- D1.1 desktop skeleton is implemented;
-- Owner live review found two mobile blockers:
-  1. project-open hang;
-  2. unreadably small/squeezed mobile Work layout;
-- both have fix candidates implemented and verified.
-
-Current verified head:
-`29548628c5e5d44b6e6bfabe7165ce0b6d61e980`
-
-Verification:
-- CI `36375140804` SUCCESS;
+- D1.2 final head `a238a0139e1bc56f060aa6852c2111cb3159d52a`;
+- CI `36376182141` SUCCESS;
 - 17/17 test files, 161/161 tests PASS;
-- project-open integration PASS;
-- M0 readability PASS at 360/390/412/720 CSS px;
-- Pages deploy `36375224800` SUCCESS.
+- Pages deploy `36376277933` SUCCESS.
+
+D1.2 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
+
+Mobile decision:
+- M0 remains only a usable baseline;
+- final Mobile Work polishing/redesign is deferred until the dedicated Mobile Work phase.
 
 ---
 
-## 10. CURRENT NEXT — OWNER REAL-DEVICE MOBILE REVIEW
+## 10. CURRENT NEXT — OWNER REVIEW OF D1.2
 
-Review:
+Owner reviews:
 `https://traqnivanov.github.io/ivanov-remonti-3d/`
 
-Check specifically:
-- project opens without hanging;
-- text is readable without zoom;
-- Work no longer shows a narrow geometry sidebar beside 3D on the phone;
-- 3D, geometry, services and offer are usable at full mobile width.
+D1.2 changes only the Desktop Work left panel:
+- room dimensions remain visible;
+- opening editors collapse into compact rows;
+- one opening expands at a time;
+- M² scheme is collapsed/secondary with quick area summary;
+- full scheme remains available on demand.
 
-**STOP after review.**
-Do not begin D1.2 and do not merge PR #24 until Owner confirms the real-device mobile result.
+**STOP after Owner review.**
+Do not begin D1.3 and do not merge PR #25 without separate Owner approval.
 
 ---
 
 ## 11. APPROVED D1 SEQUENCE — DO NOT BATCH
 
-0. **M0 Mobile usability repair** — implemented/verified, awaiting Owner real-device review.
+0. **M0 Mobile usability baseline** — done; final mobile polish deferred.
 1. **D1.1 Desktop skeleton** — implemented/verified.
-2. **D1.2 Left Work panel** — not started.
+2. **D1.2 Left Work panel** — implemented/verified, awaiting Owner review.
 3. **D1.3 Right Smart Offer panel** — not started.
 4. **D1.4 Unique context link** — not started.
 5. **D1.5 Desktop acceptance QA** — not started.
