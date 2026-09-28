@@ -5,6 +5,7 @@ on:
     branches:
       - "feat/vertical-slice-v1"
       - "feat/d1-1-desktop-workbench"
+      - "feat/d1-2-left-work-panel"
   pull_request:
     branches:
       - main
@@ -119,6 +120,7 @@ jobs:
             /tmp/p35a-wall-finishing-mobile.png
             /tmp/p35b-ceiling-scope-mobile.png
             /tmp/d11-desktop-workbench.png
+            /tmp/d12-left-work-panel.png
             /tmp/m0-mobile-readable-390.png
             /tmp/m0-mobile-readable-412.png
             /tmp/m0-mobile-readable-wide.png
