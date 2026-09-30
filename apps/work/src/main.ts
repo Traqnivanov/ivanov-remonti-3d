@@ -261,6 +261,7 @@ let offerInteraction = initialIncludedService
   : showWholeResult();
 let expandedOperationId: string | null = null;
 let expandedOpeningId: string | null = null;
+let desktopRightPane: "services" | "scope" | "price" = "services";
 const desktopWorkbenchMedia = window.matchMedia("(min-width: 981px)");
 let autoCutaway = true;
 
@@ -363,14 +364,41 @@ app.innerHTML = `
       </section>
 
       <aside class="panel right">
-        <h2 class="workbench-zone-title work-only">Работа и оферта</h2>
+        <div class="d13-work-header work-only">
+          <div class="d13-work-title-row">
+            <h2 class="workbench-zone-title">Работа и оферта</h2>
+            <div class="d13-live-total" aria-label="Текуща обща стойност">
+              <span>Общо</span>
+              <strong id="d13OfferTotalKpi">—</strong>
+            </div>
+          </div>
+          <p id="d13OfferTotalStatus" class="d13-total-status"></p>
 
-        <div class="workbench-services work-only">
-          <section class="section">
+          <nav class="d13-tabs" aria-label="Работни секции">
+            <button type="button" class="active" data-d13-tab="services" aria-selected="true">
+              <span>Услуги</span><b id="d13ServicesBadge">0</b>
+            </button>
+            <button type="button" data-d13-tab="scope" aria-selected="false">
+              <span>Обхват</span><b id="d13ScopeBadge">0</b>
+            </button>
+            <button type="button" data-d13-tab="price" aria-selected="false">
+              <span>Цена / Info</span><b id="d13PriceBadge">0</b>
+            </button>
+          </nav>
+        </div>
+
+        <div class="d13-pane work-only active" data-d13-pane="services">
+          <section class="section d13-services-section">
             <div class="section-title">Услуги за изпълнение</div>
             <div id="serviceScopeControls" class="service-scope-list"></div>
             <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
           </section>
+        </div>
+
+        <div class="d13-pane work-only" data-d13-pane="scope">
+          <div id="d13ScopeEmpty" class="d13-empty-state">
+            Избери услуга от „Услуги“, за да настроиш обхвата ѝ.
+          </div>
 
           <section class="section" id="finePuttyTargetsSection">
             <div class="section-title">Фина шпакловка · обхват</div>
@@ -384,46 +412,48 @@ app.innerHTML = `
           </section>
         </div>
 
-        <h2 class="smart-offer-heading">Smart Offer</h2>
-        <div id="offerRows"></div>
+        <div class="d13-pane d13-price-pane active-for-client" data-d13-pane="price">
+          <h2 class="smart-offer-heading">Smart Offer</h2>
+          <div id="offerRows"></div>
 
-        <section class="offer-summary" id="offerSummarySection">
-          <div class="offer-summary-row">
-            <span>Общо</span>
-            <strong id="offerTotalKpi">—</strong>
+          <section class="offer-summary" id="offerSummarySection">
+            <div class="offer-summary-row">
+              <span>Общо</span>
+              <strong id="offerTotalKpi">—</strong>
+            </div>
+            <p id="offerTotalStatus"></p>
+          </section>
+
+          <section class="section" id="offerDetailsSection">
+            <div class="section-title">Оферта</div>
+            <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
+            <div class="kpi price-kpi">
+              <span id="unitPriceLabel">Ед. цена</span>
+              <label class="price-input-wrap work-only" id="unitPriceWorkControl">
+                <input
+                  id="unitPriceInput"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Въведи цена"
+                  aria-label="Единична цена в евро"
+                />
+                <span id="unitPriceSuffix">€/m²</span>
+              </label>
+              <strong id="unitPriceKpi" class="client-price-value">—</strong>
+            </div>
+            <div class="kpi"><span id="totalLabel">Сума</span><strong id="totalKpi">—</strong></div>
+          </section>
+
+          <div class="info-card" id="offerInfoCard">
+            <h3><span class="info-glyph" aria-hidden="true">i</span> <span id="infoTitle"></span></h3>
+            <b>Какво е</b><p id="infoWhat"></p>
+            <b>Защо се прави</b><p id="infoWhy"></p>
+            <b>Какво получавате</b><p id="infoResult"></p>
+            <b>Какво включва тази позиция</b><p id="infoIncludes"></p>
           </div>
-          <p id="offerTotalStatus"></p>
-        </section>
 
-        <section class="section" id="offerDetailsSection">
-          <div class="section-title">Оферта</div>
-          <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
-          <div class="kpi price-kpi">
-            <span id="unitPriceLabel">Ед. цена</span>
-            <label class="price-input-wrap work-only" id="unitPriceWorkControl">
-              <input
-                id="unitPriceInput"
-                type="text"
-                inputmode="decimal"
-                placeholder="Въведи цена"
-                aria-label="Единична цена в евро"
-              />
-              <span id="unitPriceSuffix">€/m²</span>
-            </label>
-            <strong id="unitPriceKpi" class="client-price-value">—</strong>
-          </div>
-          <div class="kpi"><span id="totalLabel">Сума</span><strong id="totalKpi">—</strong></div>
-        </section>
-
-        <div class="info-card" id="offerInfoCard">
-          <h3><span class="info-glyph" aria-hidden="true">i</span> <span id="infoTitle"></span></h3>
-          <b>Какво е</b><p id="infoWhat"></p>
-          <b>Защо се прави</b><p id="infoWhy"></p>
-          <b>Какво получавате</b><p id="infoResult"></p>
-          <b>Какво включва тази позиция</b><p id="infoIncludes"></p>
+          <button id="showResultBtn" style="width:100%;margin-top:12px">Виж целия резултат</button>
         </div>
-
-        <button id="showResultBtn" style="width:100%;margin-top:12px">Виж целия резултат</button>
       </aside>
     </main>
   </div>
@@ -459,6 +489,7 @@ for (const input of [widthInput, lengthInput, heightInput]) {
 mustGet<HTMLDetailsElement>("m2SchemeDetails").open =
   !desktopWorkbenchMedia.matches;
 
+syncDesktopRightPane();
 renderOpeningEditor();
 renderServiceScopeControls();
 renderWallTargets();
@@ -482,6 +513,15 @@ function wireControls(): void {
   mustGet("workModeBtn").addEventListener("click", () => setPreviewMode(false));
   mustGet("previewModeBtn").addEventListener("click", () => setPreviewMode(true));
   mustGet("exitPreviewBtn").addEventListener("click", () => setPreviewMode(false));
+
+  document.querySelectorAll<HTMLButtonElement>("[data-d13-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const pane = button.dataset.d13Tab;
+      if (pane !== "services" && pane !== "scope" && pane !== "price") return;
+      desktopRightPane = pane;
+      syncDesktopRightPane();
+    });
+  });
 
   mustGet("resetCameraBtn").addEventListener("click", () => viewer.resetCamera());
 
@@ -536,6 +576,81 @@ function wireControls(): void {
     syncViewerFocus();
     renderOffer();
   });
+}
+
+function syncDesktopRightPane(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-d13-tab]").forEach((button) => {
+    const active = button.dataset.d13Tab === desktopRightPane;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+
+  document.querySelectorAll<HTMLElement>("[data-d13-pane]").forEach((pane) => {
+    pane.classList.toggle("active", pane.dataset.d13Pane === desktopRightPane);
+  });
+}
+
+function syncD13ScopeState(): void {
+  const finePutty = getFinePuttyAssignment(project);
+  const finePuttyCeiling = findFinePuttyCeilingAssignment(project);
+  const hasFinePuttyScope =
+    finePutty.included || Boolean(finePuttyCeiling?.included);
+  const hasOperationScope = authorableWallOperations.some((definition) => {
+    return (
+      findOperationAssignment(project, definition)?.included ||
+      findOperationCeilingAssignment(project, definition)?.included
+    );
+  });
+
+  const includedServices = new Set(
+    project.serviceAssignments
+      .filter((assignment) => assignment.included)
+      .map((assignment) => assignment.serviceCode),
+  );
+
+  mustGet("d13ScopeEmpty").toggleAttribute(
+    "hidden",
+    hasFinePuttyScope || hasOperationScope,
+  );
+  mustGet("d13ScopeBadge").textContent = String(includedServices.size);
+}
+
+function syncD13ServiceBadge(): void {
+  mustGet("d13ServicesBadge").textContent = String(
+    mustGet("serviceScopeControls").children.length,
+  );
+}
+
+function renderD13PersistentSummary(
+  summary: ReturnType<typeof calculateDynamicOfferSummary>,
+): void {
+  const total = mustGet("d13OfferTotalKpi");
+  const status = mustGet("d13OfferTotalStatus");
+  mustGet("d13PriceBadge").textContent = String(summary.lines.length);
+
+  if (summary.lines.length === 0) {
+    total.textContent = "—";
+    total.dataset.state = "empty";
+    status.textContent = "Няма избрани услуги.";
+    status.dataset.state = "empty";
+    return;
+  }
+
+  if (summary.complete) {
+    total.textContent = `${formatMoney(summary.pricedSubtotalEur)} €`;
+    total.dataset.state = "complete";
+    status.textContent = "Офертата е ценово попълнена.";
+    status.dataset.state = "complete";
+    return;
+  }
+
+  const missingCount = summary.missingPriceAssignmentIds.length;
+  total.textContent = "Непълна";
+  total.dataset.state = "incomplete";
+  status.textContent =
+    `${missingCount} ${missingCount === 1 ? "позиция без цена" : "позиции без цена"} · ` +
+    `${formatMoney(summary.pricedSubtotalEur)} € въведени`;
+  status.dataset.state = "incomplete";
 }
 
 function syncProjectBar(): void {
@@ -729,6 +844,7 @@ function setPreviewMode(enabled: boolean): void {
   mustGet("brandSubtitle").textContent = previewMode
     ? "Интерактивна оферта"
     : "Vertical Slice v1 · Work / Client Preview";
+  syncDesktopRightPane();
   renderOffer();
   requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
 }
@@ -1153,6 +1269,9 @@ function renderServiceScopeControls(): void {
     toggle.append(checkbox, text);
     host.append(toggle);
   }
+
+  syncD13ServiceBadge();
+  syncD13ScopeState();
 }
 
 function renderWallTargets(): void {
@@ -1165,7 +1284,10 @@ function renderWallTargets(): void {
     finePutty.included || Boolean(ceilingAssignment?.included);
 
   mustGet<HTMLElement>("finePuttyTargetsSection").hidden = !serviceIncluded;
-  if (!serviceIncluded) return;
+  if (!serviceIncluded) {
+    syncD13ScopeState();
+    return;
+  }
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -1334,6 +1456,7 @@ function renderOperationAuthoring(): void {
   if (activeOperations.length === 0) {
     expandedOperationId = null;
     settingsSection.hidden = true;
+    syncD13ScopeState();
     return;
   }
 
@@ -1579,6 +1702,8 @@ function renderOperationAuthoring(): void {
     card.append(editor);
     host.append(card);
   }
+
+  syncD13ScopeState();
 }
 
 function setOperationStatus(
@@ -1764,6 +1889,8 @@ function renderOffer(
 function renderOfferSummary(
   summary: ReturnType<typeof calculateDynamicOfferSummary>,
 ): void {
+  renderD13PersistentSummary(summary);
+
   const total = mustGet("offerTotalKpi");
   const status = mustGet("offerTotalStatus");
 
