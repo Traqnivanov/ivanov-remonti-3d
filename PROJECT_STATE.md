@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.3 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; awaiting Owner live-preview review. D1.4–D1.5 remain inactive.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.3 ACTIVE: right Desktop Smart Offer panel only. D1.4–D1.5 remain inactive.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,26 +259,27 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER LIVE-PREVIEW REVIEW — D1.3 Right Smart Offer panel.**
+**D1.3 ONLY — Right Desktop Smart Offer panel.**
 
-Verified D1.3 result:
-- desktop right panel is split into **Услуги / Обхват / Цена / Info** rather than one long mixed stack;
-- current offer total/status stays persistent at the top while the panel scrolls;
-- Services includes search/filter for future catalog scale;
-- configurable service selection leads to Scope;
-- fixed-scope service selection leads to Offer/Price;
-- offer line selection keeps Price/Info context;
-- D1.1 three-zone shell and D1.2 left panel remain intact;
-- Mobile Work and Client Preview were regression-tested, not redesigned.
+Scope:
+- desktop Work only;
+- organize the right Work area into a scalable **Services / Scope / Price+Info** structure;
+- keep total/status easy to see while working;
+- preserve the existing service → scope → quantity → EUR price → Info logic;
+- preserve D1.1 persistent 3D and D1.2 compact left panel.
 
-Verification:
-- branch: `feat/d1-3-right-smart-offer`;
-- stacked DRAFT PR: #26, base `feat/d1-2-left-work-panel`;
-- final head: `1caac00e60ef1cb0015430d583149cdd9644b30e`;
-- CI `36447858515`: **SUCCESS**;
-- 17/17 test files, 161/161 tests: **PASS**;
-- build + desktop/mobile/Client browser smoke: **PASS**;
-- dedicated desktop visual `d13-right-smart-offer.png`: inspected, no blocker found.
+Non-goals:
+- no D1.4 3D→context linking;
+- no D1.5 final acceptance;
+- no service/quantity/price/persistence changes;
+- no Mobile Work redesign;
+- no Client Preview redesign.
 
-**NEXT: Owner reviews D1.3 on live preview. Do not begin D1.4 and do not merge PR #26 without a separate Owner decision.**
+Active branch:
+`feat/d1-3-right-smart-offer-panel`
+
+Base:
+D1.2 verified head `a238a0139e1bc56f060aa6852c2111cb3159d52a`.
+
+**NEXT after implementation: technical QA → exact desktop visual QA → permanent live preview → Owner review → STOP. Do not begin D1.4 automatically.**
 
