@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.3 ACTIVE: right Desktop Smart Offer panel only. D1.4–D1.5 remain inactive.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.3 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; awaiting Owner live-preview review. D1.4–D1.5 remain inactive.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,27 +259,41 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**D1.3 ONLY — Right Desktop Smart Offer panel.**
+**OWNER LIVE-PREVIEW REVIEW — D1.3 Right Desktop Smart Offer panel.**
 
-Scope:
-- desktop Work only;
-- organize the right Work area into a scalable **Services / Scope / Price+Info** structure;
-- keep total/status easy to see while working;
-- preserve the existing service → scope → quantity → EUR price → Info logic;
-- preserve D1.1 persistent 3D and D1.2 compact left panel.
+Verified D1.3 result:
+- right Desktop Work area uses three focused workspaces:
+  - **Услуги** — compact two-column list + search/filter;
+  - **Обхват** — exact wall/ceiling scope editing;
+  - **Цена / Info** — offer lines, quantity, dynamic EUR price and client Info;
+- compact total/status remains visible while the right panel scrolls;
+- tab badges expose visible-service / selected-scope / offer-line counts;
+- configurable service selection routes to **Обхват**;
+- fixed-scope Laminate routes directly to **Цена / Info**;
+- clicking offer lines preserves Price/Info context;
+- D1.1 persistent 3D and D1.2 compact left panel remain intact;
+- no D1.4 3D→Work contextual-link implementation yet.
 
-Non-goals:
-- no D1.4 3D→context linking;
-- no D1.5 final acceptance;
-- no service/quantity/price/persistence changes;
-- no Mobile Work redesign;
-- no Client Preview redesign.
+Continuity reconciliation:
+- prior D1.3 PR #26 was compared before finalization;
+- useful search/filter and panel-routing behavior from #26 was preserved in the canonical implementation;
+- PR #26 is **CLOSED / SUPERSEDED**;
+- canonical D1.3 is PR #27.
 
-Active branch:
-`feat/d1-3-right-smart-offer-panel`
+Verification:
+- branch: `feat/d1-3-right-smart-offer-panel`;
+- canonical stacked DRAFT PR: #27, base `feat/d1-2-left-work-panel`;
+- final head: `6fa2f90bff6b3eef530bde01faa9174541f39257`;
+- CI `36742726375`: **SUCCESS**;
+- 17/17 test files, 161/161 tests: **PASS**;
+- build + desktop/mobile/Client browser smoke: **PASS**;
+- exact final-head visuals inspected:
+  - `d13-right-services.png`;
+  - `d13-right-scope.png`;
+  - `d13-right-price-info.png`;
+  - mobile regression visual;
+- Pages deploy `36742903091`: **SUCCESS** from exact final head;
+- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
 
-Base:
-D1.2 verified head `a238a0139e1bc56f060aa6852c2111cb3159d52a`.
-
-**NEXT after implementation: technical QA → exact desktop visual QA → permanent live preview → Owner review → STOP. Do not begin D1.4 automatically.**
+**NEXT: Owner reviews D1.3 on live preview. Do not begin D1.4 and do not merge PR #27 without a separate Owner decision.**
 
