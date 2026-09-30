@@ -629,10 +629,23 @@ function syncD13ScopeState(): void {
       .map((assignment) => assignment.serviceCode),
   );
 
-  mustGet("d13ScopeEmpty").toggleAttribute(
-    "hidden",
-    hasFinePuttyScope || hasOperationScope,
-  );
+  const empty = mustGet<HTMLElement>("d13ScopeEmpty");
+  const hasEditableScope = hasFinePuttyScope || hasOperationScope;
+  empty.toggleAttribute("hidden", hasEditableScope);
+
+  if (!hasEditableScope) {
+    const selectedAssignment = offerInteraction.selectedServiceId
+      ? project.serviceAssignments.find(
+          (assignment) =>
+            assignment.id === offerInteraction.selectedServiceId &&
+            assignment.included,
+        )
+      : null;
+    empty.textContent = selectedAssignment
+      ? "За избраната услуга няма допълнителен избор на обхват."
+      : "Избери услуга от „Услуги“, за да настроиш обхвата ѝ.";
+  }
+
   mustGet("d13ScopeBadge").textContent = String(includedServices.size);
 }
 
