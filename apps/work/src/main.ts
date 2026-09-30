@@ -390,7 +390,16 @@ app.innerHTML = `
         <div class="d13-pane work-only active" data-d13-pane="services">
           <section class="section d13-services-section">
             <div class="section-title">Услуги за изпълнение</div>
+            <input
+              id="d13ServiceFilterInput"
+              class="d13-service-filter"
+              type="search"
+              placeholder="Търси услуга"
+              aria-label="Търси услуга"
+              autocomplete="off"
+            />
             <div id="serviceScopeControls" class="service-scope-list"></div>
+            <p id="d13ServiceFilterEmpty" class="d13-empty-state d13-filter-empty" hidden>Няма услуга с това име.</p>
             <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
           </section>
         </div>
@@ -523,6 +532,10 @@ function wireControls(): void {
     });
   });
 
+  mustGet<HTMLInputElement>("d13ServiceFilterInput").addEventListener("input", () => {
+    renderServiceScopeControls();
+  });
+
   mustGet("resetCameraBtn").addEventListener("click", () => viewer.resetCamera());
 
   mustGet("autoCutawayBtn").addEventListener("click", () => {
@@ -567,12 +580,20 @@ function wireControls(): void {
     if (!serviceId) return;
 
     offerInteraction = selectOfferService(serviceId);
+    if (desktopWorkbenchMedia.matches) {
+      desktopRightPane = "price";
+      syncDesktopRightPane();
+    }
     syncViewerFocus();
     renderOffer();
   });
 
   mustGet("showResultBtn").addEventListener("click", () => {
     offerInteraction = showWholeResult();
+    if (desktopWorkbenchMedia.matches) {
+      desktopRightPane = "price";
+      syncDesktopRightPane();
+    }
     syncViewerFocus();
     renderOffer();
   });
@@ -768,6 +789,7 @@ function renderCanonicalProjectState(): void {
   viewer.setProject(project);
   syncViewerFocus();
   renderOffer();
+  syncDesktopRightPane();
   syncProjectBar();
 }
 
@@ -1143,7 +1165,20 @@ function renderServiceScopeControls(): void {
     })),
   ];
 
-  for (const service of services) {
+  const filterQuery =
+    mustGet<HTMLInputElement>("d13ServiceFilterInput")
+      .value.trim()
+      .toLocaleLowerCase("bg-BG");
+  const visibleServices = filterQuery
+    ? services.filter((service) =>
+        service.label.toLocaleLowerCase("bg-BG").includes(filterQuery),
+      )
+    : services;
+
+  mustGet<HTMLElement>("d13ServiceFilterEmpty").hidden =
+    visibleServices.length !== 0;
+
+  for (const service of visibleServices) {
     const included = service.scopeAssignmentIds.some(
       (assignmentId) =>
         project.serviceAssignments.find((item) => item.id === assignmentId)
@@ -1240,6 +1275,10 @@ function renderServiceScopeControls(): void {
           offerInteraction = selectOfferService(service.primaryAssignmentId);
           if (service.operationDefinition) {
             expandedOperationId = service.operationDefinition.assignmentId;
+          }
+          if (desktopWorkbenchMedia.matches) {
+            desktopRightPane =
+              service.kind === "single" ? "price" : "scope";
           }
         } else {
           if (
