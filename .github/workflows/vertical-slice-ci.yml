@@ -6,6 +6,7 @@ on:
       - "feat/vertical-slice-v1"
       - "feat/d1-1-desktop-workbench"
       - "feat/d1-2-left-work-panel"
+      - "feat/d1-3-right-smart-offer-panel"
   pull_request:
     branches:
       - main
@@ -121,6 +122,9 @@ jobs:
             /tmp/p35b-ceiling-scope-mobile.png
             /tmp/d11-desktop-workbench.png
             /tmp/d12-left-work-panel.png
+            /tmp/d13-right-services.png
+            /tmp/d13-right-scope.png
+            /tmp/d13-right-price-info.png
             /tmp/m0-mobile-readable-390.png
             /tmp/m0-mobile-readable-412.png
             /tmp/m0-mobile-readable-wide.png
