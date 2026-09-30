@@ -1078,6 +1078,31 @@ async function runWorkSmoke() {
       'getComputedStyle(document.querySelector("#serviceScopeControls")).gridTemplateColumns.split(" ").length === 2',
       "D1.3: desktop Services workspace is not using the compact two-column service grid",
     );
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector("#d13ServiceFilterInput")).display !== "none"',
+      "D1.3: desktop service search is missing",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#d13ServiceFilterInput"); input.value = "боя"; input.dispatchEvent(new Event("input", { bubbles: true })); })()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelectorAll("#serviceScopeControls .service-scope-toggle").length === 1 && document.querySelector("#serviceScopeControls").textContent.includes("Боядисване") && document.querySelector("#d13ServicesBadge").textContent === "1"',
+      "D1.3: service search did not filter the scalable service list",
+    );
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("#d13ServiceFilterInput"); input.value = ""; input.dispatchEvent(new Event("input", { bubbles: true })); })()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelectorAll("#serviceScopeControls .service-scope-toggle").length === 6 && document.querySelector("#d13ServicesBadge").textContent === "6"',
+      "D1.3: clearing service search did not restore the full list",
+    );
     await saveScreenshot(session, "/tmp/d13-right-services.png");
 
     await evaluate(session, 'document.querySelector("[data-d13-tab=scope]").click()');
@@ -1178,8 +1203,8 @@ async function runWorkSmoke() {
     await delay(100);
     await assertEval(
       session,
-      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#offerTotalStatus").textContent.includes("3 позиции")',
-      "P3.4b scope: selecting Laminate did not add it to the offer and missing-price count",
+      'Boolean(document.querySelector("#serviceRowLaminate")) && document.querySelector("#offerTotalStatus").textContent.includes("3 позиции") && document.querySelector("[data-d13-tab=price]").classList.contains("active")',
+      "P3.4b/D1.3: selecting Laminate did not add it to the offer or route to Price/Info",
     );
     await evaluate(session, 'document.querySelector("#serviceRowLaminate").click()');
     await delay(120);
@@ -1226,8 +1251,8 @@ async function runWorkSmoke() {
     await delay(100);
     await assertEval(
       session,
-      `Boolean(document.querySelector("[data-service-id=assignment-gypsum-putty-1]")) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59")`,
-      "P3.3c: adding gypsum putty did not create a calculated focused offer line",
+      `Boolean(document.querySelector("[data-service-id=assignment-gypsum-putty-1]")) && document.querySelector("#infoTitle").textContent.includes("Гипсова шпакловка") && document.querySelector("#quantityKpi").textContent.includes("43,59") && document.querySelector("[data-d13-tab=scope]").classList.contains("active")`,
+      "P3.3c/D1.3: adding gypsum putty did not create a focused line or route to Scope",
     );
     await assertEval(
       session,
