@@ -71,6 +71,20 @@ export type FinePuttyServiceAssignment = ServiceAssignment & {
   clientInfo: ClientInfo;
 };
 
+export const FINE_PUTTY_CEILING_ASSIGNMENT_ID =
+  "assignment-fine-putty-ceiling-1" as const;
+
+export type FinePuttyCeilingServiceAssignment = ServiceAssignment & {
+  id: typeof FINE_PUTTY_CEILING_ASSIGNMENT_ID;
+  serviceCode: "fine-putty";
+  label: "Фина шпакловка";
+  targetEntityIds: ["room-1.ceiling"];
+  quantityRuleId: "ceiling-area-v1";
+  priceBookItemId: "dev-fine-putty";
+  presentationMode: "highlight";
+  clientInfo: ClientInfo;
+};
+
 export type LaminateFlooringServiceAssignment = ServiceAssignment & {
   id: "assignment-laminate-flooring-1";
   serviceCode: "laminate-flooring";
@@ -127,6 +141,52 @@ export function getFinePuttyAssignment(
   }
 
   return assignment as FinePuttyServiceAssignment;
+}
+
+export function createFinePuttyCeilingAssignment(
+  included = true,
+): FinePuttyCeilingServiceAssignment {
+  return {
+    id: FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+    serviceCode: "fine-putty",
+    label: "Фина шпакловка",
+    targetEntityIds: ["room-1.ceiling"],
+    included,
+    quantityRuleId: "ceiling-area-v1",
+    priceBookItemId: "dev-fine-putty",
+    presentationMode: "highlight",
+    clientInfo: {
+      what: "Фина шпакловка за финално изравняване и заглаждане на тавана.",
+      why: "За да се получи гладка и равномерна основа на тавана преди грундиране и боядисване.",
+      result: "Гладък таван, подготвен за следващите довършителни слоеве.",
+      includes: "Количеството и стойността се отнасят само за тавана в тази позиция.",
+    },
+  };
+}
+
+export function findFinePuttyCeilingAssignment(
+  project: ProjectState,
+): FinePuttyCeilingServiceAssignment | undefined {
+  const assignment = project.serviceAssignments.find(
+    (item) => item.id === FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+  );
+
+  if (!assignment) return undefined;
+
+  if (
+    assignment.serviceCode !== "fine-putty" ||
+    assignment.label !== "Фина шпакловка" ||
+    assignment.quantityRuleId !== "ceiling-area-v1" ||
+    assignment.priceBookItemId !== "dev-fine-putty" ||
+    assignment.presentationMode !== "highlight" ||
+    !assignment.clientInfo ||
+    assignment.targetEntityIds.length !== 1 ||
+    assignment.targetEntityIds[0] !== "room-1.ceiling"
+  ) {
+    throw new Error("Project has an invalid Fine Putty ceiling assignment.");
+  }
+
+  return assignment as FinePuttyCeilingServiceAssignment;
 }
 
 export function createLaminateFlooringAssignment(): LaminateFlooringServiceAssignment {
@@ -251,6 +311,7 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
           includes: "Количеството и стойността се отнасят само за стените, включени в тази позиция.",
         },
       },
+      createFinePuttyCeilingAssignment(true),
       {
         ...createLaminateFlooringAssignment(),
         included: false,
