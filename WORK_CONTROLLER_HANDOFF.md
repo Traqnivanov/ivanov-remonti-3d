@@ -312,13 +312,20 @@ Dependency stack:
 - P3.5 branch `feat/p3-5a-wall-finishing`, DRAFT PR #22;
 - D1.1 branch `feat/d1-1-desktop-workbench`, DRAFT PR #24;
 - D1.2 branch `feat/d1-2-left-work-panel`, DRAFT PR #25;
-- active reviewed slice `feat/d1-3-right-smart-offer`, DRAFT PR #26.
+- canonical D1.3 branch `feat/d1-3-right-smart-offer-panel`, DRAFT PR #27.
+
+Superseded continuity item:
+- old D1.3 branch `feat/d1-3-right-smart-offer`, PR #26;
+- #26 was compared against the final D1.3;
+- useful search/filter and contextual panel-routing behavior was preserved in #27;
+- PR #26 is **CLOSED / SUPERSEDED**.
 
 Active Current Work:
 - Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
-- D1.3 final head `1caac00e60ef1cb0015430d583149cdd9644b30e`;
-- CI `36447858515` SUCCESS;
-- 17/17 test files, 161/161 tests PASS.
+- D1.3 canonical final head `6fa2f90bff6b3eef530bde01faa9174541f39257`;
+- CI `36742726375` SUCCESS;
+- 17/17 test files, 161/161 tests PASS;
+- Pages deploy `36742903091` SUCCESS from the exact final head.
 
 D1.3 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
 
@@ -330,17 +337,27 @@ Mobile decision:
 
 ## 10. CURRENT NEXT — OWNER REVIEW OF D1.3
 
-Owner reviews the permanent preview:
+Owner reviews:
 `https://traqnivanov.github.io/ivanov-remonti-3d/`
 
 D1.3 changes only the Desktop Work right panel:
-- persistent total/status;
-- Services / Scope / Price+Info tabs;
-- service search/filter for scale;
-- no D1.4 3D contextual-link work yet.
+- persistent compact total/status;
+- **Услуги / Обхват / Цена / Info** workspaces;
+- service search/filter;
+- compact two-column service list;
+- tab badges/counts;
+- configurable service → Scope;
+- fixed-scope Laminate → Price/Info;
+- offer line selection keeps Price/Info context.
+
+What remains untouched:
+- no D1.4 3D→Work contextual linking;
+- no service/quantity/EUR price/persistence logic change;
+- no Mobile Work redesign;
+- no Client Preview redesign.
 
 **STOP after Owner review.**
-Do not begin D1.4 and do not merge PR #26 without separate Owner approval.
+Do not begin D1.4 and do not merge PR #27 without separate Owner approval.
 
 ---
 
