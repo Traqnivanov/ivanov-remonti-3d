@@ -312,22 +312,22 @@ Dependency stack:
 - P3.5 branch `feat/p3-5a-wall-finishing`, DRAFT PR #22;
 - D1.1 branch `feat/d1-1-desktop-workbench`, DRAFT PR #24;
 - D1.2 branch `feat/d1-2-left-work-panel`, DRAFT PR #25;
-- canonical D1.3 branch `feat/d1-3-right-smart-offer-panel`, DRAFT PR #27.
+- canonical D1.3 branch `feat/d1-3-right-smart-offer-panel`, DRAFT PR #27;
+- active D1.4 branch `feat/d1-4-context-link`, DRAFT PR #28.
 
 Superseded continuity item:
 - old D1.3 branch `feat/d1-3-right-smart-offer`, PR #26;
-- #26 was compared against the final D1.3;
-- useful search/filter and contextual panel-routing behavior was preserved in #27;
+- useful search/filter and contextual panel-routing behavior was preserved in canonical #27;
 - PR #26 is **CLOSED / SUPERSEDED**.
 
 Active Current Work:
 - Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
-- D1.3 canonical final head `6fa2f90bff6b3eef530bde01faa9174541f39257`;
-- CI `36742726375` SUCCESS;
-- 17/17 test files, 161/161 tests PASS;
-- Pages deploy `36742903091` SUCCESS from the exact final head.
+- D1.4 final head `c1fa1cb666eae16f33e9e100b2ba9925736b6e99`;
+- CI `36903279668` SUCCESS;
+- 17/17 test files, **163/163 tests PASS**;
+- Pages deploy `36903510087` SUCCESS from the exact final head.
 
-D1.3 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
+D1.4 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
 
 Mobile decision:
 - M0 remains only a usable baseline;
@@ -335,29 +335,28 @@ Mobile decision:
 
 ---
 
-## 10. CURRENT NEXT — OWNER REVIEW OF D1.3
+## 10. CURRENT NEXT — OWNER REVIEW OF D1.4
 
 Owner reviews:
 `https://traqnivanov.github.io/ivanov-remonti-3d/`
 
-D1.3 changes only the Desktop Work right panel:
-- persistent compact total/status;
-- **Услуги / Обхват / Цена / Info** workspaces;
-- service search/filter;
-- compact two-column service list;
-- tab badges/counts;
-- configurable service → Scope;
-- fixed-scope Laminate → Price/Info;
-- offer line selection keeps Price/Info context.
+D1.4 behavior:
+- click a 3D surface with one matching active service → exact Work context;
+- if several services apply to the same surface → explicit **3D избор**; never silently choose one;
+- choose one service → selected surface remains highlighted and only that exact service context is edited;
+- click a door/window in 3D → exact left opening editor opens;
+- selection alone does not change scope, quantity or price.
 
 What remains untouched:
-- no D1.4 3D→Work contextual linking;
-- no service/quantity/EUR price/persistence logic change;
+- no quantity formula change;
+- no EUR pricing logic change;
+- no persistence/business-rule change;
 - no Mobile Work redesign;
-- no Client Preview redesign.
+- no Client Preview redesign;
+- no D1.5 implementation.
 
 **STOP after Owner review.**
-Do not begin D1.4 and do not merge PR #27 without separate Owner approval.
+Do not begin D1.5 and do not merge PR #28 without separate Owner approval.
 
 ---
 
@@ -366,8 +365,8 @@ Do not begin D1.4 and do not merge PR #27 without separate Owner approval.
 0. **M0 Mobile usability baseline** — done; final mobile polish deferred.
 1. **D1.1 Desktop skeleton** — implemented/verified.
 2. **D1.2 Left Work panel** — Owner live-reviewed and accepted.
-3. **D1.3 Right Smart Offer panel** — implemented/verified, awaiting Owner review.
-4. **D1.4 Unique context link** — not started.
+3. **D1.3 Right Smart Offer panel** — Owner continued to D1.4; canonical implementation retained.
+4. **D1.4 Unique context link** — implemented/verified, awaiting Owner review.
 5. **D1.5 Desktop acceptance QA** — not started.
 
 The roadmap is approved, but only one step may be active at a time.
