@@ -1266,7 +1266,7 @@ async function runWorkSmoke() {
     await delay(80);
     await assertEval(
       session,
-      'document.querySelector("#d14ContextServices [data-d14-service-id=assignment-paint-1]").classList.contains("active") && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true" && Boolean(document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-scope="walls"]')) && !document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-scope="ceiling"]') && document.querySelectorAll("#offerRows .offer-row.selected").length === 1 && document.querySelector("#offerRows .offer-row.selected")?.dataset.serviceId === "assignment-paint-1" && document.querySelector("#selectionChip")?.textContent.includes("стена")',
+      `document.querySelector("#d14ContextServices [data-d14-service-id=assignment-paint-1]").classList.contains("active") && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true" && Boolean(document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-scope="walls"]')) && !document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-scope="ceiling"]') && document.querySelectorAll("#offerRows .offer-row.selected").length === 1 && document.querySelector("#offerRows .offer-row.selected")?.dataset.serviceId === "assignment-paint-1" && document.querySelector("#selectionChip")?.textContent.includes("стена")`,
       "D1.4: choosing Paint did not keep the wall selected and isolate the exact Paint wall context",
     );
 
