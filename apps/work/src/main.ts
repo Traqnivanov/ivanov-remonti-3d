@@ -47,7 +47,9 @@ import {
   FINE_PUTTY_ASSIGNMENT_ID,
   getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
+  getLinkedServiceAssignments,
   selectModelEntity,
+  selectModelEntityService,
   selectOfferService,
   shouldShowLaminateFloor,
   showWholeResult,
@@ -261,6 +263,7 @@ let offerInteraction = initialIncludedService
   : showWholeResult();
 let expandedOperationId: string | null = null;
 let expandedOpeningId: string | null = null;
+let selectedOpeningId: string | null = null;
 let desktopRightPane: "services" | "scope" | "price" = "services";
 const desktopWorkbenchMedia = window.matchMedia("(min-width: 981px)");
 let autoCutaway = true;
@@ -387,6 +390,15 @@ app.innerHTML = `
           </nav>
         </div>
 
+        <section id="d14ModelContext" class="d14-model-context work-only" hidden>
+          <div class="d14-context-head">
+            <span>3D избор</span>
+            <strong id="d14ContextEntity"></strong>
+          </div>
+          <div id="d14ContextServices" class="d14-context-services"></div>
+          <p id="d14ContextHint" class="d14-context-hint"></p>
+        </section>
+
         <div class="d13-pane work-only active" data-d13-pane="services">
           <section class="section d13-services-section">
             <div class="section-title">Услуги за изпълнение</div>
@@ -471,11 +483,8 @@ app.innerHTML = `
 const viewerHost = mustGet<HTMLElement>("viewer");
 const viewer = new RoomViewer({
   container: viewerHost,
-  onEntitySelect: (id) => {
-    offerInteraction = selectModelEntity(project, id);
-    syncViewerFocus();
-    renderOffer();
-  },
+  onEntitySelect: handleModelEntitySelect,
+  onOpeningSelect: handleOpeningSelect,
 });
 activeViewer = viewer;
 
@@ -500,6 +509,7 @@ mustGet<HTMLDetailsElement>("m2SchemeDetails").open =
 
 syncDesktopRightPane();
 renderOpeningEditor();
+renderD14ModelContext();
 renderServiceScopeControls();
 renderWallTargets();
 renderOperationAuthoring();
@@ -597,6 +607,197 @@ function wireControls(): void {
     syncViewerFocus();
     renderOffer();
   });
+}
+
+function assignmentHasEditableScope(assignmentId: string): boolean {
+  if (
+    assignmentId === FINE_PUTTY_ASSIGNMENT_ID ||
+    assignmentId === FINE_PUTTY_CEILING_ASSIGNMENT_ID
+  ) {
+    return true;
+  }
+
+  return authorableWallOperations.some(
+    (definition) =>
+      definition.assignmentId === assignmentId ||
+      definition.ceilingAssignmentId === assignmentId,
+  );
+}
+
+function routeModelServiceContext(assignmentId: string): void {
+  if (
+    !desktopWorkbenchMedia.matches ||
+    !currentCapabilities().canAuthorProject
+  ) {
+    return;
+  }
+
+  const definition = authorableWallOperations.find(
+    (item) =>
+      item.assignmentId === assignmentId ||
+      item.ceilingAssignmentId === assignmentId,
+  );
+
+  if (definition) {
+    expandedOperationId = definition.assignmentId;
+  }
+
+  desktopRightPane = assignmentHasEditableScope(assignmentId)
+    ? "scope"
+    : "price";
+  syncDesktopRightPane();
+}
+
+function handleModelEntitySelect(id: SurfaceId): void {
+  selectedOpeningId = null;
+  const linkedAssignments = getLinkedServiceAssignments(project, id);
+
+  if (linkedAssignments.length === 1) {
+    offerInteraction = selectModelEntityService(
+      project,
+      id,
+      linkedAssignments[0]!.id,
+    );
+    routeModelServiceContext(linkedAssignments[0]!.id);
+  } else {
+    offerInteraction = selectModelEntity(project, id);
+
+    if (
+      desktopWorkbenchMedia.matches &&
+      currentCapabilities().canAuthorProject
+    ) {
+      desktopRightPane =
+        linkedAssignments.length === 0 ? "services" : "scope";
+      syncDesktopRightPane();
+    }
+  }
+
+  renderWallTargets();
+  renderOperationAuthoring();
+  renderD14ModelContext();
+  syncViewerFocus();
+  renderOffer();
+}
+
+function handleOpeningSelect(id: string): void {
+  if (!currentCapabilities().canAuthorProject) return;
+
+  const opening = project.room.openings.find((item) => item.id === id);
+  if (!opening) return;
+
+  selectedOpeningId = id;
+  expandedOpeningId = id;
+  offerInteraction = showWholeResult();
+
+  renderOpeningEditor();
+  renderD14ModelContext();
+  syncViewerFocus();
+  renderOffer();
+
+  if (desktopWorkbenchMedia.matches) {
+    requestAnimationFrame(() => {
+      const card = document.querySelector<HTMLElement>(
+        `.opening-card[data-opening-id="${CSS.escape(id)}"]`,
+      );
+      card?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  }
+}
+
+function renderD14ModelContext(): void {
+  const context = mustGet<HTMLElement>("d14ModelContext");
+  const entityLabel = mustGet("d14ContextEntity");
+  const choices = mustGet("d14ContextServices");
+  const hint = mustGet("d14ContextHint");
+
+  choices.replaceChildren();
+
+  if (!offerInteraction.selectedEntity) {
+    context.hidden = true;
+    entityLabel.textContent = "";
+    hint.textContent = "";
+    return;
+  }
+
+  const surface = project.room.surfaces.find(
+    (item) => item.id === offerInteraction.selectedEntity,
+  );
+  const linkedAssignments = getLinkedServiceAssignments(
+    project,
+    offerInteraction.selectedEntity,
+  );
+
+  context.hidden = false;
+  entityLabel.textContent =
+    surface?.label ?? offerInteraction.selectedEntity;
+
+  if (linkedAssignments.length === 0) {
+    hint.textContent =
+      "Няма активна услуга за тази повърхност. Избери услуга, ако ще се работи тук.";
+
+    const showServices = document.createElement("button");
+    showServices.type = "button";
+    showServices.className = "d14-context-action";
+    showServices.textContent = "Виж услуги";
+    showServices.addEventListener("click", () => {
+      desktopRightPane = "services";
+      syncDesktopRightPane();
+    });
+    choices.append(showServices);
+    return;
+  }
+
+  for (const assignment of linkedAssignments) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "d14-context-service";
+    button.dataset.d14ServiceId = assignment.id;
+    button.classList.toggle(
+      "active",
+      offerInteraction.selectedServiceId === assignment.id,
+    );
+
+    const scope =
+      assignment.quantityRuleId === "ceiling-area-v1"
+        ? "Таван"
+        : assignment.quantityRuleId === "floor-area-v1"
+          ? "Под"
+          : "Стени";
+
+    button.innerHTML =
+      `<strong>${escapeHtml(assignment.label)}</strong>` +
+      `<span>${escapeHtml(scope)}</span>`;
+
+    button.addEventListener("click", () => {
+      if (!offerInteraction.selectedEntity) return;
+
+      offerInteraction = selectModelEntityService(
+        project,
+        offerInteraction.selectedEntity,
+        assignment.id,
+      );
+      routeModelServiceContext(assignment.id);
+      renderWallTargets();
+      renderOperationAuthoring();
+      renderD14ModelContext();
+      syncViewerFocus();
+      renderOffer();
+    });
+
+    choices.append(button);
+  }
+
+  if (linkedAssignments.length > 1 && !offerInteraction.selectedServiceId) {
+    hint.textContent =
+      "Тази повърхност участва в няколко услуги. Избери коя редактираш.";
+  } else {
+    hint.textContent =
+      assignmentHasEditableScope(
+        offerInteraction.selectedServiceId ?? linkedAssignments[0]!.id,
+      )
+        ? "Показан е точният работен обхват за избраната повърхност."
+        : "Показани са количеството, цената и Info за избраната позиция.";
+  }
 }
 
 function syncDesktopRightPane(): void {
