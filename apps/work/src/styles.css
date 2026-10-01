@@ -1053,6 +1053,100 @@ input[type="number"] {
   display: none;
 }
 
+.d14-model-context {
+  display: none;
+}
+
+.d14-context-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.d14-context-head span {
+  color: #7f91a9;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.d14-context-head strong {
+  min-width: 0;
+  color: #fff3ce;
+  font-size: 13px;
+  text-align: right;
+}
+
+.d14-context-services {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.d14-context-service,
+.d14-context-action {
+  min-width: 0;
+  min-height: 38px;
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  padding: 7px 8px;
+  border: 1px solid #30415a;
+  border-radius: 8px;
+  background: #09121f;
+  color: #dce6f2;
+  text-align: left;
+}
+
+.d14-context-service strong {
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.d14-context-service span {
+  color: #7f91a9;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.d14-context-service.active {
+  border-color: #e8b84b;
+  background: #181b20;
+  box-shadow: inset 3px 0 0 #e8b84b;
+}
+
+.d14-context-action {
+  display: inline-grid;
+  place-items: center;
+  grid-column: 1 / -1;
+  color: #fff3ce;
+  font-size: 11px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.d14-context-hint {
+  margin: 7px 0 0;
+  color: #8092aa;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.opening-card.context-selected {
+  border-color: #e8b84b;
+  box-shadow: 0 0 0 1px rgba(232, 184, 75, .18);
+}
+
+.opening-card.context-selected > .opening-card-summary {
+  background: rgba(232, 184, 75, .06);
+}
+
 .d13-service-filter {
   display: none;
 }
@@ -1119,6 +1213,16 @@ input[type="number"] {
   .app-shell:not(.preview-mode) .panel.right {
     padding: 0 12px 12px;
     overflow-y: auto;
+  }
+
+  .app-shell:not(.preview-mode) .d14-model-context:not([hidden]) {
+    display: block;
+    margin: 0 0 10px;
+    padding: 10px;
+    border: 1px solid #7f642d;
+    border-radius: 10px;
+    background:
+      linear-gradient(180deg, rgba(30, 27, 20, .96), rgba(14, 22, 34, .96));
   }
 
   .app-shell:not(.preview-mode) .d13-work-header {
