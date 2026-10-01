@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.4 ACTIVE: 3D → exact Work context link only. D1.5 remains inactive.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.4 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; awaiting Owner live-preview review. D1.5 remains inactive.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,28 +259,34 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**D1.4 ONLY — Unique 3D → Work context link.**
+**OWNER LIVE-PREVIEW REVIEW — D1.4 Unique 3D → Work context link.**
 
-Goal:
-- selecting a real model entity must do more than highlight it;
-- the Work UI should route to the relevant service/scope/price context where the relationship is unambiguous;
-- preserve the distinctive chain **object/surface → service → exact place → quantity → EUR price → Info**.
+Verified D1.4 result:
+- real 3D surface selection now routes into Work context instead of only highlighting;
+- one matching active service → exact service context automatically;
+- multiple matching active services → explicit **3D избор** list; no silent winner;
+- choosing a service keeps the surface selected and isolates that exact service/scope;
+- wall context does not expose unrelated ceiling scope; ceiling context does not expose unrelated wall scope;
+- fixed-scope service context routes to **Цена / Info**;
+- real door/window openings have selectable 3D hit areas and route to the exact left opening editor;
+- model selection itself does **not** mutate scope, quantity or EUR price; only actual Work edits do.
 
-Rules:
-- wall / ceiling / opening selection keeps visual focus;
-- if one clear active service assignment matches the selected surface, route to that exact context;
-- if multiple active services match the same surface, do **not** silently choose a winner; expose deterministic service choices/context;
-- opening selection routes to the relevant left opening editor;
-- no service identity, quantity, EUR price, persistence or business-rule changes;
-- no D1.5 implementation;
-- no Mobile Work redesign;
-- no Client Preview redesign.
+Verification:
+- branch: `feat/d1-4-context-link`;
+- stacked DRAFT PR: #28, base `feat/d1-3-right-smart-offer-panel`;
+- final head: `c1fa1cb666eae16f33e9e100b2ba9925736b6e99`;
+- CI `36903279668`: **SUCCESS**;
+- 17/17 test files, **163/163 tests: PASS**;
+- typecheck + build: **PASS**;
+- desktop/mobile/Client browser smoke: **PASS**;
+- D1.4 QA uses real canvas clicks;
+- exact final-head visuals inspected:
+  - `d14-surface-context.png`;
+  - `d14-multi-service-context.png`;
+  - `d14-opening-context.png`;
+- active context contrast was corrected and reverified;
+- Pages deploy `36903510087`: **SUCCESS** from exact final head;
+- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
 
-Active branch:
-`feat/d1-4-context-link`
-
-Base:
-canonical D1.3 head `6fa2f90bff6b3eef530bde01faa9174541f39257`.
-
-**NEXT after implementation: technical QA → exact desktop visual QA → permanent live preview → Owner review → STOP. Do not begin D1.5 automatically.**
+**NEXT: Owner reviews D1.4 on the live preview. Do not begin D1.5 and do not merge PR #28 without a separate Owner decision.**
 
