@@ -1309,8 +1309,12 @@ async function runWorkSmoke() {
     );
     await saveScreenshot(session, "/tmp/d14-opening-context.png");
 
-    await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
-    await delay(100);
+    await waitForApp(session, baseUrl);
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Запазено") && document.querySelector("#undoProjectButton").disabled && document.querySelector("#redoProjectButton").disabled',
+      "D1.4 QA reset did not restore a clean canonical Work project",
+    );
 
     const beforeViewerInput = await captureElement(session, "#viewer canvas");
     await smokeViewerInput(session);
