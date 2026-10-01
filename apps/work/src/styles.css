@@ -1102,6 +1102,7 @@ input[type="number"] {
 
 .d14-context-service strong {
   overflow: hidden;
+  color: #e8eef7;
   font-size: 11px;
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -1118,7 +1119,16 @@ input[type="number"] {
 .d14-context-service.active {
   border-color: #e8b84b;
   background: #181b20;
+  color: #fff3ce;
   box-shadow: inset 3px 0 0 #e8b84b;
+}
+
+.d14-context-service.active strong {
+  color: #fff3ce;
+}
+
+.d14-context-service.active span {
+  color: #d7c89d;
 }
 
 .d14-context-action {
