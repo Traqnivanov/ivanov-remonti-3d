@@ -599,6 +599,7 @@ function wireControls(): void {
   });
 
   mustGet("showResultBtn").addEventListener("click", () => {
+    selectedOpeningId = null;
     offerInteraction = showWholeResult();
     if (desktopWorkbenchMedia.matches) {
       desktopRightPane = "price";
@@ -813,6 +814,41 @@ function syncDesktopRightPane(): void {
 }
 
 function syncD13ScopeState(): void {
+  const includedServices = new Set(
+    project.serviceAssignments
+      .filter((assignment) => assignment.included)
+      .map((assignment) => assignment.serviceCode),
+  );
+  mustGet("d13ScopeBadge").textContent = String(includedServices.size);
+
+  const empty = mustGet<HTMLElement>("d13ScopeEmpty");
+
+  if (offerInteraction.selectedEntity) {
+    const linkedAssignments = getLinkedServiceAssignments(
+      project,
+      offerInteraction.selectedEntity,
+    );
+
+    if (!offerInteraction.selectedServiceId) {
+      empty.hidden = false;
+      empty.textContent =
+        linkedAssignments.length > 1
+          ? "Избери услуга от 3D контекста, за да редактираш точния обхват."
+          : "Няма активна услуга с редактируем обхват за тази повърхност.";
+      return;
+    }
+
+    const editable = assignmentHasEditableScope(
+      offerInteraction.selectedServiceId,
+    );
+    empty.hidden = editable;
+    if (!editable) {
+      empty.textContent =
+        "За избраната услуга няма допълнителен избор на обхват.";
+    }
+    return;
+  }
+
   const finePutty = getFinePuttyAssignment(project);
   const finePuttyCeiling = findFinePuttyCeilingAssignment(project);
   const hasFinePuttyScope =
@@ -824,13 +860,6 @@ function syncD13ScopeState(): void {
     );
   });
 
-  const includedServices = new Set(
-    project.serviceAssignments
-      .filter((assignment) => assignment.included)
-      .map((assignment) => assignment.serviceCode),
-  );
-
-  const empty = mustGet<HTMLElement>("d13ScopeEmpty");
   const hasEditableScope = hasFinePuttyScope || hasOperationScope;
   empty.toggleAttribute("hidden", hasEditableScope);
 
@@ -846,8 +875,6 @@ function syncD13ScopeState(): void {
       ? "За избраната услуга няма допълнителен избор на обхват."
       : "Избери услуга от „Услуги“, за да настроиш обхвата ѝ.";
   }
-
-  mustGet("d13ScopeBadge").textContent = String(includedServices.size);
 }
 
 function syncD13ServiceBadge(): void {
@@ -995,6 +1022,7 @@ function renderCanonicalProjectState(): void {
   lengthInput.value = String(project.room.lengthM);
   heightInput.value = String(project.room.heightM);
   renderOpeningEditor();
+  renderD14ModelContext();
   renderServiceScopeControls();
   renderWallTargets();
   renderOperationAuthoring();
@@ -1073,6 +1101,10 @@ function setPreviewMode(enabled: boolean): void {
   if (!enabled && !currentCapabilities().canReturnToWork) return;
 
   previewMode = enabled;
+  if (previewMode) {
+    selectedOpeningId = null;
+    viewer.setHighlightedOpening(null);
+  }
   mustGet("shell").classList.toggle("preview-mode", previewMode);
   mustGet("shell").classList.toggle("direct-client-entry", directClientEntry);
   mustGet("workModeBtn").classList.toggle("active", !previewMode);
@@ -1150,9 +1182,14 @@ function renderOpeningEditor(): void {
     const card = document.createElement("details");
     card.className = "opening-card";
     card.dataset.openingId = opening.id;
+    card.classList.toggle(
+      "context-selected",
+      selectedOpeningId === opening.id,
+    );
     card.open =
       !desktopWorkbenchMedia.matches ||
-      expandedOpeningId === opening.id;
+      expandedOpeningId === opening.id ||
+      selectedOpeningId === opening.id;
 
     card.addEventListener("toggle", () => {
       if (!desktopWorkbenchMedia.matches) return;
@@ -1199,6 +1236,9 @@ function renderOpeningEditor(): void {
       if (!currentCapabilities().canAuthorProject) return;
       if (expandedOpeningId === opening.id) {
         expandedOpeningId = null;
+      }
+      if (selectedOpeningId === opening.id) {
+        selectedOpeningId = null;
       }
       applyOpeningMutation(removeOpening(project, opening.id));
     });
@@ -1314,6 +1354,7 @@ function addOpeningFromWork(kind: Opening["kind"]): void {
 
   const id = `room-1.${kind}-${crypto.randomUUID()}`;
   expandedOpeningId = id;
+  selectedOpeningId = id;
   applyOpeningMutation(addOpening(project, kind, id));
 }
 
@@ -1535,12 +1576,30 @@ function renderWallTargets(): void {
   const ceilingAssignment = findFinePuttyCeilingAssignment(project);
   const serviceIncluded =
     finePutty.included || Boolean(ceilingAssignment?.included);
+  const hasModelContext = Boolean(offerInteraction.selectedEntity);
+  const selectedContextAssignmentId = hasModelContext
+    ? offerInteraction.selectedServiceId
+    : null;
+  const finePuttyContextAllowed =
+    !hasModelContext ||
+    selectedContextAssignmentId === FINE_PUTTY_ASSIGNMENT_ID ||
+    selectedContextAssignmentId === FINE_PUTTY_CEILING_ASSIGNMENT_ID;
+  const showFinePuttySection =
+    serviceIncluded && finePuttyContextAllowed;
 
-  mustGet<HTMLElement>("finePuttyTargetsSection").hidden = !serviceIncluded;
-  if (!serviceIncluded) {
+  mustGet<HTMLElement>("finePuttyTargetsSection").hidden =
+    !showFinePuttySection;
+  if (!showFinePuttySection) {
     syncD13ScopeState();
     return;
   }
+
+  const showWallScope =
+    !hasModelContext ||
+    selectedContextAssignmentId === FINE_PUTTY_ASSIGNMENT_ID;
+  const showCeilingScope =
+    !hasModelContext ||
+    selectedContextAssignmentId === FINE_PUTTY_CEILING_ASSIGNMENT_ID;
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -1581,9 +1640,11 @@ function renderWallTargets(): void {
   const wallScopeText = document.createElement("strong");
   wallScopeText.textContent = "Стени";
   wallScopeRow.append(wallScopeCheckbox, wallScopeText);
-  targetHost.append(wallScopeRow);
+  if (showWallScope) {
+    targetHost.append(wallScopeRow);
+  }
 
-  if (finePutty.included) {
+  if (showWallScope && finePutty.included) {
     wallIds.forEach((id) => {
       const row = document.createElement("label");
       row.className = "check-row";
@@ -1687,12 +1748,21 @@ function renderWallTargets(): void {
   const ceilingText = document.createElement("strong");
   ceilingText.textContent = "Таван";
   ceilingRow.append(ceilingCheckbox, ceilingText);
-  targetHost.append(ceilingRow);
+  if (showCeilingScope) {
+    targetHost.append(ceilingRow);
+  }
+
+  syncD13ScopeState();
 }
 
 function renderOperationAuthoring(): void {
   const host = mustGet("operationAuthoring");
   host.replaceChildren();
+
+  const hasModelContext = Boolean(offerInteraction.selectedEntity);
+  const selectedContextAssignmentId = hasModelContext
+    ? offerInteraction.selectedServiceId
+    : null;
 
   const activeOperations = authorableWallOperations
     .map((definition) => ({
@@ -1703,7 +1773,16 @@ function renderOperationAuthoring(): void {
     .filter(
       (item) =>
         item.wallAssignment?.included || item.ceilingAssignment?.included,
-    );
+    )
+    .filter((item) => {
+      if (!hasModelContext) return true;
+      if (!selectedContextAssignmentId) return false;
+      return (
+        item.definition.assignmentId === selectedContextAssignmentId ||
+        item.definition.ceilingAssignmentId ===
+          selectedContextAssignmentId
+      );
+    });
 
   const settingsSection = mustGet<HTMLElement>("operationSettingsSection");
   if (activeOperations.length === 0) {
@@ -1804,6 +1883,13 @@ function renderOperationAuthoring(): void {
     const editor = document.createElement("div");
     editor.className = "operation-editor";
 
+    const showWallScope =
+      !hasModelContext ||
+      selectedContextAssignmentId === definition.assignmentId;
+    const showCeilingScope =
+      !hasModelContext ||
+      selectedContextAssignmentId === definition.ceilingAssignmentId;
+
     const wallScopeRow = document.createElement("label");
     wallScopeRow.className = "check-row";
     const wallScopeCheckbox = document.createElement("input");
@@ -1844,9 +1930,11 @@ function renderOperationAuthoring(): void {
     const wallScopeText = document.createElement("strong");
     wallScopeText.textContent = "Стени";
     wallScopeRow.append(wallScopeCheckbox, wallScopeText);
-    editor.append(wallScopeRow);
+    if (showWallScope) {
+      editor.append(wallScopeRow);
+    }
 
-    if (wallAssignment?.included) {
+    if (showWallScope && wallAssignment?.included) {
       for (const wallId of wallIds) {
         const row = document.createElement("label");
         row.className = "check-row";
@@ -1940,7 +2028,9 @@ function renderOperationAuthoring(): void {
     const ceilingScopeText = document.createElement("strong");
     ceilingScopeText.textContent = "Таван";
     ceilingScopeRow.append(ceilingScopeCheckbox, ceilingScopeText);
-    editor.append(ceilingScopeRow);
+    if (showCeilingScope) {
+      editor.append(ceilingScopeRow);
+    }
 
     const footer = document.createElement("div");
     footer.className = "operation-editor-footer";
@@ -1973,12 +2063,37 @@ function operationErrorMessage(error: unknown): string {
 }
 
 function syncViewerFocus(): void {
-  viewer.setHighlightedEntities(getHighlightedEntityIds(project, offerInteraction));
+  if (
+    selectedOpeningId &&
+    (offerInteraction.selectedEntity || offerInteraction.selectedServiceId)
+  ) {
+    selectedOpeningId = null;
+  }
+
+  viewer.setHighlightedEntities(
+    getHighlightedEntityIds(project, offerInteraction),
+  );
+  viewer.setHighlightedOpening(selectedOpeningId);
   viewer.setLaminateFloorVisible(
     shouldShowLaminateFloor(project, offerInteraction),
   );
+  renderD14ModelContext();
 
   const chip = mustGet("selectionChip");
+
+  if (selectedOpeningId) {
+    const opening = project.room.openings.find(
+      (item) => item.id === selectedOpeningId,
+    );
+    if (opening) {
+      const label =
+        opening.kind === "door"
+          ? `Врата ${openingOrdinal(opening, "door")}`
+          : `Прозорец ${openingOrdinal(opening, "window")}`;
+      chip.innerHTML = `<span class="focus-chip">Избрано: ${escapeHtml(label)}</span>`;
+      return;
+    }
+  }
   if (offerInteraction.selectedEntity) {
     const label = project.room.surfaces.find(
       (surface) => surface.id === offerInteraction.selectedEntity,
