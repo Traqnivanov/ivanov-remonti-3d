@@ -254,6 +254,51 @@ async function captureElement(session, selector) {
   return result.data;
 }
 
+async function clickViewerAt(session, xRatio, yRatio) {
+  const point = await evaluate(
+    session,
+    `(() => {
+      const canvas = document.querySelector("#viewer canvas");
+      if (!canvas) return null;
+      const r = canvas.getBoundingClientRect();
+      return {
+        x: r.left + r.width * ${xRatio},
+        y: r.top + r.height * ${yRatio},
+      };
+    })()`,
+  );
+
+  if (!point) throw new Error("Viewer canvas is unavailable for click QA");
+
+  await session.call("Input.dispatchMouseEvent", {
+    type: "mousePressed",
+    x: point.x,
+    y: point.y,
+    button: "left",
+    clickCount: 1,
+  });
+  await session.call("Input.dispatchMouseEvent", {
+    type: "mouseReleased",
+    x: point.x,
+    y: point.y,
+    button: "left",
+    clickCount: 1,
+  });
+  await delay(90);
+}
+
+async function clickViewerUntil(session, predicateExpression, points, label) {
+  for (const [xRatio, yRatio] of points) {
+    await clickViewerAt(session, xRatio, yRatio);
+    if (await evaluate(session, predicateExpression)) {
+      return { xRatio, yRatio };
+    }
+  }
+
+  throw new Error(label);
+}
+
+
 async function saveScreenshot(session, path) {
   const data = await capturePage(session);
   await writeFile(path, Buffer.from(data, "base64"));
@@ -1174,6 +1219,98 @@ async function runWorkSmoke() {
       'getComputedStyle(document.querySelector("#unitPriceWorkControl")).display !== "none" && getComputedStyle(document.querySelector("#unitPriceKpi")).display === "none"',
       "P3.4b: Work should expose the price input and hide the client-only price value",
     );
+
+    const d14WallPoint = await clickViewerUntil(
+      session,
+      'document.querySelector("#selectionChip")?.textContent.includes("стена") && !document.querySelector("#d14ModelContext").hidden',
+      [
+        [0.50, 0.34],
+        [0.42, 0.38],
+        [0.58, 0.38],
+        [0.35, 0.44],
+        [0.65, 0.44],
+        [0.50, 0.48],
+      ],
+      "D1.4: could not select a visible wall through the real 3D canvas",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("[data-d13-tab=scope]").classList.contains("active") && document.querySelectorAll("#d14ContextServices [data-d14-service-id]").length === 1 && document.querySelector("#d14ContextServices [data-d14-service-id=assignment-fine-putty-1]")?.classList.contains("active") && !document.querySelector("#finePuttyTargetsSection").hidden && !document.querySelector("[data-service-scope-target=fine-putty-ceiling]")',
+      "D1.4: single-service wall click did not route to the exact Fine Putty wall scope",
+    );
+    await saveScreenshot(session, "/tmp/d14-surface-context.png");
+
+    await evaluate(
+      session,
+      '(() => { const primer = document.querySelector("[data-service-include=assignment-primer-1]"); primer.checked = true; primer.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await evaluate(
+      session,
+      '(() => { const paint = document.querySelector("[data-service-include=assignment-paint-1]"); paint.checked = true; paint.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+
+    await clickViewerAt(session, d14WallPoint.xRatio, d14WallPoint.yRatio);
+    await assertEval(
+      session,
+      'document.querySelector("#selectionChip")?.textContent.includes("стена") && document.querySelectorAll("#d14ContextServices [data-d14-service-id]").length === 3 && !document.querySelector("#d14ContextServices .active") && document.querySelector("#d13ScopeEmpty").textContent.includes("3D контекста")',
+      "D1.4: multiple services on one wall were not exposed as an explicit choice",
+    );
+    await saveScreenshot(session, "/tmp/d14-multi-service-context.png");
+
+    await evaluate(
+      session,
+      'document.querySelector("#d14ContextServices [data-d14-service-id=assignment-paint-1]").click()',
+    );
+    await delay(80);
+    await assertEval(
+      session,
+      'document.querySelector("#d14ContextServices [data-d14-service-id=assignment-paint-1]").classList.contains("active") && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true" && Boolean(document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-scope="walls"]')) && !document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-scope="ceiling"]') && document.querySelectorAll("#offerRows .offer-row.selected").length === 1 && document.querySelector("#offerRows .offer-row.selected")?.dataset.serviceId === "assignment-paint-1" && document.querySelector("#selectionChip")?.textContent.includes("стена")',
+      "D1.4: choosing Paint did not keep the wall selected and isolate the exact Paint wall context",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const paint = document.querySelector("[data-service-include=assignment-paint-1]"); paint.checked = false; paint.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+    await evaluate(
+      session,
+      '(() => { const primer = document.querySelector("[data-service-include=assignment-primer-1]"); primer.checked = false; primer.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(80);
+
+    await evaluate(session, 'document.querySelector("#showAllBtn").click()');
+    await delay(100);
+    let d14OpeningSelected = false;
+    const d14OpeningPoints = [
+      [0.18, 0.42], [0.22, 0.50], [0.26, 0.58], [0.30, 0.62],
+      [0.70, 0.42], [0.74, 0.48], [0.78, 0.54], [0.82, 0.60],
+      [0.35, 0.38], [0.65, 0.38], [0.38, 0.55], [0.62, 0.55],
+    ];
+    for (const [xRatio, yRatio] of d14OpeningPoints) {
+      await clickViewerAt(session, xRatio, yRatio);
+      d14OpeningSelected = await evaluate(
+        session,
+        'document.querySelector("#selectionChip")?.textContent.includes("Врата") || document.querySelector("#selectionChip")?.textContent.includes("Прозорец")',
+      );
+      if (d14OpeningSelected) break;
+    }
+    if (!d14OpeningSelected) {
+      throw new Error(
+        "D1.4: real 3D opening hit-area could not be selected",
+      );
+    }
+    await assertEval(
+      session,
+      'document.querySelector(".opening-card.context-selected")?.open === true && document.querySelector(".opening-card.context-selected .opening-fields")?.getBoundingClientRect().height > 0 && document.querySelector("#d14ModelContext").hidden',
+      "D1.4: opening click did not route to the exact left opening editor",
+    );
+    await saveScreenshot(session, "/tmp/d14-opening-context.png");
+
+    await evaluate(session, 'document.querySelector("#resetCameraBtn").click()');
+    await delay(100);
 
     const beforeViewerInput = await captureElement(session, "#viewer canvas");
     await smokeViewerInput(session);
