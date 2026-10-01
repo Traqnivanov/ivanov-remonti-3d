@@ -5,7 +5,9 @@ import {
   createInitialOfferInteraction,
   getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
+  getLinkedServiceAssignments,
   selectModelEntity,
+  selectModelEntityService,
   selectOfferService,
   shouldShowLaminateFloor,
   showWholeResult,
@@ -120,6 +122,58 @@ describe("Smart Offer core interaction loop", () => {
       LAMINATE_ASSIGNMENT_ID,
       "assignment-second-floor-service",
     ]);
+  });
+
+  it("D1.4 keeps the selected surface while a specific linked service is chosen", () => {
+    const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
+    project.serviceAssignments.push({
+      id: "assignment-second-floor-service",
+      serviceCode: "second-floor-service",
+      label: "Second floor service",
+      targetEntityIds: ["room-1.floor"],
+      included: true,
+      quantityRuleId: "test-rule",
+      presentationMode: "highlight",
+    });
+
+    expect(
+      getLinkedServiceAssignments(project, "room-1.floor").map(
+        (assignment) => assignment.id,
+      ),
+    ).toEqual([
+      LAMINATE_ASSIGNMENT_ID,
+      "assignment-second-floor-service",
+    ]);
+
+    const interaction = selectModelEntityService(
+      project,
+      "room-1.floor",
+      LAMINATE_ASSIGNMENT_ID,
+    );
+
+    expect(interaction).toEqual({
+      selectedServiceId: LAMINATE_ASSIGNMENT_ID,
+      selectedEntity: "room-1.floor",
+    });
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      LAMINATE_ASSIGNMENT_ID,
+    ]);
+    expect(getHighlightedEntityIds(project, interaction)).toEqual([
+      "room-1.floor",
+    ]);
+  });
+
+  it("D1.4 rejects a service choice that is not linked to the selected surface", () => {
+    const project = createDefaultProject();
+
+    expect(() =>
+      selectModelEntityService(
+        project,
+        "room-1.floor",
+        FINE_PUTTY_ASSIGNMENT_ID,
+      ),
+    ).toThrow(/is not linked/);
   });
 
   it("exits focus mode without mutating project quantity or price", () => {
