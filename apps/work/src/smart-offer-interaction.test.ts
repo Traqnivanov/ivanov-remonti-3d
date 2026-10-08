@@ -19,6 +19,7 @@ import {
 } from "./calculation";
 import {
   createDefaultProject,
+  FINE_PUTTY_CEILING_ASSIGNMENT_ID,
   getFinePuttyAssignment,
   getLaminateFlooringAssignment,
 } from "./domain";
@@ -71,15 +72,31 @@ describe("Smart Offer core interaction loop", () => {
     ]);
   });
 
-  it("does not invent a linked offer position for an unrelated surface", () => {
+  it("Model → Offer resolves the default Fine Putty ceiling scope", () => {
     const project = createDefaultProject();
     const interaction = selectModelEntity(project, "room-1.ceiling");
 
-    expect(interaction.selectedServiceId).toBeNull();
+    expect(interaction.selectedServiceId).toBe(
+      FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+    );
     expect(interaction.selectedEntity).toBe("room-1.ceiling");
-    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([]);
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+    ]);
     expect(getHighlightedEntityIds(project, interaction)).toEqual([
       "room-1.ceiling",
+    ]);
+  });
+
+  it("does not invent a linked offer position for an unrelated surface", () => {
+    const project = createDefaultProject();
+    const interaction = selectModelEntity(project, "room-1.floor");
+
+    expect(interaction.selectedServiceId).toBeNull();
+    expect(interaction.selectedEntity).toBe("room-1.floor");
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([]);
+    expect(getHighlightedEntityIds(project, interaction)).toEqual([
+      "room-1.floor",
     ]);
   });
 

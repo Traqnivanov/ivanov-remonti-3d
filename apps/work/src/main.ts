@@ -2,9 +2,12 @@ import "./styles.css";
 import type { Opening, ProjectState, SurfaceId, WallId } from "./domain";
 import {
   createDefaultProject,
+  createFinePuttyCeilingAssignment,
   createOpeningProofProject,
+  findFinePuttyCeilingAssignment,
   getFinePuttyAssignment,
   wallIds,
+  FINE_PUTTY_CEILING_ASSIGNMENT_ID,
 } from "./domain";
 import type { ProjectRepository } from "./project-repository";
 import {
@@ -60,8 +63,14 @@ import {
 } from "./opening-authoring";
 import {
   addOperationAssignment,
+  addOperationCeilingAssignment,
+  addOperationScopeAssignments,
   findOperationAssignment,
+  findOperationCeilingAssignment,
   gypsumPuttyOperation,
+  paintOperation,
+  primerOperation,
+  sandingOperation,
   setOperationTargets,
   setServiceAssignmentIncluded,
 } from "./operation-authoring";
@@ -78,6 +87,12 @@ import {
 const directClientEntry =
   new URLSearchParams(window.location.search).get("preview") === "1";
 const DEV_QA_AUTH_KEY = "ivanov-remonti:qa-authorized";
+const authorableWallOperations = [
+  gypsumPuttyOperation,
+  sandingOperation,
+  primerOperation,
+  paintOperation,
+];
 
 let activeViewer: RoomViewer | null = null;
 
@@ -320,7 +335,7 @@ app.innerHTML = `
         </section>
 
         <section class="section work-only" id="finePuttyTargetsSection">
-          <div class="section-title">Фина шпакловка · стени</div>
+          <div class="section-title">Фина шпакловка · обхват</div>
           <div id="wallTargets"></div>
         </section>
 
@@ -917,34 +932,50 @@ function renderServiceScopeControls(): void {
 
   const services = [
     {
-      assignmentId: FINE_PUTTY_ASSIGNMENT_ID,
+      primaryAssignmentId: FINE_PUTTY_ASSIGNMENT_ID,
+      scopeAssignmentIds: [
+        FINE_PUTTY_ASSIGNMENT_ID,
+        FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+      ],
       label: "Фина шпакловка",
+      kind: "fine-putty" as const,
+      operationDefinition: null,
     },
     {
-      assignmentId: "assignment-laminate-flooring-1",
+      primaryAssignmentId: "assignment-laminate-flooring-1",
+      scopeAssignmentIds: ["assignment-laminate-flooring-1"],
       label: "Ламинат",
+      kind: "single" as const,
+      operationDefinition: null,
     },
-    {
-      assignmentId: gypsumPuttyOperation.assignmentId,
-      label: gypsumPuttyOperation.label,
-    },
+    ...authorableWallOperations.map((definition) => ({
+      primaryAssignmentId: definition.assignmentId,
+      scopeAssignmentIds: [
+        definition.assignmentId,
+        definition.ceilingAssignmentId,
+      ],
+      label: definition.label,
+      kind: "operation" as const,
+      operationDefinition: definition,
+    })),
   ];
 
   for (const service of services) {
-    const assignment = project.serviceAssignments.find(
-      (item) => item.id === service.assignmentId,
+    const included = service.scopeAssignmentIds.some(
+      (assignmentId) =>
+        project.serviceAssignments.find((item) => item.id === assignmentId)
+          ?.included,
     );
-    const included = assignment?.included ?? false;
 
     const toggle = document.createElement("label");
     toggle.className = "service-scope-toggle";
     toggle.classList.toggle("selected", included);
-    toggle.dataset.serviceScopeId = service.assignmentId;
+    toggle.dataset.serviceScopeId = service.primaryAssignmentId;
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = included;
-    checkbox.dataset.serviceInclude = service.assignmentId;
+    checkbox.dataset.serviceInclude = service.primaryAssignmentId;
     checkbox.setAttribute(
       "aria-label",
       `Включи ${service.label} в офертата`,
@@ -960,41 +991,86 @@ function renderServiceScopeControls(): void {
       }
 
       let nextProject = getCurrentProjectState(projectHistory);
-      const currentAssignment = nextProject.serviceAssignments.find(
-        (item) => item.id === service.assignmentId,
-      );
 
       try {
-        if (
-          service.assignmentId === gypsumPuttyOperation.assignmentId &&
-          !currentAssignment &&
-          checkbox.checked
-        ) {
-          nextProject = addOperationAssignment(
-            nextProject,
-            gypsumPuttyOperation,
-          );
-        } else if (currentAssignment) {
+        if (service.kind === "operation" && service.operationDefinition) {
+          if (checkbox.checked) {
+            nextProject = addOperationScopeAssignments(
+              nextProject,
+              service.operationDefinition,
+            );
+          } else {
+            for (const assignmentId of service.scopeAssignmentIds) {
+              if (
+                nextProject.serviceAssignments.some(
+                  (item) => item.id === assignmentId,
+                )
+              ) {
+                nextProject = setServiceAssignmentIncluded(
+                  nextProject,
+                  assignmentId,
+                  false,
+                );
+              }
+            }
+          }
+        } else if (service.kind === "fine-putty") {
           nextProject = setServiceAssignmentIncluded(
             nextProject,
-            service.assignmentId,
+            FINE_PUTTY_ASSIGNMENT_ID,
             checkbox.checked,
           );
+
+          const ceilingAssignment =
+            findFinePuttyCeilingAssignment(nextProject);
+          if (checkbox.checked && !ceilingAssignment) {
+            nextProject = {
+              ...nextProject,
+              serviceAssignments: [
+                ...nextProject.serviceAssignments,
+                createFinePuttyCeilingAssignment(true),
+              ],
+            };
+          } else if (ceilingAssignment) {
+            nextProject = setServiceAssignmentIncluded(
+              nextProject,
+              FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+              checkbox.checked,
+            );
+          }
         } else {
-          renderServiceScopeControls();
-          return;
+          const assignment = nextProject.serviceAssignments.find(
+            (item) => item.id === service.primaryAssignmentId,
+          );
+          if (!assignment) {
+            renderServiceScopeControls();
+            return;
+          }
+          nextProject = setServiceAssignmentIncluded(
+            nextProject,
+            service.primaryAssignmentId,
+            checkbox.checked,
+          );
         }
 
         if (checkbox.checked) {
-          offerInteraction = selectOfferService(service.assignmentId);
-          if (service.assignmentId === gypsumPuttyOperation.assignmentId) {
-            expandedOperationId = gypsumPuttyOperation.assignmentId;
+          offerInteraction = selectOfferService(service.primaryAssignmentId);
+          if (service.operationDefinition) {
+            expandedOperationId = service.operationDefinition.assignmentId;
           }
         } else {
-          if (offerInteraction.selectedServiceId === service.assignmentId) {
+          if (
+            offerInteraction.selectedServiceId &&
+            service.scopeAssignmentIds.includes(
+              offerInteraction.selectedServiceId,
+            )
+          ) {
             offerInteraction = showWholeResult();
           }
-          if (service.assignmentId === gypsumPuttyOperation.assignmentId) {
+          if (
+            service.operationDefinition &&
+            expandedOperationId === service.operationDefinition.assignmentId
+          ) {
             expandedOperationId = null;
           }
         }
@@ -1017,8 +1093,12 @@ function renderWallTargets(): void {
   targetHost.replaceChildren();
 
   const finePutty = getFinePuttyAssignment(project);
-  mustGet<HTMLElement>("finePuttyTargetsSection").hidden = !finePutty.included;
-  if (!finePutty.included) return;
+  const ceilingAssignment = findFinePuttyCeilingAssignment(project);
+  const serviceIncluded =
+    finePutty.included || Boolean(ceilingAssignment?.included);
+
+  mustGet<HTMLElement>("finePuttyTargetsSection").hidden = !serviceIncluded;
+  if (!serviceIncluded) return;
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -1027,127 +1107,179 @@ function renderWallTargets(): void {
     "room-1.wall-right": "Дясна стена",
   };
 
-  wallIds.forEach((id) => {
-    const row = document.createElement("label");
-    row.className = "check-row";
+  const wallScopeRow = document.createElement("label");
+  wallScopeRow.className = "check-row";
+  const wallScopeCheckbox = document.createElement("input");
+  wallScopeCheckbox.type = "checkbox";
+  wallScopeCheckbox.checked = finePutty.included;
+  wallScopeCheckbox.dataset.serviceScopeTarget = "fine-putty-walls";
+  wallScopeCheckbox.addEventListener("change", () => {
+    if (!currentCapabilities().canAuthorProject) {
+      renderWallTargets();
+      return;
+    }
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = getFinePuttyAssignment(project).targetEntityIds.includes(id);
-    checkbox.addEventListener("change", () => {
-      if (!currentCapabilities().canAuthorProject) {
-        checkbox.checked = getFinePuttyAssignment(project).targetEntityIds.includes(id);
-        return;
-      }
-
-      const previousTargets =
-        getFinePuttyAssignment(project).targetEntityIds;
-      const targets = new Set(previousTargets);
-      if (checkbox.checked) targets.add(id);
-      else targets.delete(id);
-
-      const nextTargets = wallIds.filter((wallId) =>
-        targets.has(wallId),
+    try {
+      const nextProject = setServiceAssignmentIncluded(
+        getCurrentProjectState(projectHistory),
+        FINE_PUTTY_ASSIGNMENT_ID,
+        wallScopeCheckbox.checked,
       );
-      const changed =
-        nextTargets.length !== previousTargets.length ||
-        nextTargets.some(
-          (wallId, index) => wallId !== previousTargets[index],
-        );
-
-      offerInteraction = selectOfferService(FINE_PUTTY_ASSIGNMENT_ID);
-
-      if (changed) {
-        const nextProject = getCurrentProjectState(projectHistory);
-        getFinePuttyAssignment(nextProject).targetEntityIds = nextTargets;
-        commitCanonicalProject(nextProject);
-        return;
-      }
-
-      syncViewerFocus();
-      renderOffer();
-    });
-
-    const text = document.createElement("span");
-    text.textContent = labelById[id];
-
-    row.append(checkbox, text);
-    targetHost.append(row);
+      offerInteraction = wallScopeCheckbox.checked
+        ? selectOfferService(FINE_PUTTY_ASSIGNMENT_ID)
+        : findFinePuttyCeilingAssignment(nextProject)?.included
+          ? selectOfferService(FINE_PUTTY_CEILING_ASSIGNMENT_ID)
+          : showWholeResult();
+      commitCanonicalProject(nextProject);
+    } catch (error) {
+      setOperationStatus(operationErrorMessage(error), "error");
+      renderWallTargets();
+    }
   });
+  const wallScopeText = document.createElement("strong");
+  wallScopeText.textContent = "Стени";
+  wallScopeRow.append(wallScopeCheckbox, wallScopeText);
+  targetHost.append(wallScopeRow);
+
+  if (finePutty.included) {
+    wallIds.forEach((id) => {
+      const row = document.createElement("label");
+      row.className = "check-row";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked =
+        getFinePuttyAssignment(project).targetEntityIds.includes(id);
+      checkbox.addEventListener("change", () => {
+        if (!currentCapabilities().canAuthorProject) {
+          checkbox.checked =
+            getFinePuttyAssignment(project).targetEntityIds.includes(id);
+          return;
+        }
+
+        const previousTargets =
+          getFinePuttyAssignment(project).targetEntityIds;
+        const targets = new Set(previousTargets);
+        if (checkbox.checked) targets.add(id);
+        else targets.delete(id);
+
+        const nextTargets = wallIds.filter((wallId) =>
+          targets.has(wallId),
+        );
+        const changed =
+          nextTargets.length !== previousTargets.length ||
+          nextTargets.some(
+            (wallId, index) => wallId !== previousTargets[index],
+          );
+
+        if (nextTargets.length === 0) {
+          checkbox.checked = true;
+          setOperationStatus(
+            "Остави поне една стена или изключи обхвата „Стени“.",
+            "error",
+          );
+          return;
+        }
+
+        offerInteraction = selectOfferService(FINE_PUTTY_ASSIGNMENT_ID);
+
+        if (changed) {
+          const nextProject = getCurrentProjectState(projectHistory);
+          getFinePuttyAssignment(nextProject).targetEntityIds = nextTargets;
+          setOperationStatus("");
+          commitCanonicalProject(nextProject);
+          return;
+        }
+
+        syncViewerFocus();
+        renderOffer();
+      });
+
+      const text = document.createElement("span");
+      text.textContent = labelById[id];
+
+      row.append(checkbox, text);
+      targetHost.append(row);
+    });
+  }
+
+  const ceilingRow = document.createElement("label");
+  ceilingRow.className = "check-row";
+  const ceilingCheckbox = document.createElement("input");
+  ceilingCheckbox.type = "checkbox";
+  ceilingCheckbox.checked = Boolean(ceilingAssignment?.included);
+  ceilingCheckbox.dataset.serviceScopeTarget = "fine-putty-ceiling";
+  ceilingCheckbox.addEventListener("change", () => {
+    if (!currentCapabilities().canAuthorProject) {
+      renderWallTargets();
+      return;
+    }
+
+    let nextProject = getCurrentProjectState(projectHistory);
+    const currentCeiling = findFinePuttyCeilingAssignment(nextProject);
+
+    if (ceilingCheckbox.checked && !currentCeiling) {
+      nextProject = {
+        ...nextProject,
+        serviceAssignments: [
+          ...nextProject.serviceAssignments,
+          createFinePuttyCeilingAssignment(true),
+        ],
+      };
+    } else if (currentCeiling) {
+      nextProject = setServiceAssignmentIncluded(
+        nextProject,
+        FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+        ceilingCheckbox.checked,
+      );
+    }
+
+    offerInteraction = ceilingCheckbox.checked
+      ? selectOfferService(FINE_PUTTY_CEILING_ASSIGNMENT_ID)
+      : getFinePuttyAssignment(nextProject).included
+        ? selectOfferService(FINE_PUTTY_ASSIGNMENT_ID)
+        : showWholeResult();
+    setOperationStatus("");
+    commitCanonicalProject(nextProject);
+  });
+  const ceilingText = document.createElement("strong");
+  ceilingText.textContent = "Таван";
+  ceilingRow.append(ceilingCheckbox, ceilingText);
+  targetHost.append(ceilingRow);
 }
 
 function renderOperationAuthoring(): void {
   const host = mustGet("operationAuthoring");
   host.replaceChildren();
 
-  const assignment = findOperationAssignment(project, gypsumPuttyOperation);
-  const settingsSection = mustGet<HTMLElement>("operationSettingsSection");
+  const activeOperations = authorableWallOperations
+    .map((definition) => ({
+      definition,
+      wallAssignment: findOperationAssignment(project, definition),
+      ceilingAssignment: findOperationCeilingAssignment(project, definition),
+    }))
+    .filter(
+      (item) =>
+        item.wallAssignment?.included || item.ceilingAssignment?.included,
+    );
 
-  if (!assignment || !assignment.included) {
+  const settingsSection = mustGet<HTMLElement>("operationSettingsSection");
+  if (activeOperations.length === 0) {
     expandedOperationId = null;
     settingsSection.hidden = true;
     return;
   }
 
-  settingsSection.hidden = false;
-
-  const card = document.createElement("div");
-  card.className = "operation-card";
-
-  const summaryButton = document.createElement("button");
-  summaryButton.id = "gypsumPuttySummaryButton";
-  summaryButton.type = "button";
-  summaryButton.className = "operation-summary";
-
-  const expanded =
-    expandedOperationId === gypsumPuttyOperation.assignmentId;
-  summaryButton.setAttribute("aria-expanded", String(expanded));
-
-  const summaryText = document.createElement("span");
-  summaryText.className = "operation-summary-text";
-
-  const title = document.createElement("strong");
-  title.textContent = assignment.label;
-
-  const summaryMeta = document.createElement("span");
-  summaryMeta.className = "operation-summary-meta";
-  const wallCount = assignment.targetEntityIds.filter((id) =>
-    wallIds.includes(id as WallId),
-  ).length;
-  summaryMeta.textContent = assignment.included
-    ? `${wallCount} ${wallCount === 1 ? "стена" : "стени"}`
-    : "Изключена";
-
-  summaryText.append(title, summaryMeta);
-
-  const chevron = document.createElement("span");
-  chevron.className = "operation-chevron";
-  chevron.setAttribute("aria-hidden", "true");
-  chevron.textContent = expanded ? "▴" : "▾";
-
-  summaryButton.append(summaryText, chevron);
-  summaryButton.addEventListener("click", () => {
-    expandedOperationId = expanded ? null : gypsumPuttyOperation.assignmentId;
-    offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
-    renderOperationAuthoring();
-    syncViewerFocus();
-    renderOffer();
-  });
-
-  card.append(summaryButton);
-
-  if (!expanded) {
-    host.append(card);
-    return;
+  if (
+    expandedOperationId &&
+    !activeOperations.some(
+      (item) => item.definition.assignmentId === expandedOperationId,
+    )
+  ) {
+    expandedOperationId = null;
   }
 
-  const editor = document.createElement("div");
-  editor.className = "operation-editor";
-
-  const targetTitle = document.createElement("div");
-  targetTitle.className = "operation-target-title";
-  targetTitle.textContent = "Избери стени";
-  editor.append(targetTitle);
+  settingsSection.hidden = false;
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -1156,37 +1288,109 @@ function renderOperationAuthoring(): void {
     "room-1.wall-right": "Дясна стена",
   };
 
-  for (const wallId of wallIds) {
-    const row = document.createElement("label");
-    row.className = "check-row";
+  for (const {
+    definition,
+    wallAssignment,
+    ceilingAssignment,
+  } of activeOperations) {
+    const displayAssignment = wallAssignment ?? ceilingAssignment;
+    if (!displayAssignment) continue;
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.dataset.operationTarget = wallId;
-    checkbox.checked = assignment.targetEntityIds.includes(wallId);
-    checkbox.addEventListener("change", () => {
+    const card = document.createElement("div");
+    card.className = "operation-card";
+
+    const summaryButton = document.createElement("button");
+    summaryButton.type = "button";
+    summaryButton.className = "operation-summary";
+    summaryButton.dataset.operationSummary = definition.assignmentId;
+    if (definition.assignmentId === gypsumPuttyOperation.assignmentId) {
+      summaryButton.id = "gypsumPuttySummaryButton";
+    } else {
+      summaryButton.id = `operationSummary-${definition.serviceCode}`;
+    }
+
+    const expanded = expandedOperationId === definition.assignmentId;
+    summaryButton.setAttribute("aria-expanded", String(expanded));
+
+    const summaryText = document.createElement("span");
+    summaryText.className = "operation-summary-text";
+
+    const title = document.createElement("strong");
+    title.textContent = displayAssignment.label;
+
+    const summaryMeta = document.createElement("span");
+    summaryMeta.className = "operation-summary-meta";
+    const wallCount = wallAssignment?.included
+      ? wallAssignment.targetEntityIds.filter((id) =>
+          wallIds.includes(id as WallId),
+        ).length
+      : 0;
+    const hasCeiling = Boolean(ceilingAssignment?.included);
+    summaryMeta.textContent =
+      wallCount > 0 && hasCeiling
+        ? `${wallCount} ${wallCount === 1 ? "стена" : "стени"} + таван`
+        : wallCount > 0
+          ? `${wallCount} ${wallCount === 1 ? "стена" : "стени"}`
+          : "Таван";
+
+    summaryText.append(title, summaryMeta);
+
+    const chevron = document.createElement("span");
+    chevron.className = "operation-chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.textContent = expanded ? "▴" : "▾";
+
+    summaryButton.append(summaryText, chevron);
+    summaryButton.addEventListener("click", () => {
+      expandedOperationId = expanded ? null : definition.assignmentId;
+      offerInteraction = wallAssignment?.included
+        ? selectOfferService(definition.assignmentId)
+        : selectOfferService(definition.ceilingAssignmentId);
+      renderOperationAuthoring();
+      syncViewerFocus();
+      renderOffer();
+    });
+
+    card.append(summaryButton);
+
+    if (!expanded) {
+      host.append(card);
+      continue;
+    }
+
+    const editor = document.createElement("div");
+    editor.className = "operation-editor";
+
+    const wallScopeRow = document.createElement("label");
+    wallScopeRow.className = "check-row";
+    const wallScopeCheckbox = document.createElement("input");
+    wallScopeCheckbox.type = "checkbox";
+    wallScopeCheckbox.checked = Boolean(wallAssignment?.included);
+    wallScopeCheckbox.dataset.operationScope = "walls";
+    wallScopeCheckbox.dataset.operationId = definition.assignmentId;
+    wallScopeCheckbox.addEventListener("change", () => {
       if (!currentCapabilities().canAuthorProject) {
         renderOperationAuthoring();
         return;
       }
 
-      const currentAssignment = findOperationAssignment(
-        project,
-        gypsumPuttyOperation,
-      );
-      if (!currentAssignment) return;
-
-      const nextTargets = new Set(currentAssignment.targetEntityIds);
-      if (checkbox.checked) nextTargets.add(wallId);
-      else nextTargets.delete(wallId);
-
+      let nextProject = getCurrentProjectState(projectHistory);
       try {
-        const nextProject = setOperationTargets(
-          getCurrentProjectState(projectHistory),
-          gypsumPuttyOperation,
-          wallIds.filter((id) => nextTargets.has(id)),
-        );
-        offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
+        const currentWall = findOperationAssignment(nextProject, definition);
+        if (!currentWall && wallScopeCheckbox.checked) {
+          nextProject = addOperationAssignment(nextProject, definition);
+        } else if (currentWall) {
+          nextProject = setServiceAssignmentIncluded(
+            nextProject,
+            definition.assignmentId,
+            wallScopeCheckbox.checked,
+          );
+        }
+        offerInteraction = wallScopeCheckbox.checked
+          ? selectOfferService(definition.assignmentId)
+          : findOperationCeilingAssignment(nextProject, definition)?.included
+            ? selectOfferService(definition.ceilingAssignmentId)
+            : showWholeResult();
         setOperationStatus("");
         commitCanonicalProject(nextProject);
       } catch (error) {
@@ -1194,24 +1398,120 @@ function renderOperationAuthoring(): void {
         renderOperationAuthoring();
       }
     });
+    const wallScopeText = document.createElement("strong");
+    wallScopeText.textContent = "Стени";
+    wallScopeRow.append(wallScopeCheckbox, wallScopeText);
+    editor.append(wallScopeRow);
 
-    const text = document.createElement("span");
-    text.textContent = labelById[wallId];
-    row.append(checkbox, text);
-    editor.append(row);
+    if (wallAssignment?.included) {
+      for (const wallId of wallIds) {
+        const row = document.createElement("label");
+        row.className = "check-row";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.operationTarget = wallId;
+        checkbox.dataset.operationId = definition.assignmentId;
+        checkbox.checked = wallAssignment.targetEntityIds.includes(wallId);
+        checkbox.addEventListener("change", () => {
+          if (!currentCapabilities().canAuthorProject) {
+            renderOperationAuthoring();
+            return;
+          }
+
+          const currentAssignment = findOperationAssignment(
+            project,
+            definition,
+          );
+          if (!currentAssignment) return;
+
+          const nextTargets = new Set(currentAssignment.targetEntityIds);
+          if (checkbox.checked) nextTargets.add(wallId);
+          else nextTargets.delete(wallId);
+
+          try {
+            const nextProject = setOperationTargets(
+              getCurrentProjectState(projectHistory),
+              definition,
+              wallIds.filter((id) => nextTargets.has(id)),
+            );
+            offerInteraction = selectOfferService(definition.assignmentId);
+            setOperationStatus("");
+            commitCanonicalProject(nextProject);
+          } catch (error) {
+            setOperationStatus(operationErrorMessage(error), "error");
+            renderOperationAuthoring();
+          }
+        });
+
+        const text = document.createElement("span");
+        text.textContent = labelById[wallId];
+        row.append(checkbox, text);
+        editor.append(row);
+      }
+    }
+
+    const ceilingScopeRow = document.createElement("label");
+    ceilingScopeRow.className = "check-row";
+    const ceilingScopeCheckbox = document.createElement("input");
+    ceilingScopeCheckbox.type = "checkbox";
+    ceilingScopeCheckbox.checked = Boolean(ceilingAssignment?.included);
+    ceilingScopeCheckbox.dataset.operationScope = "ceiling";
+    ceilingScopeCheckbox.dataset.operationId = definition.assignmentId;
+    ceilingScopeCheckbox.addEventListener("change", () => {
+      if (!currentCapabilities().canAuthorProject) {
+        renderOperationAuthoring();
+        return;
+      }
+
+      let nextProject = getCurrentProjectState(projectHistory);
+      try {
+        if (ceilingScopeCheckbox.checked) {
+          nextProject = addOperationCeilingAssignment(
+            nextProject,
+            definition,
+            true,
+          );
+        } else if (
+          findOperationCeilingAssignment(nextProject, definition)
+        ) {
+          nextProject = setServiceAssignmentIncluded(
+            nextProject,
+            definition.ceilingAssignmentId,
+            false,
+          );
+        }
+
+        offerInteraction = ceilingScopeCheckbox.checked
+          ? selectOfferService(definition.ceilingAssignmentId)
+          : findOperationAssignment(nextProject, definition)?.included
+            ? selectOfferService(definition.assignmentId)
+            : showWholeResult();
+        setOperationStatus("");
+        commitCanonicalProject(nextProject);
+      } catch (error) {
+        setOperationStatus(operationErrorMessage(error), "error");
+        renderOperationAuthoring();
+      }
+    });
+    const ceilingScopeText = document.createElement("strong");
+    ceilingScopeText.textContent = "Таван";
+    ceilingScopeRow.append(ceilingScopeCheckbox, ceilingScopeText);
+    editor.append(ceilingScopeRow);
+
+    const footer = document.createElement("div");
+    footer.className = "operation-editor-footer";
+
+    const meta = document.createElement("span");
+    meta.className = "operation-meta";
+    meta.textContent =
+      "Стени: m² нето след отвори · Таван: отделни m² и цена";
+
+    footer.append(meta);
+    editor.append(footer);
+    card.append(editor);
+    host.append(card);
   }
-
-  const footer = document.createElement("div");
-  footer.className = "operation-editor-footer";
-
-  const meta = document.createElement("span");
-  meta.className = "operation-meta";
-  meta.textContent = "m² · нето след отвори";
-
-  footer.append(meta);
-  editor.append(footer);
-  card.append(editor);
-  host.append(card);
 }
 
 function setOperationStatus(
@@ -1285,7 +1585,22 @@ function renderOffer(
     }
 
     const title = document.createElement("strong");
-    title.append(document.createTextNode(`${line.label} `));
+    const lineAssignment = sourceProject.serviceAssignments.find(
+      (assignment) => assignment.id === line.assignmentId,
+    );
+    const scopeLabel =
+      lineAssignment?.quantityRuleId === "ceiling-area-v1"
+        ? "Таван"
+        : lineAssignment?.quantityRuleId === "wall-net-area-openings-v1"
+          ? "Стени"
+          : lineAssignment?.quantityRuleId === "floor-area-v1"
+            ? "Под"
+            : null;
+    title.append(
+      document.createTextNode(
+        `${line.label}${scopeLabel ? ` · ${scopeLabel}` : ""} `,
+      ),
+    );
     const infoGlyph = document.createElement("span");
     infoGlyph.className = "info-glyph";
     infoGlyph.setAttribute("aria-label", "Информация");
@@ -1360,7 +1675,19 @@ function renderOffer(
       ? "Цена не е въведена"
       : `${formatMoney(detailLine.totalEur)} €`;
 
-  mustGet("infoTitle").textContent = detailLine.label;
+  const detailAssignment = sourceProject.serviceAssignments.find(
+    (assignment) => assignment.id === detailLine.assignmentId,
+  );
+  const detailScopeLabel =
+    detailAssignment?.quantityRuleId === "ceiling-area-v1"
+      ? "Таван"
+      : detailAssignment?.quantityRuleId === "wall-net-area-openings-v1"
+        ? "Стени"
+        : detailAssignment?.quantityRuleId === "floor-area-v1"
+          ? "Под"
+          : null;
+  mustGet("infoTitle").textContent =
+    `${detailLine.label}${detailScopeLabel ? ` · ${detailScopeLabel}` : ""}`;
   mustGet("infoWhat").textContent = detailLine.clientInfo.what;
   mustGet("infoWhy").textContent = detailLine.clientInfo.why;
   mustGet("infoResult").textContent = detailLine.clientInfo.result;
