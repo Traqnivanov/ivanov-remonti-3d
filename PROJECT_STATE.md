@@ -259,40 +259,32 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER FINAL LIVE REVIEW — Desktop D1 (D1.1–D1.5).**
+**DEPENDENCY GATE — P3.5 before any Desktop D1 merge.**
 
-D1.4b:
-- Owner live-reviewed and accepted the selected-surface-leading context.
+Owner decision:
+- final Desktop D1 (D1.1–D1.5) is **APPROVED**;
+- Desktop D1 remains **NOT MERGED**.
 
-D1.5 final acceptance result:
-- real room with door + window;
-- opening-aware wall quantity **43.59 m²**;
-- ceiling quantity **20.16 m²**;
-- Fine Putty + Paint with independent wall/ceiling lines;
-- independent EUR prices;
-- complete dynamic total **730.67 €**;
-- Save → v2;
-- switch to second project;
-- reopen saved project;
-- all quantities/prices/total restored;
-- Preview as Client preserves the same saved offer read-only;
-- return to Work preserves saved state;
-- left/right desktop panels scroll independently without moving 3D/page;
-- Work and long desktop Client Preview scrollbars are integrated with the dark UI;
-- Mobile Work / Owner Preview / direct Client regressions pass without redesign.
-
-Verification:
-- branch: `feat/d1-5-desktop-acceptance`;
-- DRAFT PR #31, base `feat/d1-4b-selected-surface-context`;
+Final approved D1 evidence:
 - final head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
 - CI `37832808003`: **SUCCESS**;
 - 17/17 test files, **169/169 tests PASS**;
-- typecheck + build + full browser smoke: **PASS**;
-- final visuals inspected:
-  - `d15-desktop-acceptance.png`;
-  - `d15-client-preview.png`;
-- Pages deploy `37833097638`: **SUCCESS** from exact final head;
-- live preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+- full Desktop acceptance + Mobile/Client regression: **PASS**;
+- Pages deploy `37833097638`: **SUCCESS** from exact final head.
 
-**D1.1–D1.5 are technically complete. NEXT: Owner final live review. Do not merge PR #31 or the stacked dependency chain without explicit Owner approval.**
+Stack audit:
+- #22 P3.5 → main: clean;
+- #24 → #22: clean;
+- #25 → #24: clean;
+- #27 → #25: clean;
+- #28 → #27: clean;
+- #29 → #28: clean;
+- #30 → #29: clean;
+- #31 → #30: clean.
+
+Important:
+- Desktop D1 approval does **not** implicitly approve P3.5 PR #22;
+- no D1/P3.5 merge is authorized yet.
+
+**NEXT: resolve the P3.5 dependency (#21 / PR #22) as a separate Owner product decision. After that, prepare one safe integration path to `main`, rerun full acceptance, and STOP for explicit merge approval.**
 
