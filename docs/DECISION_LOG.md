@@ -748,3 +748,20 @@ Approved bounded sequence:
 
 Execution rule:
 **only one D1 step may be active at a time.** Completing or approving D1.1 does not authorize D1.2 automatically.
+
+## 08.10.2026 — Owner approves P3.5a+b as Desktop D1 dependency
+
+**Owner decision:** the verified P3.5a+b wall/ceiling finishing foundation is approved as the dependency under the already approved Desktop D1.
+
+Approved behavior:
+- Fine Putty / Gypsum Putty / Sanding / Primer / Paint remain separate real operations;
+- applicable finishing services default to walls + ceiling;
+- wall and ceiling remain separate quantity/price scopes with independent Work-entered EUR unit prices;
+- wall quantity uses opening-aware net m²; ceiling quantity uses room width × length;
+- ceiling may be excluded independently;
+- both scopes keep the same real service identity rather than fake duplicate catalog services;
+- Client remains read-only;
+- plaster/base-putty/broader catalog remain deferred.
+
+This approval does **not** authorize merge. The next gate is one reconciled integration candidate against current `main`, full final acceptance, visual verification, then an explicit Owner merge command.
+
