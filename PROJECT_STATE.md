@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.4 IMPLEMENTED / TECHNICALLY + VISUALLY VERIFIED; awaiting Owner live-preview review. D1.5 remains inactive.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.4 verified; live Work auth stale-session blocker fixed/deployed in PR #29; awaiting Owner real-browser recheck. D1.5 remains inactive.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,34 +259,28 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER LIVE-PREVIEW REVIEW — D1.4 Unique 3D → Work context link.**
+**OWNER REAL-BROWSER RECHECK — Work login after stale-session recovery fix.**
 
-Verified D1.4 result:
-- real 3D surface selection now routes into Work context instead of only highlighting;
-- one matching active service → exact service context automatically;
-- multiple matching active services → explicit **3D избор** list; no silent winner;
-- choosing a service keeps the surface selected and isolates that exact service/scope;
-- wall context does not expose unrelated ceiling scope; ceiling context does not expose unrelated wall scope;
-- fixed-scope service context routes to **Цена / Info**;
-- real door/window openings have selectable 3D hit areas and route to the exact left opening editor;
-- model selection itself does **not** mutate scope, quantity or EUR price; only actual Work edits do.
+Blocker:
+- Owner live browser showed **WORK НЕДОСТЪПЕН / Не може да се стартира входът**;
+- clean browser still reached normal **Вход в Work**;
+- root cause: stale/invalid locally stored Supabase auth session was treated as fatal.
+
+Fix:
+- recover session-read / identity-verification failures;
+- clear only the current browser auth session with local-scope sign-out;
+- return to normal Work login;
+- real Work authorization/database lookup failures remain fatal and visible.
 
 Verification:
-- branch: `feat/d1-4-context-link`;
-- stacked DRAFT PR: #28, base `feat/d1-3-right-smart-offer-panel`;
-- final head: `c14291d57ac1513a00f9a4ddc76b255d9445075a`;
-- CI `37820642215`: **SUCCESS**;
-- 17/17 test files, **163/163 tests: PASS**;
-- typecheck + build: **PASS**;
-- desktop/mobile/Client browser smoke: **PASS**;
-- D1.4 QA uses real canvas clicks;
-- exact final-head visuals inspected:
-  - `d14-surface-context.png`;
-  - `d14-multi-service-context.png`;
-  - `d14-opening-context.png`;
-- active context contrast was corrected and reverified;
-- Pages deploy `37820817701`: **SUCCESS** from exact final head;
-- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+- fix branch: `fix/work-auth-session-recovery`;
+- DRAFT PR #29, base `feat/d1-4-context-link`;
+- head: `e403515cdff2bf33a0d09fb07aa7037a47fa671b`;
+- CI `37822478029`: **SUCCESS**;
+- 17/17 test files, **166/166 tests PASS**;
+- typecheck + build + desktop/mobile/Client browser smoke: **PASS**;
+- Pages deploy `37822635332`: **SUCCESS** from exact head;
+- live preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
 
-**NEXT: Owner reviews D1.4 on the live preview. Do not begin D1.5 and do not merge PR #28 without a separate Owner decision.**
+**NEXT: Owner reopens the live URL in the same browser that showed the failure. D1.5 remains STOPPED until this passes.**
 
