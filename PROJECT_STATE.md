@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.5 ACTIVE: final Desktop acceptance QA only. D1.4b accepted by Owner from live screenshot.**
+**Current Work Issue:** #21 — `[CURRENT WORK] P3.5a+b — Owner product decision gate` — **Desktop D1 is Owner-approved / not merged; P3.5a+b awaits its own explicit Owner product decision.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -13,19 +13,22 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
 - Stable branch: `main`
-- P3.5 dependency branch: **`feat/p3-5a-wall-finishing`**
-- P3.5 dependency PR: **#22 — DRAFT / verified but not merged; remains a separate Owner merge gate**
-- Active D1 branch: **`feat/d1-1-desktop-workbench`**
-- Active D1 PR: **#24 — `D1.1 — Desktop Workbench skeleton` — DRAFT / stacked on PR #22**
-- Active Current Work Issue: **#23 — D1 Desktop Workbench UX**
-- P3.3: **MERGED / VERIFIED / CLOSED**
-- P3.4: **MERGED / VERIFIED / CLOSED**
-- Latest product-code merge: PR #20
+- Latest merged product checkpoint: **P3.4 / PR #20**
 - PR #20 merge commit: `126e9877c425329867cf9963497467091008e1d2`
-- Final verified P3.4b head before merge: `745fa385947315721102c82ce459651182b28b71`
-- Final P3.4b CI: #351 / `36333699252` — **SUCCESS**
-- P3.5a verified head: `e3aed2d13ed8cca18d31ac74623fb1a3b7ad73fc`
-- P3.5a final CI: #357 / `36340308776` — **SUCCESS**
+- P3.5 dependency:
+  - branch: `feat/p3-5a-wall-finishing`
+  - PR #22: **DRAFT / VERIFIED / NOT MERGED**
+  - actual scope: **P3.5a+b — Wall/Ceiling finishing foundation**
+  - verified head: `cab113478d250c4e74221a6367f883cb5f543881`
+  - CI `36343470472`: **SUCCESS**, 161/161 tests PASS
+- Desktop D1:
+  - D1.1–D1.5: **OWNER-APPROVED / NOT MERGED**
+  - final stacked head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`
+  - final CI `37832808003`: **SUCCESS**, 169/169 tests PASS
+  - final PR: #31, stacked through PRs #24/#25/#27/#28/#29/#30
+- Current Work Issue: **#21 — P3.5a+b Owner product decision gate**
+- D1 Issue #23: **OWNER-APPROVED / NOT MERGED**
+- No P3.5/D1 merge is authorized yet.
 
 Every new chat must verify actual branch / HEAD / PR / Issue state before changing anything.
 
@@ -195,7 +198,7 @@ Do not use this as permission to restart unrelated accepted work.
 
 ## 6. Known deferred / pre-release items
 
-These do not block P3.5 planning, but must not be forgotten:
+These do not block the current P3.5 decision gate, but must not be forgotten:
 
 1. Password recovery redirect still needs production-safe handling before user-facing recovery.
 2. Supabase leaked-password protection warning requires later review before production.
