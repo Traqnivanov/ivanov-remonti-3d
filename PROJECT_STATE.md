@@ -213,42 +213,43 @@ These do not block the current P3.5 decision gate, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — approved P3.5 + Desktop D1 integration acceptance
+## 7. CURRENT WORK — final integration merge gate
 
 Current Work Issue:
-**#21 — `[CURRENT WORK] P3.5 + D1 — integration acceptance gate`**
+**#21 — `[CURRENT WORK] P3.5 + D1 — final merge gate`**
 
-Owner decision on 2026-10-08:
-- **P3.5a+b is OWNER-APPROVED / NOT MERGED**;
-- Desktop D1.1–D1.5 remains **OWNER-APPROVED / NOT MERGED**;
-- this approval does **not** authorize merge.
+Owner-approved scope:
+- P3.5a+b — **OWNER-APPROVED / NOT MERGED**;
+- Desktop D1.1–D1.5 — **OWNER-APPROVED / NOT MERGED**.
 
-Approved P3.5a+b truth:
-- Fine Putty / Gypsum Putty / Sanding / Primer / Paint remain distinct real operations;
-- applicable finishing service defaults to **walls + ceiling**;
-- wall quantity = exact selected-wall net m² with door/window deductions;
-- ceiling quantity = room width × length;
-- ceiling can be excluded independently;
-- wall and ceiling remain separate offer scopes/lines with independent Work-entered EUR unit prices;
-- both scopes keep the same real service identity / serviceCode;
-- dynamic per-offer EUR pricing remains canonical;
+Single current integration candidate:
+- PR #33 — **DRAFT / NOT MERGED**;
+- branch: `review/p35-d1-final-acceptance`;
+- latest exact head / CI / visual / deploy evidence is recorded in Current Work Issue #21;
+- candidate product code preserves the accepted D1 behavior;
+- reconciliation preserves current main documentation/preview workflow truth and introduces no new product behavior.
+
+Final acceptance already established on the candidate before this documentation-only continuity sync:
+- typecheck PASS;
+- 17/17 test files / 169/169 tests PASS;
+- build PASS;
+- full browser acceptance PASS;
+- Desktop Work / Owner Preview / direct Client / mobile Work-Preview-Client visual review PASS;
+- exact Pages deployment PASS.
+
+Because this file and the handoff are now being synchronized on `main`, PR #33 must include this documentation-only main movement and rerun the final CI/deploy check before merge authorization can be requested. No product behavior may change during that refresh.
+
+Approved P3.5a+b truth remains:
+- Fine Putty / Gypsum Putty / Sanding / Primer / Paint are distinct real operations;
+- applicable finishing service defaults to walls + ceiling;
+- walls use opening-aware net m²;
+- ceiling uses room width × length;
+- ceiling is independently removable;
+- wall/ceiling are separate price scopes with Work-entered EUR prices;
+- both scopes keep one real service identity;
 - missing price ≠ zero;
 - Client remains read-only;
-- ordinary plaster / reinforced-base putty / drywall-joint expansion / decorative plaster / broad catalog remain deferred.
-
-Verified pre-integration evidence:
-- P3.5 PR #22 head: `cab113478d250c4e74221a6367f883cb5f543881`;
-- P3.5 CI `36343470472`: SUCCESS, 161/161 tests PASS;
-- Desktop D1 final head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
-- Desktop D1 CI `37832808003`: SUCCESS, 169/169 tests PASS.
-
-Important Git fact:
-- current `main` has advanced since the original P3.5 base through documentation/continuity work;
-- the old stacked PR chain must **not** be merged blindly;
-- the active task is to prepare one reconciled integration candidate with no product-behavior changes.
-
-Desktop D1 Issue:
-**#23 — `[OWNER-APPROVED / NOT MERGED] D1 — Desktop Workbench UX`**
+- plaster/base-putty/broad catalog remain deferred.
 
 No merge is authorized.
 
@@ -256,20 +257,20 @@ No merge is authorized.
 
 ## 8. NEXT EXACT STEP
 
-**SAFE INTEGRATION CANDIDATE + FINAL ACCEPTANCE.**
+**REFRESH PR #33 WITH THIS DOCUMENTATION-ONLY MAIN SYNC → RERUN FINAL ACCEPTANCE → OWNER MERGE GATE.**
 
-Required sequence:
-1. create one integration candidate containing approved P3.5a+b + approved Desktop D1 reconciled with current `main`;
-2. preserve current main documentation/continuity truth and introduce no new product behavior;
-3. run the full final technical acceptance against the candidate;
-4. visually verify affected Desktop Work, Work → Client Preview, direct Client and mobile regression states;
-5. record exact commit / CI / visual evidence;
-6. **STOP and ask Owner for an explicit merge command.**
+Required:
+1. reconcile PR #33 with the latest `main` documentation-only commits;
+2. prove product files remain unchanged from the accepted integration behavior;
+3. rerun final CI and exact Pages deployment;
+4. verify no visual/product regression from the doc-only refresh;
+5. record final head/evidence in Issue #21;
+6. **STOP for explicit Owner merge command.**
 
 Do not:
-- merge PR #22 or the D1 stacked PRs directly;
+- change P3.5/D1 product behavior;
+- merge old stacked PRs directly;
 - start Mobile Work redesign;
-- start P3.6 or another product phase;
-- change the approved P3.5/D1 behavior during reconciliation.
+- start P3.6 or another phase.
 
-**NEXT: build and verify the single integration candidate. No merge is authorized yet.**
+**No merge without an explicit Owner command for PR #33.**
