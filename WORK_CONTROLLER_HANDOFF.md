@@ -311,92 +311,64 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-**CURRENT WORK:** Issue #21 — `[CURRENT WORK] P3.5 + D1 — integration acceptance gate`.
+**CURRENT WORK:** Issue #21 — `[CURRENT WORK] P3.5 + D1 — final merge gate`.
 
-Owner decision on 2026-10-08:
-- P3.5a+b is **OWNER-APPROVED / NOT MERGED**;
-- Desktop D1.1–D1.5 is **OWNER-APPROVED / NOT MERGED**;
-- approval does **not** authorize merge.
+Owner-approved / not merged:
+- P3.5a+b;
+- Desktop D1.1–D1.5.
 
-Desktop D1:
-- Issue #23 = `[OWNER-APPROVED / NOT MERGED] D1 — Desktop Workbench UX`;
-- final approved D1 head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
-- final CI `37832808003`: SUCCESS;
-- 17/17 test files / 169/169 tests PASS;
-- final live Desktop result was reviewed by Owner and accepted.
+Single current integration candidate:
+- PR #33 — DRAFT / NOT MERGED;
+- branch `review/p35-d1-final-acceptance`;
+- exact latest head / CI / visual / deploy evidence lives in Issue #21;
+- product behavior must remain identical to the accepted P3.5 + D1 integration.
 
-P3.5a+b:
-- PR #22 remains DRAFT / NOT MERGED;
-- head: `cab113478d250c4e74221a6367f883cb5f543881`;
-- CI `36343470472`: SUCCESS;
-- 17/17 test files / 161/161 tests PASS;
-- Fine Putty / Gypsum Putty / Sanding / Primer / Paint remain distinct;
-- applicable finishing services default to walls + ceiling;
-- ceiling can be excluded independently;
-- wall quantity uses opening-aware net m²;
-- ceiling quantity uses room width × length;
-- wall and ceiling keep separate Work-entered EUR prices while retaining one real service identity;
-- Client remains read-only;
-- plaster/base-putty/broad catalog remain deferred.
-
-Current Git condition:
-- `main` has advanced beyond the old P3.5 base through documentation/continuity updates;
-- the old stacked PR chain must not be merged blindly;
-- one reconciled integration candidate must be prepared against current `main`.
+The candidate already passed full technical and visual acceptance before this final documentation-only continuity sync. The main branch is now receiving only the current-state/handoff update, so PR #33 must refresh from latest main and rerun the final checks once more.
 
 No merge is authorized.
 
 ---
 
-## 10. CURRENT NEXT — SAFE INTEGRATION CANDIDATE + FINAL ACCEPTANCE
+## 10. CURRENT NEXT — REFRESH PR #33, RE-RUN FINAL ACCEPTANCE, STOP
 
-The next chat must **not** restart P3.5 or Desktop D1 and must **not** ask Owner to retell project history.
+Do not restart P3.5 or Desktop D1.
 
-Required sequence:
-1. prepare one integration candidate containing approved P3.5a+b + approved Desktop D1;
-2. reconcile it with current `main` without changing approved product behavior;
-3. run full final acceptance;
-4. visually verify affected Desktop Work, Work → Client Preview, direct Client and mobile regression states;
-5. record exact commit / CI / visual evidence;
+Required:
+1. reconcile PR #33 with the latest documentation-only `main`;
+2. prove no product file changed because of that refresh;
+3. rerun CI + exact Pages deployment;
+4. verify the candidate remains visually/product-wise unchanged;
+5. record the final head and evidence in Issue #21;
 6. **STOP for explicit Owner merge command**.
 
-Do not:
-- merge the old stacked PRs directly;
-- start Mobile Work redesign;
-- start P3.6 or another product phase;
-- reinterpret approved P3.5/D1 behavior during reconciliation.
+Do not start Mobile Work redesign or P3.6.
 
 ---
 
 ## 11. STACK / MERGE STATUS
 
-Historical open dependency chain:
-- PR #22 — P3.5a+b → `main`;
-- PR #24 — D1.1 → #22 branch;
-- PR #25 — D1.2 → #24 branch;
-- PR #27 — canonical D1.3 → #25 branch;
-- PR #28 — D1.4 → #27 branch;
-- PR #29 — Work auth stale-session recovery → #28 branch;
-- PR #30 — D1.4b selected-surface refinement → #29 branch;
-- PR #31 — D1.5 acceptance → #30 branch.
+Historical stacked PR chain remains evidence only:
+- #22 P3.5a+b;
+- #24 D1.1;
+- #25 D1.2;
+- #27 canonical D1.3;
+- #28 D1.4;
+- #29 Work auth stale-session recovery;
+- #30 D1.4b;
+- #31 D1.5;
+- #26 old D1.3 = CLOSED / SUPERSEDED.
 
-Historical/superseded:
-- PR #26 = old D1.3, CLOSED / SUPERSEDED by PR #27.
-
-Current integration rule:
-- do not merge that chain one PR at a time;
-- current `main` and final D1 head have diverged since the original stack base;
-- prepare one reconciled integration candidate, verify it, then return to Owner.
+Current merge path:
+- **PR #33 only** after final refresh/acceptance;
+- do not merge the historical stack one-by-one.
 
 Owner authority:
-- Desktop D1 is approved;
-- P3.5a+b is approved;
-- **no merge permission has been given**;
-- only an explicit Owner merge command authorizes merge.
+- P3.5a+b approved;
+- Desktop D1 approved;
+- **merge permission not yet given**;
+- only an explicit Owner merge command for PR #33 authorizes merge.
 
-Mobile:
-- final Mobile Work redesign is deferred and is **not active**;
-- only the existing M0 readability baseline must remain regression-safe.
+Mobile Work redesign remains deferred.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
