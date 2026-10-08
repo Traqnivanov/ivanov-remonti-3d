@@ -1260,7 +1260,7 @@ async function runWorkSmoke() {
     );
     await assertEval(
       session,
-      '(() => { const exact = parseFloat(document.querySelector("#d14BreakdownQuantity").textContent.replace(",", ".")); return !document.querySelector("#d14ContextBreakdown").hidden && document.querySelector("#d14BreakdownQuantityLabel").textContent === "Нето" && Number.isFinite(exact) && exact > 0 && exact < 43.59 && document.querySelector("#quantityText").textContent.includes("43,59") && document.querySelector("#d14BreakdownPrice").textContent.includes("Не е въведена") && document.querySelector("#d14FullScopeDetails").open === false && document.querySelector("#d14FullScopeSummary").textContent.includes("Общ обхват"); })()',
+      '(() => { const exact = parseFloat(document.querySelector("#d14BreakdownQuantity").textContent.replace(",", ".")); return !document.querySelector("#d14ContextBreakdown").hidden && document.querySelector("#d14BreakdownQuantityLabel").textContent === "Нето" && Number.isFinite(exact) && exact > 0 && exact < 43.59 && document.querySelector("#quantityText").textContent.includes("43,59") && document.querySelector("#d14BreakdownPrice").textContent.includes("Без цена") && document.querySelector("#d14FullScopeDetails").open === false && document.querySelector("#d14FullScopeSummary").textContent.includes("Общ обхват"); })()',
       "D1.4b: selected wall is not the leading exact-position context while the full offer scope stays unchanged",
     );
     await saveScreenshot(session, "/tmp/d14-surface-context.png");
@@ -1300,7 +1300,7 @@ async function runWorkSmoke() {
     );
     await assertEval(
       session,
-      'document.querySelector("#d14BreakdownService").textContent.includes("Боядисване") && document.querySelector("#d14BreakdownPrice").textContent.includes("Не е въведена") && document.querySelector("#d14FullScopeDetails").open === false && document.querySelector("#d14FullScopeSummary").textContent.includes("4 стени + таван")',
+      'document.querySelector("#d14BreakdownService").textContent.includes("Боядисване") && document.querySelector("#d14BreakdownPrice").textContent.includes("Без цена") && document.querySelector("#d14FullScopeDetails").open === false && document.querySelector("#d14FullScopeSummary").textContent.includes("4 стени + таван")',
       "D1.4b: Paint exact-position card did not lead while full 4-wall+ceiling scope stayed secondary",
     );
     await saveScreenshot(session, "/tmp/d14-selected-surface-leading.png");
