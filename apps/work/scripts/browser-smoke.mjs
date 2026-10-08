@@ -1271,8 +1271,8 @@ async function runD15DesktopAcceptanceSmoke() {
     );
     await assertEval(
       session,
-      'getComputedStyle(document.querySelector(".panel.right")).scrollbarColor !== "auto"',
-      "D1.5: Client Preview kept the default bright desktop scrollbar",
+      'getComputedStyle(document.querySelector(".panel.right")).scrollbarColor !== "auto" && getComputedStyle(document.documentElement).scrollbarColor !== "auto"',
+      "D1.5: Client Preview kept a default bright panel/page scrollbar",
     );
     await saveScreenshot(session, "/tmp/d15-client-preview.png");
 
