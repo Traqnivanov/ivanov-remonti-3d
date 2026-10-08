@@ -308,6 +308,13 @@ P3.4 is **CLOSED**.
 Stable branch:
 `main`
 
+Desktop D1:
+- D1.1–D1.5 are **OWNER-APPROVED / NOT MERGED**;
+- final approved head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- final CI `37832808003` SUCCESS;
+- 17/17 test files, 169/169 tests PASS;
+- Pages deploy `37833097638` SUCCESS from the exact final head.
+
 Dependency stack:
 - P3.5 branch `feat/p3-5a-wall-finishing`, DRAFT PR #22;
 - D1.1 branch `feat/d1-1-desktop-workbench`, DRAFT PR #24;
@@ -318,61 +325,39 @@ Dependency stack:
 - D1.4b branch `feat/d1-4b-selected-surface-context`, DRAFT PR #30;
 - D1.5 branch `feat/d1-5-desktop-acceptance`, DRAFT PR #31.
 
-Superseded continuity item:
-- old D1.3 PR #26 is CLOSED / SUPERSEDED by canonical PR #27.
+All open PRs in the stack were checked and are currently mergeable/clean.
 
-Live auth status:
-- Supabase project had been paused;
-- Owner resumed it;
-- Owner confirmed successful Work login afterward;
-- PR #29 stale-session recovery remains preserved in the stack.
-
-Owner acceptance:
-- D1.4b exact selected-surface context was live-reviewed and accepted;
-- D1.5 is technically/visually verified and now awaits final Owner live review.
-
-Final D1.5 evidence:
-- head `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
-- CI `37832808003` SUCCESS;
-- 17/17 test files, **169/169 tests PASS**;
-- full desktop acceptance browser flow PASS;
-- Mobile Work / Owner Preview / direct Client regressions PASS;
-- Pages deploy `37833097638` SUCCESS from exact head.
+Critical dependency rule:
+- Desktop D1 approval does **not** approve P3.5 PR #22;
+- PR #22 remains a separate Owner decision;
+- no merge has been authorized.
 
 ---
 
-## 10. CURRENT NEXT — OWNER FINAL REVIEW OF DESKTOP D1
+## 10. CURRENT NEXT — P3.5 DEPENDENCY GATE
 
-Owner reviews:
-`https://traqnivanov.github.io/ivanov-remonti-3d/`
+Before any D1 integration to `main`:
+1. review the actual P3.5 result represented by PR #22 / Issue #21;
+2. explain it to Owner as product behavior, not Git mechanics;
+3. get an explicit Owner decision on P3.5;
+4. only then prepare the safest integration path for the approved D1 stack;
+5. rerun full acceptance against the integration candidate;
+6. STOP for explicit Owner merge command.
 
-D1.5 acceptance already proves:
-- room + openings;
-- multi-service Fine Putty + Paint;
-- independent wall/ceiling quantities and EUR prices;
-- complete dynamic total;
-- Save → switch project → Open back;
-- persisted quantities/prices/total;
-- Work → Client Preview → Work;
-- independent desktop panel overflow/scroll;
-- integrated dark desktop scrollbars;
-- mobile/client regression only.
-
-**STOP at Owner review.**
-Do not merge PR #31 or any stacked D1/P3.5 dependency without explicit Owner approval.
+No new product phase should start before this dependency is resolved.
 
 ---
 
 ## 11. D1 SEQUENCE STATUS
 
 0. **M0 Mobile usability baseline** — done; final mobile polish deferred.
-1. **D1.1 Desktop skeleton** — implemented/verified.
-2. **D1.2 Left Work panel** — Owner accepted.
-3. **D1.3 Right Smart Offer panel** — accepted by continuation.
-4. **D1.4 Unique context link + D1.4b refinement** — Owner accepted.
-5. **D1.5 Desktop acceptance QA** — technically + visually PASS; awaiting final Owner review.
+1. **D1.1 Desktop skeleton** — Owner-approved.
+2. **D1.2 Left Work panel** — Owner-approved.
+3. **D1.3 Right Smart Offer panel** — Owner-approved.
+4. **D1.4 Unique context link + D1.4b refinement** — Owner-approved.
+5. **D1.5 Desktop acceptance QA** — PASS and Owner-approved.
 
-Desktop D1 implementation sequence is complete. No next product phase starts automatically.
+Desktop D1 is complete and approved, but not merged because P3.5 remains an explicit dependency gate.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
