@@ -1481,6 +1481,26 @@ input[type="number"] {
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
+    scrollbar-color: #344a66 #0a1320;
+    scrollbar-width: thin;
+  }
+
+  .app-shell:not(.preview-mode) .panel::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .app-shell:not(.preview-mode) .panel::-webkit-scrollbar-track {
+    background: #0a1320;
+  }
+
+  .app-shell:not(.preview-mode) .panel::-webkit-scrollbar-thumb {
+    border: 2px solid #0a1320;
+    border-radius: 999px;
+    background: #344a66;
+  }
+
+  .app-shell:not(.preview-mode) .panel::-webkit-scrollbar-thumb:hover {
+    background: #465f80;
   }
 
   .app-shell:not(.preview-mode) .viewer-wrap {
