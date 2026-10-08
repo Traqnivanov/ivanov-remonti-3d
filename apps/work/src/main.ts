@@ -77,7 +77,10 @@ import {
   setOperationTargets,
   setServiceAssignmentIncluded,
 } from "./operation-authoring";
-import { resolveWorkAccess } from "./work-auth";
+import {
+  clearRecoverableLocalSession,
+  resolveWorkAccess,
+} from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
 import {
   confirmDiscardUnsavedChanges,
@@ -126,8 +129,9 @@ async function bootstrapWorkEntry(): Promise<void> {
   const app = document.querySelector<HTMLDivElement>("#app");
   if (!app) throw new Error("Missing #app");
 
+  const client = createWorkSupabaseClient();
+
   try {
-    const client = createWorkSupabaseClient();
     const access = await resolveWorkAccess(client);
 
     if (access.status === "authorized") {
@@ -148,6 +152,19 @@ async function bootstrapWorkEntry(): Promise<void> {
       },
     });
   } catch (error) {
+    const recovered = await clearRecoverableLocalSession(client, error);
+    if (recovered) {
+      renderWorkLogin({
+        mount: app,
+        client,
+        access: { status: "signed-out" },
+        onAuthorized: () => {
+          void bootstrapWorkEntry();
+        },
+      });
+      return;
+    }
+
     renderWorkAuthUnavailable(app, error);
   }
 }
