@@ -930,6 +930,361 @@ async function runLoginSmoke() {
   }
 }
 
+async function startD15AcceptanceProject(session) {
+  await evaluate(
+    session,
+    `(async () => {
+      const main = await import("/src/main.ts");
+      const domain = await import("/src/domain.ts");
+      const sessionModule = await import("/src/project-session.ts");
+
+      const primary = domain.createOpeningProofProject("qa-d15-primary");
+      const secondary = domain.createDefaultProject("qa-d15-secondary");
+      secondary.serviceAssignments = secondary.serviceAssignments.map(
+        (assignment) => ({ ...assignment, included: false }),
+      );
+
+      const records = new Map([
+        [
+          primary.projectId,
+          {
+            id: primary.projectId,
+            title: "D15 Реален поток",
+            status: "active",
+            schemaVersion: 1,
+            workVersion: 1,
+            updatedAt: "2026-10-08T18:00:00.000Z",
+            ownerUserId: "qa-owner",
+            createdAt: "2026-10-08T17:00:00.000Z",
+            project: structuredClone(primary),
+          },
+        ],
+        [
+          secondary.projectId,
+          {
+            id: secondary.projectId,
+            title: "D15 Втори проект",
+            status: "draft",
+            schemaVersion: 1,
+            workVersion: 1,
+            updatedAt: "2026-10-08T17:30:00.000Z",
+            ownerUserId: "qa-owner",
+            createdAt: "2026-10-08T17:00:00.000Z",
+            project: structuredClone(secondary),
+          },
+        ],
+      ]);
+
+      const cloneOpened = (record) => ({
+        ...record,
+        project: structuredClone(record.project),
+      });
+
+      const repository = {
+        create: async () => {
+          throw new Error("D1.5 create is outside acceptance scope");
+        },
+        list: async () =>
+          [...records.values()].map((record) => ({
+            id: record.id,
+            title: record.title,
+            status: record.status,
+            schemaVersion: record.schemaVersion,
+            workVersion: record.workVersion,
+            updatedAt: record.updatedAt,
+          })),
+        open: async (id) => {
+          const record = records.get(id);
+          if (!record) throw new Error("D1.5 project not found: " + id);
+          window.__d15OpenIds.push(id);
+          return cloneOpened(record);
+        },
+        save: async (input) => {
+          const record = records.get(input.projectId);
+          if (!record) throw new Error("D1.5 save project not found");
+          if (record.workVersion !== input.expectedWorkVersion) {
+            throw new Error("D1.5 unexpected work version");
+          }
+          record.project = structuredClone(input.project);
+          record.workVersion += 1;
+          record.updatedAt = "2026-10-08T18:30:00.000Z";
+          window.__d15SaveCount += 1;
+          window.__d15LastSavedProject = structuredClone(record.project);
+          return {
+            projectId: record.id,
+            workVersion: record.workVersion,
+            updatedAt: record.updatedAt,
+          };
+        },
+      };
+
+      window.__d15SaveCount = 0;
+      window.__d15OpenIds = [];
+      window.__d15Records = records;
+      window.__d15Repository = repository;
+      window.__d15LastSavedProject = null;
+
+      const opened = cloneOpened(records.get(primary.projectId));
+      const projectSession = sessionModule.createProjectSession(opened);
+      main.startSmartOfferApp({
+        appEntry: "work",
+        project: opened.project,
+        session: projectSession,
+        repository,
+      });
+    })()`,
+  );
+  await delay(180);
+  await assertEval(
+    session,
+    'document.querySelector("#projectBarTitle")?.textContent === "D15 Реален поток" && document.querySelector("#projectBarStatus")?.textContent.includes("Запазено")',
+    "D1.5: acceptance project did not start cleanly",
+  );
+}
+
+async function setD15Price(session, assignmentId, rawValue) {
+  await evaluate(
+    session,
+    `(() => {
+      const row = document.querySelector('[data-service-id="${assignmentId}"]');
+      if (!row) throw new Error("Missing D1.5 offer row: ${assignmentId}");
+      row.click();
+      const input = document.querySelector("#unitPriceInput");
+      input.value = "${rawValue}";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    })()`,
+  );
+  await delay(90);
+}
+
+async function runD15DesktopAcceptanceSmoke() {
+  const session = await createSession();
+  try {
+    await session.call("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: 1440,
+      screenHeight: 900,
+    });
+
+    await authorizeQaWork(session);
+    await startD15AcceptanceProject(session);
+
+    await assertEval(
+      session,
+      'document.querySelectorAll("#offerRows .offer-row").length === 2 && document.querySelector("#quantityText")?.textContent.includes("43,59") && document.querySelector("[data-service-id=assignment-fine-putty-ceiling-1]")?.textContent.includes("20,16")',
+      "D1.5: opening-aware wall quantity or separate ceiling line is missing at start",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector("[data-service-include=assignment-paint-1]"); input.checked = true; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await delay(100);
+
+    await assertEval(
+      session,
+      'document.querySelectorAll("#offerRows .offer-row").length === 4 && Boolean(document.querySelector("[data-service-id=assignment-paint-1]")) && Boolean(document.querySelector("[data-service-id=assignment-paint-ceiling-1]"))',
+      "D1.5: Paint did not add independent wall + ceiling offer lines",
+    );
+
+    await setD15Price(session, "assignment-fine-putty-1", "6.5");
+    await setD15Price(session, "assignment-fine-putty-ceiling-1", "7.5");
+    await setD15Price(session, "assignment-paint-1", "4.25");
+    await setD15Price(session, "assignment-paint-ceiling-1", "5.5");
+
+    await assertEval(
+      session,
+      'document.querySelector("#d13OfferTotalKpi")?.textContent.includes("730,67") && document.querySelector("#d13OfferTotalStatus")?.textContent.includes("ценово попълнена") && document.querySelector("#offerTotalStatus")?.textContent.includes("пълна")',
+      "D1.5: complete multi-service EUR total is incorrect",
+    );
+
+    await evaluate(
+      session,
+      'document.querySelector("[data-service-id=assignment-fine-putty-1]").click()',
+    );
+    await delay(50);
+    await assertEval(
+      session,
+      'document.querySelector("#unitPriceInput")?.value === "6,50" && document.querySelector("#quantityKpi")?.textContent.includes("43,59")',
+      "D1.5: Fine Putty wall price/quantity are not independent",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("[data-service-id=assignment-fine-putty-ceiling-1]").click()',
+    );
+    await delay(50);
+    await assertEval(
+      session,
+      'document.querySelector("#unitPriceInput")?.value === "7,50" && document.querySelector("#quantityKpi")?.textContent.includes("20,16")',
+      "D1.5: Fine Putty ceiling price/quantity are not independent",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("[data-service-id=assignment-paint-1]").click()',
+    );
+    await delay(50);
+    await assertEval(
+      session,
+      'document.querySelector("#unitPriceInput")?.value === "4,25" && document.querySelector("#quantityKpi")?.textContent.includes("43,59")',
+      "D1.5: Paint wall price/quantity are not independent",
+    );
+    await evaluate(
+      session,
+      'document.querySelector("[data-service-id=assignment-paint-ceiling-1]").click()',
+    );
+    await delay(50);
+    await assertEval(
+      session,
+      'document.querySelector("#unitPriceInput")?.value === "5,50" && document.querySelector("#quantityKpi")?.textContent.includes("20,16")',
+      "D1.5: Paint ceiling price/quantity are not independent",
+    );
+
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus")?.textContent.includes("Има промени") && !document.querySelector("#saveProjectButton").disabled',
+      "D1.5: completed offer did not remain saveable",
+    );
+
+    await evaluate(session, 'document.querySelector("#saveProjectButton").click()');
+    for (let attempt = 0; attempt < 25; attempt += 1) {
+      if (
+        await evaluate(
+          session,
+          'window.__d15SaveCount === 1 && document.querySelector("#projectBarStatus")?.textContent.includes("Запазено · v2")',
+        )
+      ) break;
+      await delay(80);
+    }
+    await assertEval(
+      session,
+      'window.__d15SaveCount === 1 && document.querySelector("#projectBarStatus")?.textContent.includes("Запазено · v2") && window.__d15LastSavedProject.serviceAssignments.find((item) => item.id === "assignment-fine-putty-1")?.unitPriceEur === 6.5 && window.__d15LastSavedProject.serviceAssignments.find((item) => item.id === "assignment-fine-putty-ceiling-1")?.unitPriceEur === 7.5 && window.__d15LastSavedProject.serviceAssignments.find((item) => item.id === "assignment-paint-1")?.unitPriceEur === 4.25 && window.__d15LastSavedProject.serviceAssignments.find((item) => item.id === "assignment-paint-ceiling-1")?.unitPriceEur === 5.5',
+      "D1.5: Save did not persist independent service/scope prices",
+    );
+
+    await evaluate(session, 'document.querySelector("#projectsButton").click()');
+    await delay(100);
+    await evaluate(
+      session,
+      'Array.from(document.querySelectorAll("#projectsList .project-list-row")).find((row) => row.textContent.includes("D15 Втори проект"))?.querySelector("button")?.click()',
+    );
+    for (let attempt = 0; attempt < 25; attempt += 1) {
+      if (
+        await evaluate(
+          session,
+          'document.querySelector("#projectBarTitle")?.textContent === "D15 Втори проект"',
+        )
+      ) break;
+      await delay(80);
+    }
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarTitle")?.textContent === "D15 Втори проект" && document.querySelectorAll("#offerRows .offer-row").length === 0',
+      "D1.5: switching away from the saved project failed",
+    );
+
+    await evaluate(session, 'document.querySelector("#projectsButton").click()');
+    await delay(100);
+    await evaluate(
+      session,
+      'Array.from(document.querySelectorAll("#projectsList .project-list-row")).find((row) => row.textContent.includes("D15 Реален поток"))?.querySelector("button")?.click()',
+    );
+    for (let attempt = 0; attempt < 25; attempt += 1) {
+      if (
+        await evaluate(
+          session,
+          'document.querySelector("#projectBarTitle")?.textContent === "D15 Реален поток" && document.querySelector("#projectBarStatus")?.textContent.includes("Запазено · v2")',
+        )
+      ) break;
+      await delay(80);
+    }
+
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarTitle")?.textContent === "D15 Реален поток" && document.querySelector("#projectBarStatus")?.textContent.includes("Запазено · v2") && document.querySelectorAll("#offerRows .offer-row").length === 4 && document.querySelector("#d13OfferTotalKpi")?.textContent.includes("730,67") && window.__d15OpenIds.includes("qa-d15-primary")',
+      "D1.5: reopening did not restore the complete saved offer",
+    );
+
+    await evaluate(session, 'document.querySelector("[data-d13-tab=scope]").click()');
+    await delay(60);
+    await evaluate(
+      session,
+      'document.querySelector("#operationSummary-paint")?.click(); document.querySelector("#d14FullScopeDetails") && (document.querySelector("#d14FullScopeDetails").open = true); document.querySelector(".opening-card-summary")?.click(); document.querySelector("#m2SchemeDetails > summary")?.click()',
+    );
+    await delay(80);
+
+    const overflow = await evaluate(
+      session,
+      `(() => {
+        const left = document.querySelector(".panel.left");
+        const right = document.querySelector(".panel.right");
+        const viewer = document.querySelector(".viewer-wrap");
+        const before = viewer.getBoundingClientRect();
+        const result = {
+          leftScrollable: left.scrollHeight > left.clientHeight,
+          rightScrollable: right.scrollHeight > right.clientHeight,
+          leftScrollbarColor: getComputedStyle(left).scrollbarColor,
+          rightScrollbarColor: getComputedStyle(right).scrollbarColor,
+          viewerTop: Math.round(before.top),
+          viewerBottom: Math.round(before.bottom),
+        };
+        left.scrollTop = left.scrollHeight;
+        right.scrollTop = right.scrollHeight;
+        const after = viewer.getBoundingClientRect();
+        result.viewerStable =
+          Math.round(after.top) === result.viewerTop &&
+          Math.round(after.bottom) === result.viewerBottom &&
+          window.scrollY === 0;
+        return result;
+      })()`,
+    );
+
+    if (
+      !overflow.leftScrollable ||
+      !overflow.rightScrollable ||
+      !overflow.viewerStable ||
+      overflow.leftScrollbarColor === "auto" ||
+      overflow.rightScrollbarColor === "auto"
+    ) {
+      throw new Error(
+        "D1.5: desktop panel overflow/scroll acceptance failed: " +
+          JSON.stringify(overflow),
+      );
+    }
+
+    await evaluate(
+      session,
+      'document.querySelector(".panel.left").scrollTop = 0; document.querySelector(".panel.right").scrollTop = 0',
+    );
+    await delay(60);
+    await saveScreenshot(session, "/tmp/d15-desktop-acceptance.png");
+
+    await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
+    await delay(140);
+    await assertEval(
+      session,
+      'document.querySelector("#shell").classList.contains("preview-mode") && getComputedStyle(document.querySelector(".panel.left")).display === "none" && getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && document.querySelector("#offerTotalKpi")?.textContent.includes("730,67") && document.querySelector("#offerTotalStatus")?.textContent.includes("пълна") && document.querySelectorAll("#offerRows .offer-row").length === 4',
+      "D1.5: Owner Client Preview did not preserve the saved complete offer read-only",
+    );
+    await saveScreenshot(session, "/tmp/d15-client-preview.png");
+
+    await evaluate(session, 'document.querySelector("#exitPreviewBtn").click()');
+    await delay(100);
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarTitle")?.textContent === "D15 Реален поток" && document.querySelector("#projectBarStatus")?.textContent.includes("Запазено · v2") && document.querySelector("#d13OfferTotalKpi")?.textContent.includes("730,67")',
+      "D1.5: returning from Client Preview did not restore saved Work state",
+    );
+
+    throwBrowserErrors(session);
+  } finally {
+    session.close();
+  }
+}
+
 async function runWorkSmoke() {
   const session = await createSession();
   try {
@@ -2240,10 +2595,11 @@ async function runDirectClientSmoke() {
 
 await runLoginSmoke();
 await runWorkSmoke();
+await runD15DesktopAcceptanceSmoke();
 await runDirectClientSmoke();
 await runMobileWorkSmoke();
 await runM0ResponsiveReadabilitySmoke(390, "/tmp/m0-mobile-readable-390.png");
 await runM0ResponsiveReadabilitySmoke(412, "/tmp/m0-mobile-readable-412.png");
 await runM0ResponsiveReadabilitySmoke(720, "/tmp/m0-mobile-readable-wide.png");
 await runMobileClientSmoke();
-console.log("Browser smoke passed: private login + desktop Work + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");
+console.log("Browser smoke passed: private login + desktop Work + D1.5 full desktop acceptance + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");
