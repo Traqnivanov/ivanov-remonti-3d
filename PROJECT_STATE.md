@@ -259,28 +259,33 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER REAL-BROWSER RECHECK — Work login after stale-session recovery fix.**
+**OWNER LIVE REVIEW — D1.4b selected surface as leading Work context.**
 
-Blocker:
-- Owner live browser showed **WORK НЕДОСТЪПЕН / Не може да се стартира входът**;
-- clean browser still reached normal **Вход в Work**;
-- root cause: stale/invalid locally stored Supabase auth session was treated as fatal.
+Auth blocker:
+- Owner resumed the paused `ivanov-remonti-3d` Supabase project;
+- Owner then confirmed successful Work login;
+- stale-session recovery fix remains preserved in DRAFT PR #29.
 
-Fix:
-- recover session-read / identity-verification failures;
-- clear only the current browser auth session with local-scope sign-out;
-- return to normal Work login;
-- real Work authorization/database lookup failures remain fatal and visible.
+D1.4b result:
+- 3D-selected surface is the leading context;
+- exact card shows **surface → service → net quantity → EUR unit price → derived selected-surface amount**;
+- missing price is shown as **Без цена**;
+- full service scope becomes secondary/collapsed, e.g. **Общ обхват · 4 стени + таван**;
+- full scope remains editable on demand;
+- clicking/selecting a surface does **not** change assignment targets, canonical quantities, stored price, or offer totals;
+- multi-service explicit choice remains;
+- door/window → exact left editor remains.
 
 Verification:
-- fix branch: `fix/work-auth-session-recovery`;
-- DRAFT PR #29, base `feat/d1-4-context-link`;
-- head: `e403515cdff2bf33a0d09fb07aa7037a47fa671b`;
-- CI `37822478029`: **SUCCESS**;
-- 17/17 test files, **166/166 tests PASS**;
+- branch: `feat/d1-4b-selected-surface-context`;
+- DRAFT PR #30, base `fix/work-auth-session-recovery`;
+- final head: `b2f5248bf65965aaea716b7120e343cfb498ebca`;
+- CI `37829605454`: **SUCCESS**;
+- 17/17 test files, **169/169 tests PASS**;
 - typecheck + build + desktop/mobile/Client browser smoke: **PASS**;
-- Pages deploy `37822635332`: **SUCCESS** from exact head;
-- live preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+- exact visual `d14-selected-surface-leading.png`: inspected;
+- Pages deploy `37829798001`: **SUCCESS** from exact final head;
+- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
 
-**NEXT: Owner reopens the live URL in the same browser that showed the failure. D1.5 remains STOPPED until this passes.**
+**NEXT: Owner reviews D1.4b live. D1.5 remains STOPPED until explicit Owner approval to continue.**
 
