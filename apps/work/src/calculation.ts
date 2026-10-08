@@ -5,6 +5,7 @@ import {
   type ClientInfo,
   type ProjectState,
   type ServiceAssignment,
+  type SurfaceId,
   type WallId,
 } from "./domain";
 import { getWallNetAreaM2, summarizeRoomGeometry } from "./geometry";
@@ -63,6 +64,15 @@ export type DynamicOfferSummary = {
   pricedSubtotalEur: number;
   complete: boolean;
   missingPriceAssignmentIds: string[];
+};
+
+export type EntityOfferBreakdown = {
+  assignmentId: string;
+  entityId: SurfaceId;
+  quantity: QuantityResult;
+  unitPriceEur: number | null;
+  totalEur: number | null;
+  priceStatus: "missing" | "priced";
 };
 
 export const devFinePuttyPriceBookItem: PriceBookItem = {
@@ -359,6 +369,55 @@ export function setAssignmentUnitPriceEur(
   return {
     ...project,
     serviceAssignments,
+  };
+}
+
+export function calculateEntityOfferBreakdown(
+  project: ProjectState,
+  assignmentId: string,
+  entityId: SurfaceId,
+): EntityOfferBreakdown | null {
+  const assignment = project.serviceAssignments.find(
+    (item) => item.id === assignmentId,
+  );
+
+  if (
+    !assignment ||
+    !assignment.included ||
+    !assignment.targetEntityIds.includes(entityId)
+  ) {
+    return null;
+  }
+
+  const quantity = calculateAssignmentQuantity(project, {
+    ...assignment,
+    targetEntityIds: [entityId],
+  });
+  if (!quantity) return null;
+
+  const unitPriceEur = assignment.unitPriceEur;
+  if (unitPriceEur === undefined) {
+    return {
+      assignmentId,
+      entityId,
+      quantity,
+      unitPriceEur: null,
+      totalEur: null,
+      priceStatus: "missing",
+    };
+  }
+
+  if (!Number.isFinite(unitPriceEur) || unitPriceEur < 0) {
+    throw new Error("Stored unit price must be a non-negative finite EUR amount.");
+  }
+
+  return {
+    assignmentId,
+    entityId,
+    quantity,
+    unitPriceEur,
+    totalEur: quantity.value * unitPriceEur,
+    priceStatus: "priced",
   };
 }
 
