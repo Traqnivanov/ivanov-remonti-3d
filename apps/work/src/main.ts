@@ -954,7 +954,7 @@ function renderD14ModelContext(
       `${formatNumber(exactBreakdown.quantity.value)} ${unit}`;
     breakdownPrice.textContent =
       exactBreakdown.unitPriceEur === null
-        ? "Не е въведена"
+        ? "Без цена"
         : `${formatMoney(exactBreakdown.unitPriceEur)} €/${unit}`;
     breakdownTotal.textContent =
       exactBreakdown.totalEur === null
