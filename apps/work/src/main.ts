@@ -129,8 +129,9 @@ async function bootstrapWorkEntry(): Promise<void> {
   const app = document.querySelector<HTMLDivElement>("#app");
   if (!app) throw new Error("Missing #app");
 
+  const client = createWorkSupabaseClient();
+
   try {
-    const client = createWorkSupabaseClient();
     const access = await resolveWorkAccess(client);
 
     if (access.status === "authorized") {
