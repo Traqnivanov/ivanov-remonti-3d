@@ -25,6 +25,36 @@ export class WorkAuthBoundaryError extends Error {
   }
 }
 
+export function isRecoverableLocalSessionError(
+  error: unknown,
+): error is WorkAuthBoundaryError {
+  return (
+    error instanceof WorkAuthBoundaryError &&
+    (error.code === "SESSION_READ_FAILED" ||
+      error.code === "IDENTITY_VERIFICATION_FAILED")
+  );
+}
+
+export async function clearRecoverableLocalSession(
+  client: SupabaseClient,
+  error: unknown,
+): Promise<boolean> {
+  if (!isRecoverableLocalSessionError(error)) return false;
+
+  const { error: signOutError } = await client.auth.signOut({
+    scope: "local",
+  });
+
+  if (signOutError) {
+    console.warn(
+      "Work Auth local-session cleanup reported an error.",
+      signOutError,
+    );
+  }
+
+  return true;
+}
+
 type WorkUserRow = {
   user_id: string;
   display_name: string;
