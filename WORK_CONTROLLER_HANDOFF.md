@@ -305,59 +305,58 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-Stable branch:
-`main`
-
 Desktop D1:
 - D1.1–D1.5 are **OWNER-APPROVED / NOT MERGED**;
 - final approved head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
 - final CI `37832808003` SUCCESS;
-- 17/17 test files, 169/169 tests PASS;
-- Pages deploy `37833097638` SUCCESS from the exact final head.
+- 169/169 tests PASS.
 
-Dependency stack:
-- P3.5 branch `feat/p3-5a-wall-finishing`, DRAFT PR #22;
-- D1.1 branch `feat/d1-1-desktop-workbench`, DRAFT PR #24;
-- D1.2 branch `feat/d1-2-left-work-panel`, DRAFT PR #25;
-- canonical D1.3 branch `feat/d1-3-right-smart-offer-panel`, DRAFT PR #27;
-- D1.4 branch `feat/d1-4-context-link`, DRAFT PR #28;
-- Work auth recovery branch `fix/work-auth-session-recovery`, DRAFT PR #29;
-- D1.4b branch `feat/d1-4b-selected-surface-context`, DRAFT PR #30;
-- D1.5 branch `feat/d1-5-desktop-acceptance`, DRAFT PR #31.
+P3.5 dependency:
+- PR #22 is now accurately described as **P3.5a+b — Wall/Ceiling finishing foundation**;
+- Issue #21 is at **OWNER REVIEW GATE**;
+- head `cab113478d250c4e74221a6367f883cb5f543881`;
+- CI `36343470472` SUCCESS;
+- 161/161 tests PASS.
 
-All open PRs in the stack were checked and are currently mergeable/clean.
+Audit result:
+- no P3.5a+b product blocker found;
+- service taxonomy remains distinct;
+- exact wall quantities deduct openings;
+- ceiling quantity uses width × length;
+- applicable service selection defaults to walls + ceiling;
+- wall/ceiling are separate priced scopes using the same real service identity;
+- dynamic EUR price truth preserved;
+- new real projects remain blank-service;
+- plaster / reinforced-base putty / broad service expansion remain deferred.
 
-Critical dependency rule:
-- Desktop D1 approval does **not** approve P3.5 PR #22;
-- PR #22 remains a separate Owner decision;
-- no merge has been authorized.
-
----
-
-## 10. CURRENT NEXT — P3.5 DEPENDENCY GATE
-
-Before any D1 integration to `main`:
-1. review the actual P3.5 result represented by PR #22 / Issue #21;
-2. explain it to Owner as product behavior, not Git mechanics;
-3. get an explicit Owner decision on P3.5;
-4. only then prepare the safest integration path for the approved D1 stack;
-5. rerun full acceptance against the integration candidate;
-6. STOP for explicit Owner merge command.
-
-No new product phase should start before this dependency is resolved.
+All stacked PRs were previously checked as mergeable/clean, but **no merge is authorized**.
 
 ---
 
-## 11. D1 SEQUENCE STATUS
+## 10. CURRENT NEXT — OWNER PRODUCT DECISION ON P3.5a+b
 
-0. **M0 Mobile usability baseline** — done; final mobile polish deferred.
-1. **D1.1 Desktop skeleton** — Owner-approved.
-2. **D1.2 Left Work panel** — Owner-approved.
-3. **D1.3 Right Smart Offer panel** — Owner-approved.
-4. **D1.4 Unique context link + D1.4b refinement** — Owner-approved.
-5. **D1.5 Desktop acceptance QA** — PASS and Owner-approved.
+Explain P3.5a+b in plain product terms and obtain an explicit Owner decision.
 
-Desktop D1 is complete and approved, but not merged because P3.5 remains an explicit dependency gate.
+If Owner approves P3.5a+b:
+1. prepare one safe integration candidate containing the approved dependency + approved Desktop D1;
+2. sync/rebase only as needed, without altering product behavior;
+3. rerun full final acceptance against the integration candidate;
+4. STOP for explicit Owner merge command.
+
+If Owner rejects/changes P3.5a+b:
+- do not merge the D1 stack;
+- modify only the affected dependency behavior after a bounded approved correction.
+
+No new product phase starts automatically.
+
+---
+
+## 11. D1 / P3.5 STATUS
+
+- P3.5a+b — technically verified, awaiting explicit Owner product approval.
+- D1.1–D1.5 — Owner-approved, awaiting dependency resolution + integration gate.
+- Mobile Work redesign — deferred; not active.
+- No merge authorized.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
