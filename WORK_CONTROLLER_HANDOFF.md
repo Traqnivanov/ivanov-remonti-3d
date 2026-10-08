@@ -170,10 +170,16 @@ Merged proof:
 
 Services are **execution choices**, not mandatory rows.
 
-Current visible proof services:
+Merged baseline proof services:
 - Fine Putty / Фина шпакловка;
 - Laminate / Ламинат;
 - Gypsum Putty / Гипсова шпакловка.
+
+Current verified but **unmerged P3.5a+b** additionally provides:
+- Sanding / Шлайфане;
+- Primer / Грунд;
+- Paint / Боядисване;
+- separate wall + ceiling scopes where applicable.
 
 The UI uses explicit service inclusion checks.
 
@@ -305,95 +311,92 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-Stable branch:
-`main`
+**CURRENT WORK:** Issue #21 — `[CURRENT WORK] P3.5 + D1 — integration acceptance gate`.
 
-No active feature branch.
+Owner decision on 2026-10-08:
+- P3.5a+b is **OWNER-APPROVED / NOT MERGED**;
+- Desktop D1.1–D1.5 is **OWNER-APPROVED / NOT MERGED**;
+- approval does **not** authorize merge.
 
-No active PR.
+Desktop D1:
+- Issue #23 = `[OWNER-APPROVED / NOT MERGED] D1 — Desktop Workbench UX`;
+- final approved D1 head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- final CI `37832808003`: SUCCESS;
+- 17/17 test files / 169/169 tests PASS;
+- final live Desktop result was reviewed by Owner and accepted.
 
-Current Work Issue:
-**#21 — [CURRENT WORK] P3.5 — Real wall/ceiling finishing stack**
+P3.5a+b:
+- PR #22 remains DRAFT / NOT MERGED;
+- head: `cab113478d250c4e74221a6367f883cb5f543881`;
+- CI `36343470472`: SUCCESS;
+- 17/17 test files / 161/161 tests PASS;
+- Fine Putty / Gypsum Putty / Sanding / Primer / Paint remain distinct;
+- applicable finishing services default to walls + ceiling;
+- ceiling can be excluded independently;
+- wall quantity uses opening-aware net m²;
+- ceiling quantity uses room width × length;
+- wall and ceiling keep separate Work-entered EUR prices while retaining one real service identity;
+- Client remains read-only;
+- plaster/base-putty/broad catalog remain deferred.
 
-Status:
-**PLANNING / AUDIT ONLY. NO P3.5 IMPLEMENTATION AUTHORIZED YET.**
+Current Git condition:
+- `main` has advanced beyond the old P3.5 base through documentation/continuity updates;
+- the old stacked PR chain must not be merged blindly;
+- one reconciled integration candidate must be prepared against current `main`.
 
-The exact current truth is in `PROJECT_STATE.md`. Verify repo state before work.
-
----
-
-## 10. CURRENT NEXT — P3.5
-
-P3.5 is the next approved roadmap phase.
-
-The goal is not “add many services”.
-
-The goal is to move the complete-room workflow forward with a **real wall/ceiling finishing stack** using the generic mechanism already built.
-
-Expected source-audit family includes:
-- ordinary plaster / leveling;
-- reinforced/base putty;
-- gypsum putty;
-- fine putty;
-- sanding;
-- primer/preparation;
-- paint;
-- ceiling as a real target.
-
-Do not assume all of them belong in the first implementation slice.
-
-### First exact work
-
-**Audit + one concrete bounded proposal only. No code.**
-
-Do this:
-
-1. Read `START_HERE.md`.
-2. Read `PROJECT_STATE.md`.
-3. Read Issue #21.
-4. Verify actual `main`, HEAD, open PRs.
-5. Read task-relevant:
-   - `docs/MASTER_SPEC.md`
-   - `docs/SERVICE_OPERATION_REGISTRY.md`
-   - `docs/SMART_OFFER_PRODUCT_CONTRACT.md`
-   - `docs/DELIVERY_STRATEGY.md`
-6. Audit relevant current `Traqnivanov/Remonti-` pages.
-7. Audit relevant `narachnik/` guides.
-8. Use `kalkulator-combined.html` only if quantity/formula evidence is needed.
-9. Determine:
-   - real operation chain;
-   - dependencies/order;
-   - wall vs ceiling applicability;
-   - opening deduction rules per operation;
-   - what current generic core already supports;
-   - exact capability gaps.
-10. Propose the smallest useful P3.5 implementation sequence.
-11. Run full Criteria Check.
-12. Run Uniqueness Interrupt Gate.
-13. Explain the proposal in plain Bulgarian.
-14. **STOP for Owner approval before code.**
-
-Do not create a P3.5 feature branch before there is an implementation decision that needs one.
+No merge is authorized.
 
 ---
 
-## 11. P3.5 NON-GOALS AT START
+## 10. CURRENT NEXT — SAFE INTEGRATION CANDIDATE + FINAL ACCEPTANCE
 
-Do not drift into:
-- broad service catalog;
-- Object/Edit Core;
-- full furniture/assets;
-- Materials/Colors/Images/Assets implementation;
-- Publishing;
-- Link/PIN implementation;
-- PDF/export;
-- Photo/AI;
-- unrelated redesign;
-- fixed pricing catalog;
-- a rewrite of the app;
-- a second geometry/calculation truth.
+The next chat must **not** restart P3.5 or Desktop D1 and must **not** ask Owner to retell project history.
+
+Required sequence:
+1. prepare one integration candidate containing approved P3.5a+b + approved Desktop D1;
+2. reconcile it with current `main` without changing approved product behavior;
+3. run full final acceptance;
+4. visually verify affected Desktop Work, Work → Client Preview, direct Client and mobile regression states;
+5. record exact commit / CI / visual evidence;
+6. **STOP for explicit Owner merge command**.
+
+Do not:
+- merge the old stacked PRs directly;
+- start Mobile Work redesign;
+- start P3.6 or another product phase;
+- reinterpret approved P3.5/D1 behavior during reconciliation.
 
 ---
+
+## 11. STACK / MERGE STATUS
+
+Historical open dependency chain:
+- PR #22 — P3.5a+b → `main`;
+- PR #24 — D1.1 → #22 branch;
+- PR #25 — D1.2 → #24 branch;
+- PR #27 — canonical D1.3 → #25 branch;
+- PR #28 — D1.4 → #27 branch;
+- PR #29 — Work auth stale-session recovery → #28 branch;
+- PR #30 — D1.4b selected-surface refinement → #29 branch;
+- PR #31 — D1.5 acceptance → #30 branch.
+
+Historical/superseded:
+- PR #26 = old D1.3, CLOSED / SUPERSEDED by PR #27.
+
+Current integration rule:
+- do not merge that chain one PR at a time;
+- current `main` and final D1 head have diverged since the original stack base;
+- prepare one reconciled integration candidate, verify it, then return to Owner.
+
+Owner authority:
+- Desktop D1 is approved;
+- P3.5a+b is approved;
+- **no merge permission has been given**;
+- only an explicit Owner merge command authorizes merge.
+
+Mobile:
+- final Mobile Work redesign is deferred and is **not active**;
+- only the existing M0 readability baseline must remain regression-safe.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 

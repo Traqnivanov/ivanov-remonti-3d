@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack` — **P3.5a IMPLEMENTATION AUTHORIZED; BOUNDED WALL-ONLY SLICE.**
+**Current Work Issue:** #21 — `[CURRENT WORK] P3.5a+b — Owner product decision gate` — **Desktop D1 is Owner-approved / not merged; P3.5a+b awaits its own explicit Owner product decision.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -13,15 +13,22 @@ Detailed execution history belongs to Git, merged PRs and closed Issues.
 
 - Repo: `Traqnivanov/ivanov-remonti-3d`
 - Stable branch: `main`
-- Active feature branch: **`feat/p3-5a-wall-finishing`**
-- Active PR: **none**
-- Active Current Work Issue: **#21 — P3.5 Real wall/ceiling finishing stack**
-- P3.3: **MERGED / VERIFIED / CLOSED**
-- P3.4: **MERGED / VERIFIED / CLOSED**
-- Latest product-code merge: PR #20
+- Latest merged product checkpoint: **P3.4 / PR #20**
 - PR #20 merge commit: `126e9877c425329867cf9963497467091008e1d2`
-- Final verified P3.4b head before merge: `745fa385947315721102c82ce459651182b28b71`
-- Final P3.4b CI: #351 / `36333699252` — **SUCCESS**
+- P3.5 dependency:
+  - branch: `feat/p3-5a-wall-finishing`
+  - PR #22: **DRAFT / VERIFIED / NOT MERGED**
+  - actual scope: **P3.5a+b — Wall/Ceiling finishing foundation**
+  - verified head: `cab113478d250c4e74221a6367f883cb5f543881`
+  - CI `36343470472`: **SUCCESS**, 161/161 tests PASS
+- Desktop D1:
+  - D1.1–D1.5: **OWNER-APPROVED / NOT MERGED**
+  - final stacked head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`
+  - final CI `37832808003`: **SUCCESS**, 169/169 tests PASS
+  - final PR: #31, stacked through PRs #24/#25/#27/#28/#29/#30
+- Current Work Issue: **#21 — P3.5a+b Owner product decision gate**
+- D1 Issue #23: **OWNER-APPROVED / NOT MERGED**
+- No P3.5/D1 merge is authorized yet.
 
 Every new chat must verify actual branch / HEAD / PR / Issue state before changing anything.
 
@@ -191,7 +198,7 @@ Do not use this as permission to restart unrelated accepted work.
 
 ## 6. Known deferred / pre-release items
 
-These do not block P3.5 planning, but must not be forgotten:
+These do not block the current P3.5 decision gate, but must not be forgotten:
 
 1. Password recovery redirect still needs production-safe handling before user-facing recovery.
 2. Supabase leaked-password protection warning requires later review before production.
@@ -206,61 +213,63 @@ These do not block P3.5 planning, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — P3.5
+## 7. CURRENT WORK — approved P3.5 + Desktop D1 integration acceptance
 
 Current Work Issue:
-**#21 — `[CURRENT WORK] P3.5 — Real wall/ceiling finishing stack`**
+**#21 — `[CURRENT WORK] P3.5 + D1 — integration acceptance gate`**
 
-Status:
-**P3.5a IMPLEMENTATION AUTHORIZED — bounded wall-only finishing slice.**
+Owner decision on 2026-10-08:
+- **P3.5a+b is OWNER-APPROVED / NOT MERGED**;
+- Desktop D1.1–D1.5 remains **OWNER-APPROVED / NOT MERGED**;
+- this approval does **not** authorize merge.
 
-P3.5 direction:
-- **Owner-approved 27.09.2026:** P3.5a first implements wall-only `Шлайфане → Грунд → Боядисване` on the existing generic core;
-- **Owner-approved scope/price rule:** wall and ceiling work are not forced into one priced scope when unit prices can differ; future P3.5b must support separate wall/ceiling quantity + unit price for the same real operation without duplicating it as separate catalog services;
-- real finishing operations, not one generic „Шпакловка“;
-- audit ordinary plaster/leveling, reinforced/base putty, gypsum putty, fine putty, sanding, primer/preparation and paint from approved sources;
-- ceiling becomes a real service target;
-- quantity/opening-deduction behavior must be correct per operation;
-- client Info must come from approved Ivanov Remonti sources;
-- reuse the merged generic authoring/pricing foundation rather than creating parallel mechanisms.
+Approved P3.5a+b truth:
+- Fine Putty / Gypsum Putty / Sanding / Primer / Paint remain distinct real operations;
+- applicable finishing service defaults to **walls + ceiling**;
+- wall quantity = exact selected-wall net m² with door/window deductions;
+- ceiling quantity = room width × length;
+- ceiling can be excluded independently;
+- wall and ceiling remain separate offer scopes/lines with independent Work-entered EUR unit prices;
+- both scopes keep the same real service identity / serviceCode;
+- dynamic per-offer EUR pricing remains canonical;
+- missing price ≠ zero;
+- Client remains read-only;
+- ordinary plaster / reinforced-base putty / drywall-joint expansion / decorative plaster / broad catalog remain deferred.
 
-Non-goals for P3.5a:
-- no ceiling authoring yet;
-- no plaster or reinforced/base putty in this slice;
-- no broad service catalog;
-- no Object/Edit Core;
-- no Materials/Colors/Images/Assets implementation;
-- no Publishing;
-- no Photo/AI;
-- no unrelated redesign;
-- no fixed price catalog.
+Verified pre-integration evidence:
+- P3.5 PR #22 head: `cab113478d250c4e74221a6367f883cb5f543881`;
+- P3.5 CI `36343470472`: SUCCESS, 161/161 tests PASS;
+- Desktop D1 final head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- Desktop D1 CI `37832808003`: SUCCESS, 169/169 tests PASS.
+
+Important Git fact:
+- current `main` has advanced since the original P3.5 base through documentation/continuity work;
+- the old stacked PR chain must **not** be merged blindly;
+- the active task is to prepare one reconciled integration candidate with no product-behavior changes.
+
+Desktop D1 Issue:
+**#23 — `[OWNER-APPROVED / NOT MERGED] D1 — Desktop Workbench UX`**
+
+No merge is authorized.
 
 ---
 
 ## 8. NEXT EXACT STEP
 
-**P3.5a — implement the approved bounded wall-finishing slice.**
+**SAFE INTEGRATION CANDIDATE + FINAL ACCEPTANCE.**
 
-Exact scope:
+Required sequence:
+1. create one integration candidate containing approved P3.5a+b + approved Desktop D1 reconciled with current `main`;
+2. preserve current main documentation/continuity truth and introduce no new product behavior;
+3. run the full final technical acceptance against the candidate;
+4. visually verify affected Desktop Work, Work → Client Preview, direct Client and mobile regression states;
+5. record exact commit / CI / visual evidence;
+6. **STOP and ask Owner for an explicit merge command.**
 
-1. work only on `feat/p3-5a-wall-finishing`;
-2. reuse the merged generic operation-authoring mechanism;
-3. add separate real wall operations:
-   - Шлайфане;
-   - Грунд;
-   - Боядисване;
-4. wall targets only in P3.5a;
-5. use the existing wall net-area/opening-deduction quantity truth where applicable;
-6. preserve independent service inclusion and dynamic per-offer EUR unit price;
-7. preserve compact mobile authoring, persistence, Undo/Redo and Offer ↔ Model behavior;
-8. add/adjust tests for operation authoring, quantity, pricing/persistence and regression;
-9. run browser/mobile visual verification before requesting review;
-10. **do not implement ceiling, plaster or reinforced/base putty in P3.5a**;
-11. report the exact user-visible result and verification evidence;
-12. **STOP for Work Controller review; no merge without explicit Owner merge approval.**
+Do not:
+- merge PR #22 or the D1 stacked PRs directly;
+- start Mobile Work redesign;
+- start P3.6 or another product phase;
+- change the approved P3.5/D1 behavior during reconciliation.
 
-There is currently:
-- no P3.5 feature branch;
-- no P3.5 PR;
-- no P3.5 product-code implementation.
-
+**NEXT: build and verify the single integration candidate. No merge is authorized yet.**

@@ -717,3 +717,51 @@ the service source explicitly distinguishes ceilings as more labor-intensive, wh
 
 This is an application of the Uniqueness Interrupt Gate: extend the existing service→target→quantity→price mechanism rather than adding a superficial ceiling checkbox that creates pricing ambiguity.
 
+
+
+## 27.09.2026 — Applicable ceiling scope is included by default
+
+**Owner decision after live-preview review:** when a selected finishing operation can apply to both walls and ceiling, the ceiling is part of the service scope **by default**.
+
+Active behavior:
+- selecting an applicable service should not force Work to add the ceiling manually;
+- Work may explicitly exclude/remove the ceiling when the job does not include it;
+- walls and ceiling remain separate quantity/price scopes where unit prices can differ;
+- the product must not create fake duplicate catalog services such as separate “Боядисване стени” and “Боядисване таван”.
+
+Reason:
+manual opt-in for the ceiling adds unnecessary work to normal offer preparation. The default should optimize the common Work flow while preserving exact scope and pricing truth.
+
+
+## 27.09.2026 — Desktop Work redesign is split into D1.1–D1.5 and executed strictly one by one
+
+**Owner decision after live desktop review:** the current Work layout requires too much vertical movement between scheme, services and offer and will not scale to the planned number of controls/services.
+
+Approved desktop direction:
+- Desktop Work becomes a three-zone workbench: **geometry left → persistent 3D center → services/offer right**;
+- the goal is faster real offer preparation, not a generic planner-style redesign;
+- the distinctive mechanism remains the direct link **object/surface → service → scope → quantity → EUR price → Info**;
+- Mobile Work and Client Preview are separate later UX tasks and are not redesigned inside D1.
+
+Approved bounded sequence:
+**D1.1 skeleton → D1.2 left panel → D1.3 right Smart Offer panel → D1.4 contextual 3D↔Work link → D1.5 desktop acceptance QA.**
+
+Execution rule:
+**only one D1 step may be active at a time.** Completing or approving D1.1 does not authorize D1.2 automatically.
+
+## 08.10.2026 — Owner approves P3.5a+b as Desktop D1 dependency
+
+**Owner decision:** the verified P3.5a+b wall/ceiling finishing foundation is approved as the dependency under the already approved Desktop D1.
+
+Approved behavior:
+- Fine Putty / Gypsum Putty / Sanding / Primer / Paint remain separate real operations;
+- applicable finishing services default to walls + ceiling;
+- wall and ceiling remain separate quantity/price scopes with independent Work-entered EUR unit prices;
+- wall quantity uses opening-aware net m²; ceiling quantity uses room width × length;
+- ceiling may be excluded independently;
+- both scopes keep the same real service identity rather than fake duplicate catalog services;
+- Client remains read-only;
+- plaster/base-putty/broader catalog remain deferred.
+
+This approval does **not** authorize merge. The next gate is one reconciled integration candidate against current `main`, full final acceptance, visual verification, then an explicit Owner merge command.
+

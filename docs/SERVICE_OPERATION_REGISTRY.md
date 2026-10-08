@@ -22,7 +22,7 @@ The source roles are strict:
 - **Relevant `narachnik/` guide** → deeper explanation for Smart Offer ⓘ Info: what the service is, why it is done, dependencies/common mistakes where supported, and what result the client receives.
 - **This registry** → normalized Smart Offer operation taxonomy, units, targets, dependencies and presentation mode.
 - **`Traqnivanov/ivanov-tools/kalkulator-combined.html`** → audited reference for M²/formulas/technical-schema workflows only; it is not the service catalog and is not a pricing authority.
-- **Versioned Price Book** → canonical Smart Offer price authority.
+- **Work-entered per-offer EUR unit price** → canonical Smart Offer price authority. There is no fixed global product Price Book as business truth.
 
 Client Info source order is:
 
@@ -57,7 +57,7 @@ If source wording is ambiguous or two sources materially conflict, **do not merg
 - **Предложена вътрешна разбивка** — how the service may be modeled inside Smart Offer; it is not automatically Owner-approved fact until accepted.
 - **Поддържащ модул** — нужен за реалния ремонт/визуализация, но не непременно отделна основна рекламна услуга.
 
-Цените по-долу са **snapshot/reference от source repo**, не вечни правила и не runtime source of truth. В програмата current/production pricing влиза само през отделния editable/versioned Price Book.
+Цените по-долу са **snapshot/reference от source repo**, не вечни правила и не runtime source of truth. В Smart Offer единичната цена се въвежда в Work за конкретната услуга/оферта в EUR и се пази с проекта.
 
 ## 2. Потвърдени основни услуги
 
@@ -301,7 +301,7 @@ Source snapshot:
 - силикони/фуги;
 - финален монтаж.
 
-Не се фиксират цени, докато Price Book не е одобрен.
+Не се фиксират глобални продуктови цени. Конкретната EUR единична цена се въвежда в Work за конкретната оферта.
 
 ### 3.2 Плочки и фаянс
 
@@ -391,7 +391,7 @@ Source snapshot:
 - брой/точки;
 - позиция на стена/таван.
 
-Ценообразуването се включва само когато Owner одобри конкретен Price Book.
+Ценообразуването използва Work-въведена EUR единична цена за конкретната оферта; source/legacy цените остават само reference.
 
 ### 4.2 Радиатори
 
