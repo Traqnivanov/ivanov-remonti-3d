@@ -1258,6 +1258,11 @@ async function runWorkSmoke() {
       'document.querySelector("[data-d13-tab=scope]").classList.contains("active") && document.querySelectorAll("#d14ContextServices [data-d14-service-id]").length === 1 && document.querySelector("#d14ContextServices [data-d14-service-id=assignment-fine-putty-1]")?.classList.contains("active") && !document.querySelector("#finePuttyTargetsSection").hidden && !document.querySelector("[data-service-scope-target=fine-putty-ceiling]")',
       "D1.4: single-service wall click did not route to the exact Fine Putty wall scope",
     );
+    await assertEval(
+      session,
+      '(() => { const exact = parseFloat(document.querySelector("#d14BreakdownQuantity").textContent.replace(",", ".")); return !document.querySelector("#d14ContextBreakdown").hidden && document.querySelector("#d14BreakdownQuantityLabel").textContent === "Нето" && Number.isFinite(exact) && exact > 0 && exact < 43.59 && document.querySelector("#quantityText").textContent.includes("43,59") && document.querySelector("#d14BreakdownPrice").textContent.includes("Без цена") && document.querySelector("#d14FullScopeDetails").open === false && document.querySelector("#d14FullScopeSummary").textContent.includes("Общ обхват"); })()',
+      "D1.4b: selected wall is not the leading exact-position context while the full offer scope stays unchanged",
+    );
     await saveScreenshot(session, "/tmp/d14-surface-context.png");
 
     await evaluate(
@@ -1289,6 +1294,41 @@ async function runWorkSmoke() {
       `document.querySelector("#d14ContextServices [data-d14-service-id=assignment-paint-1]").classList.contains("active") && document.querySelector("#operationSummary-paint")?.getAttribute("aria-expanded") === "true" && Boolean(document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-scope="walls"]')) && !document.querySelector('[data-operation-id="assignment-paint-1"][data-operation-scope="ceiling"]') && document.querySelectorAll("#offerRows .offer-row.selected").length === 1 && document.querySelector("#offerRows .offer-row.selected")?.dataset.serviceId === "assignment-paint-1" && document.querySelector("#selectionChip")?.textContent.includes("стена")`,
       "D1.4: choosing Paint did not keep the wall selected and isolate the exact Paint wall context",
     );
+    const d14PaintExactBeforeScope = await evaluate(
+      session,
+      'document.querySelector("#d14BreakdownQuantity").textContent',
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#d14BreakdownService").textContent.includes("Боядисване") && document.querySelector("#d14BreakdownPrice").textContent.includes("Без цена") && document.querySelector("#d14FullScopeDetails").open === false && document.querySelector("#d14FullScopeSummary").textContent.includes("4 стени + таван")',
+      "D1.4b: Paint exact-position card did not lead while full 4-wall+ceiling scope stayed secondary",
+    );
+    await saveScreenshot(session, "/tmp/d14-selected-surface-leading.png");
+
+    await evaluate(
+      session,
+      'document.querySelector("#d14FullScopeSummary").click()',
+    );
+    await delay(60);
+    await assertEval(
+      session,
+      'document.querySelector("#d14FullScopeDetails").open === true && document.querySelectorAll("[data-operation-target]").length === 4 && Boolean(document.querySelector(\'[data-operation-id="assignment-paint-1"][data-operation-scope="walls"]\'))',
+      "D1.4b: secondary full-scope editor cannot be opened on demand",
+    );
+    const d14PaintExactAfterScope = await evaluate(
+      session,
+      'document.querySelector("#d14BreakdownQuantity").textContent',
+    );
+    if (d14PaintExactAfterScope !== d14PaintExactBeforeScope) {
+      throw new Error(
+        "D1.4b: opening the full-scope editor changed the selected-wall quantity",
+      );
+    }
+    await evaluate(
+      session,
+      'document.querySelector("#d14FullScopeSummary").click()',
+    );
+    await delay(40);
 
     await evaluate(
       session,

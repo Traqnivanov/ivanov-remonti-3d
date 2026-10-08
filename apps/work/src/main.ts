@@ -35,6 +35,7 @@ import {
 import {
   calculateDynamicOfferLine,
   calculateDynamicOfferSummary,
+  calculateEntityOfferBreakdown,
   setAssignmentUnitPriceEur,
   type DynamicOfferLineCalculation,
   type QuantityUnit,
@@ -281,6 +282,7 @@ let offerInteraction = initialIncludedService
 let expandedOperationId: string | null = null;
 let expandedOpeningId: string | null = null;
 let selectedOpeningId: string | null = null;
+let fullScopeExpandedInContext = false;
 let desktopRightPane: "services" | "scope" | "price" = "services";
 const desktopWorkbenchMedia = window.matchMedia("(min-width: 981px)");
 let autoCutaway = true;
@@ -413,6 +415,29 @@ app.innerHTML = `
             <strong id="d14ContextEntity"></strong>
           </div>
           <div id="d14ContextServices" class="d14-context-services"></div>
+
+          <div id="d14ContextBreakdown" class="d14-context-breakdown" hidden>
+            <div class="d14-breakdown-title">
+              <span>Точна позиция</span>
+              <strong id="d14BreakdownService"></strong>
+            </div>
+            <div class="d14-breakdown-grid">
+              <div>
+                <span id="d14BreakdownQuantityLabel">Количество</span>
+                <strong id="d14BreakdownQuantity">—</strong>
+              </div>
+              <div>
+                <span>Цена</span>
+                <strong id="d14BreakdownPrice">—</strong>
+              </div>
+              <div>
+                <span>Сума</span>
+                <strong id="d14BreakdownTotal">—</strong>
+              </div>
+            </div>
+            <p id="d14BreakdownScope" class="d14-breakdown-scope"></p>
+          </div>
+
           <p id="d14ContextHint" class="d14-context-hint"></p>
         </section>
 
@@ -438,16 +463,20 @@ app.innerHTML = `
             Избери услуга от „Услуги“, за да настроиш обхвата ѝ.
           </div>
 
-          <section class="section" id="finePuttyTargetsSection">
-            <div class="section-title">Фина шпакловка · обхват</div>
-            <div id="wallTargets"></div>
-          </section>
+          <details id="d14FullScopeDetails" class="d14-full-scope-details" open>
+            <summary id="d14FullScopeSummary">Общ обхват на услугата</summary>
 
-          <section class="section" id="operationSettingsSection">
-            <div class="section-title">Настройки на услуга</div>
-            <div id="operationAuthoring"></div>
-            <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
-          </section>
+            <section class="section" id="finePuttyTargetsSection">
+              <div class="section-title">Фина шпакловка · обхват</div>
+              <div id="wallTargets"></div>
+            </section>
+
+            <section class="section" id="operationSettingsSection">
+              <div class="section-title">Настройки на услуга</div>
+              <div id="operationAuthoring"></div>
+              <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
+            </section>
+          </details>
         </div>
 
         <div class="d13-pane d13-price-pane active-for-client" data-d13-pane="price">
@@ -563,6 +592,16 @@ function wireControls(): void {
     renderServiceScopeControls();
   });
 
+  mustGet<HTMLDetailsElement>("d14FullScopeDetails").addEventListener(
+    "toggle",
+    () => {
+      const details = mustGet<HTMLDetailsElement>("d14FullScopeDetails");
+      if (details.classList.contains("context-secondary")) {
+        fullScopeExpandedInContext = details.open;
+      }
+    },
+  );
+
   mustGet("resetCameraBtn").addEventListener("click", () => viewer.resetCamera());
 
   mustGet("autoCutawayBtn").addEventListener("click", () => {
@@ -668,6 +707,7 @@ function routeModelServiceContext(assignmentId: string): void {
 
 function handleModelEntitySelect(id: SurfaceId): void {
   selectedOpeningId = null;
+  fullScopeExpandedInContext = false;
   const linkedAssignments = getLinkedServiceAssignments(project, id);
 
   if (linkedAssignments.length === 1) {
@@ -722,32 +762,112 @@ function handleOpeningSelect(id: string): void {
   }
 }
 
-function renderD14ModelContext(): void {
+function describeIncludedServiceScope(
+  sourceProject: ProjectState,
+  serviceCode: string,
+): string {
+  const assignments = sourceProject.serviceAssignments.filter(
+    (assignment) =>
+      assignment.included && assignment.serviceCode === serviceCode,
+  );
+  const walls = new Set<SurfaceId>();
+  let hasCeiling = false;
+  let hasFloor = false;
+
+  for (const assignment of assignments) {
+    for (const id of assignment.targetEntityIds) {
+      if (wallIds.includes(id as WallId)) walls.add(id);
+      if (id === "room-1.ceiling") hasCeiling = true;
+      if (id === "room-1.floor") hasFloor = true;
+    }
+  }
+
+  const parts: string[] = [];
+  if (walls.size > 0) {
+    parts.push(
+      `${walls.size} ${walls.size === 1 ? "стена" : "стени"}`,
+    );
+  }
+  if (hasCeiling) parts.push("таван");
+  if (hasFloor) parts.push("под");
+
+  return parts.length > 0 ? parts.join(" + ") : "няма избран обхват";
+}
+
+function syncD14FullScopePresentation(
+  sourceProject: ProjectState = project,
+): void {
+  const details = mustGet<HTMLDetailsElement>("d14FullScopeDetails");
+  const summary = mustGet("d14FullScopeSummary");
+  const selectedEntity = offerInteraction.selectedEntity;
+  const selectedAssignmentId = offerInteraction.selectedServiceId;
+  const contextActive =
+    desktopWorkbenchMedia.matches &&
+    currentCapabilities().canAuthorProject &&
+    Boolean(selectedEntity && selectedAssignmentId);
+
+  details.classList.toggle("context-secondary", contextActive);
+
+  if (!contextActive) {
+    details.open = true;
+    summary.textContent = "Общ обхват на услугата";
+    return;
+  }
+
+  const assignment = sourceProject.serviceAssignments.find(
+    (item) => item.id === selectedAssignmentId,
+  );
+  const scope = assignment
+    ? describeIncludedServiceScope(sourceProject, assignment.serviceCode)
+    : "";
+
+  summary.textContent =
+    scope ? `Общ обхват · ${scope}` : "Общ обхват на услугата";
+  details.open = fullScopeExpandedInContext;
+}
+
+function renderD14ModelContext(
+  sourceProject: ProjectState = project,
+): void {
   const context = mustGet<HTMLElement>("d14ModelContext");
   const entityLabel = mustGet("d14ContextEntity");
   const choices = mustGet("d14ContextServices");
+  const breakdown = mustGet<HTMLElement>("d14ContextBreakdown");
+  const breakdownService = mustGet("d14BreakdownService");
+  const breakdownQuantityLabel = mustGet("d14BreakdownQuantityLabel");
+  const breakdownQuantity = mustGet("d14BreakdownQuantity");
+  const breakdownPrice = mustGet("d14BreakdownPrice");
+  const breakdownTotal = mustGet("d14BreakdownTotal");
+  const breakdownScope = mustGet("d14BreakdownScope");
   const hint = mustGet("d14ContextHint");
 
   choices.replaceChildren();
+  breakdown.hidden = true;
+  breakdownService.textContent = "";
+  breakdownQuantity.textContent = "—";
+  breakdownPrice.textContent = "—";
+  breakdownTotal.textContent = "—";
+  breakdownScope.textContent = "";
 
   if (!offerInteraction.selectedEntity) {
     context.hidden = true;
     entityLabel.textContent = "";
     hint.textContent = "";
+    syncD14FullScopePresentation(sourceProject);
     return;
   }
 
-  const surface = project.room.surfaces.find(
-    (item) => item.id === offerInteraction.selectedEntity,
+  const selectedEntity = offerInteraction.selectedEntity;
+  const surface = sourceProject.room.surfaces.find(
+    (item) => item.id === selectedEntity,
   );
   const linkedAssignments = getLinkedServiceAssignments(
-    project,
-    offerInteraction.selectedEntity,
+    sourceProject,
+    selectedEntity,
   );
 
   context.hidden = false;
-  entityLabel.textContent =
-    surface?.label ?? offerInteraction.selectedEntity;
+  entityLabel.textContent = surface?.label ?? selectedEntity;
 
   if (linkedAssignments.length === 0) {
     hint.textContent =
@@ -762,6 +882,7 @@ function renderD14ModelContext(): void {
       syncDesktopRightPane();
     });
     choices.append(showServices);
+    syncD14FullScopePresentation(sourceProject);
     return;
   }
 
@@ -789,6 +910,7 @@ function renderD14ModelContext(): void {
     button.addEventListener("click", () => {
       if (!offerInteraction.selectedEntity) return;
 
+      fullScopeExpandedInContext = false;
       offerInteraction = selectModelEntityService(
         project,
         offerInteraction.selectedEntity,
@@ -805,17 +927,56 @@ function renderD14ModelContext(): void {
     choices.append(button);
   }
 
+  const selectedAssignmentId = offerInteraction.selectedServiceId;
+  const selectedAssignment = selectedAssignmentId
+    ? sourceProject.serviceAssignments.find(
+        (assignment) => assignment.id === selectedAssignmentId,
+      )
+    : null;
+  const exactBreakdown =
+    selectedAssignmentId
+      ? calculateEntityOfferBreakdown(
+          sourceProject,
+          selectedAssignmentId,
+          selectedEntity,
+        )
+      : null;
+
+  if (selectedAssignment && exactBreakdown) {
+    const unit = formatQuantityUnit(exactBreakdown.quantity.unit);
+    const isWall =
+      selectedAssignment.quantityRuleId === "wall-net-area-openings-v1";
+
+    breakdown.hidden = false;
+    breakdownService.textContent = selectedAssignment.label;
+    breakdownQuantityLabel.textContent = isWall ? "Нето" : "Количество";
+    breakdownQuantity.textContent =
+      `${formatNumber(exactBreakdown.quantity.value)} ${unit}`;
+    breakdownPrice.textContent =
+      exactBreakdown.unitPriceEur === null
+        ? "Без цена"
+        : `${formatMoney(exactBreakdown.unitPriceEur)} €/${unit}`;
+    breakdownTotal.textContent =
+      exactBreakdown.totalEur === null
+        ? "—"
+        : `${formatMoney(exactBreakdown.totalEur)} €`;
+    breakdownScope.textContent =
+      `Общ обхват на „${selectedAssignment.label}“: ` +
+      describeIncludedServiceScope(
+        sourceProject,
+        selectedAssignment.serviceCode,
+      );
+  }
+
   if (linkedAssignments.length > 1 && !offerInteraction.selectedServiceId) {
     hint.textContent =
       "Тази повърхност участва в няколко услуги. Избери коя редактираш.";
   } else {
     hint.textContent =
-      assignmentHasEditableScope(
-        offerInteraction.selectedServiceId ?? linkedAssignments[0]!.id,
-      )
-        ? "Показан е точният работен обхват за избраната повърхност."
-        : "Показани са количеството, цената и Info за избраната позиция.";
+      "3D изборът е само фокус. Количествата и цените на общата оферта не се променят.";
   }
+
+  syncD14FullScopePresentation(sourceProject);
 }
 
 function syncDesktopRightPane(): void {
@@ -2140,6 +2301,7 @@ function renderOffer(
   sourceProject: ProjectState = project,
   priceInputRaw?: string,
 ): void {
+  renderD14ModelContext(sourceProject);
   const summary = calculateDynamicOfferSummary(sourceProject);
   const lines = summary.lines;
   const focusedIds = new Set(

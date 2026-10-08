@@ -6,6 +6,7 @@ import {
   calculateLineTotalEur,
   calculateDynamicOfferLine,
   calculateDynamicOfferSummary,
+  calculateEntityOfferBreakdown,
   calculateSupportedOfferLine,
   calculateSupportedOfferLines,
   setAssignmentUnitPriceEur,
@@ -168,6 +169,63 @@ describe("laminate flooring quantity", () => {
       quantity.value * devLaminateFlooringPriceBookItem.unitPriceEur,
       8,
     );
+  });
+});
+
+describe("selected surface offer breakdown", () => {
+  it("calculates the exact net wall quantity without changing the assignment scope", () => {
+    const project = createOpeningProofProject();
+    const assignment = getFinePuttyAssignment(project);
+    const originalTargets = [...assignment.targetEntityIds];
+    assignment.unitPriceEur = 5;
+
+    const breakdown = calculateEntityOfferBreakdown(
+      project,
+      assignment.id,
+      "room-1.wall-front",
+    );
+
+    expect(breakdown?.quantity.value).toBeCloseTo(
+      project.room.widthM * project.room.heightM - 0.9 * 2.1,
+      8,
+    );
+    expect(breakdown?.quantity.unit).toBe("m2");
+    expect(breakdown?.unitPriceEur).toBe(5);
+    expect(breakdown?.totalEur).toBeCloseTo(
+      (project.room.widthM * project.room.heightM - 0.9 * 2.1) * 5,
+      8,
+    );
+    expect(assignment.targetEntityIds).toEqual(originalTargets);
+  });
+
+  it("returns missing-price state for an included selected surface without a price", () => {
+    const project = createOpeningProofProject();
+    const assignment = getFinePuttyAssignment(project);
+    delete assignment.unitPriceEur;
+
+    const breakdown = calculateEntityOfferBreakdown(
+      project,
+      assignment.id,
+      "room-1.wall-front",
+    );
+
+    expect(breakdown?.priceStatus).toBe("missing");
+    expect(breakdown?.unitPriceEur).toBeNull();
+    expect(breakdown?.totalEur).toBeNull();
+  });
+
+  it("returns null when the selected surface is outside the assignment scope", () => {
+    const project = createOpeningProofProject();
+    const assignment = getFinePuttyAssignment(project);
+    assignment.targetEntityIds = ["room-1.wall-back"];
+
+    expect(
+      calculateEntityOfferBreakdown(
+        project,
+        assignment.id,
+        "room-1.wall-front",
+      ),
+    ).toBeNull();
   });
 });
 

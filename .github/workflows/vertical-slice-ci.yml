@@ -9,6 +9,7 @@ on:
       - "feat/d1-3-right-smart-offer-panel"
       - "feat/d1-4-context-link"
       - "fix/work-auth-session-recovery"
+      - "feat/d1-4b-selected-surface-context"
   pull_request:
     branches:
       - main
@@ -130,6 +131,7 @@ jobs:
             /tmp/d14-surface-context.png
             /tmp/d14-multi-service-context.png
             /tmp/d14-opening-context.png
+            /tmp/d14-selected-surface-leading.png
             /tmp/m0-mobile-readable-390.png
             /tmp/m0-mobile-readable-412.png
             /tmp/m0-mobile-readable-wide.png
