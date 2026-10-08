@@ -1220,6 +1220,26 @@ async function runWorkSmoke() {
       "P3.4b: Work should expose the price input and hide the client-only price value",
     );
 
+    const beforeViewerInput = await captureElement(session, "#viewer canvas");
+    await smokeViewerInput(session);
+    await waitForNextPaint(session);
+    const afterViewerInput = await captureElement(session, "#viewer canvas");
+    assertScreenshotChanged(
+      beforeViewerInput,
+      afterViewerInput,
+      "Work: orbit/zoom input did not change the rendered view",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#projectBarStatus").textContent.includes("Запазено")',
+      "Work: viewer-only interaction incorrectly dirtied project state",
+    );
+    await assertEval(
+      session,
+      'document.querySelector("#undoProjectButton").disabled && document.querySelector("#redoProjectButton").disabled',
+      "P3.3b: viewer-only interaction incorrectly entered project history",
+    );
+
     const d14WallPoint = await clickViewerUntil(
       session,
       'document.querySelector("#selectionChip")?.textContent.includes("стена") && !document.querySelector("#d14ModelContext").hidden',
@@ -1314,26 +1334,6 @@ async function runWorkSmoke() {
       session,
       'document.querySelector("#projectBarStatus").textContent.includes("Запазено") && document.querySelector("#undoProjectButton").disabled && document.querySelector("#redoProjectButton").disabled',
       "D1.4 QA reset did not restore a clean canonical Work project",
-    );
-
-    const beforeViewerInput = await captureElement(session, "#viewer canvas");
-    await smokeViewerInput(session);
-    await waitForNextPaint(session);
-    const afterViewerInput = await captureElement(session, "#viewer canvas");
-    assertScreenshotChanged(
-      beforeViewerInput,
-      afterViewerInput,
-      "Work: orbit/zoom input did not change the rendered view",
-    );
-    await assertEval(
-      session,
-      'document.querySelector("#projectBarStatus").textContent.includes("Запазено")',
-      "Work: viewer-only interaction incorrectly dirtied project state",
-    );
-    await assertEval(
-      session,
-      'document.querySelector("#undoProjectButton").disabled && document.querySelector("#redoProjectButton").disabled',
-      "P3.3b: viewer-only interaction incorrectly entered project history",
     );
 
     const finePuttyFocusedView = await captureElement(session, "#viewer canvas");
