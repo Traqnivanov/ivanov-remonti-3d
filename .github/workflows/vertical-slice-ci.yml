@@ -8,6 +8,7 @@ on:
       - "feat/d1-2-left-work-panel"
       - "feat/d1-3-right-smart-offer-panel"
       - "feat/d1-4-context-link"
+      - "fix/work-auth-session-recovery"
   pull_request:
     branches:
       - main
