@@ -322,10 +322,10 @@ Superseded continuity item:
 
 Active Current Work:
 - Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
-- D1.4 final head `c1fa1cb666eae16f33e9e100b2ba9925736b6e99`;
-- CI `36903279668` SUCCESS;
+- D1.4 final head `c14291d57ac1513a00f9a4ddc76b255d9445075a`;
+- CI `37820642215` SUCCESS;
 - 17/17 test files, **163/163 tests PASS**;
-- Pages deploy `36903510087` SUCCESS from the exact final head.
+- Pages deploy `37820817701` SUCCESS from the exact final head.
 
 D1.4 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
 
