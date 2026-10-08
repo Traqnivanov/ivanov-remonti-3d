@@ -305,58 +305,114 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
+**CURRENT WORK:** Issue #21 — `[CURRENT WORK] P3.5a+b — Owner product decision gate`.
+
 Desktop D1:
 - D1.1–D1.5 are **OWNER-APPROVED / NOT MERGED**;
-- final approved head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
-- final CI `37832808003` SUCCESS;
-- 169/169 tests PASS.
+- Issue #23 is now `[OWNER-APPROVED / NOT MERGED] D1 — Desktop Workbench UX`;
+- final approved D1 head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- final CI `37832808003`: SUCCESS;
+- 17/17 test files / 169/169 tests PASS;
+- final live Desktop result was reviewed by Owner and accepted.
 
 P3.5 dependency:
-- PR #22 is now accurately described as **P3.5a+b — Wall/Ceiling finishing foundation**;
-- Issue #21 is at **OWNER REVIEW GATE**;
-- head `cab113478d250c4e74221a6367f883cb5f543881`;
-- CI `36343470472` SUCCESS;
-- 161/161 tests PASS.
+- PR #22 title/body are synchronized to the actual scope:
+  **P3.5a+b — Wall/Ceiling finishing foundation**;
+- PR #22 is DRAFT / NOT MERGED;
+- head: `cab113478d250c4e74221a6367f883cb5f543881`;
+- CI `36343470472`: SUCCESS;
+- 17/17 test files / 161/161 tests PASS.
 
-Audit result:
-- no P3.5a+b product blocker found;
-- service taxonomy remains distinct;
-- exact wall quantities deduct openings;
-- ceiling quantity uses width × length;
+P3.5 product audit result:
+- no product blocker found in the implemented P3.5a+b foundation;
+- Fine Putty / Gypsum Putty / Sanding / Primer / Paint remain distinct operations;
+- ordinary plaster ≠ putty remains protected;
+- reinforced/base putty, drywall-joint expansion and decorative plaster remain separate/deferred;
+- wall quantity is exact net m² with opening deductions;
+- ceiling quantity is width × length;
 - applicable service selection defaults to walls + ceiling;
-- wall/ceiling are separate priced scopes using the same real service identity;
-- dynamic EUR price truth preserved;
-- new real projects remain blank-service;
-- plaster / reinforced-base putty / broad service expansion remain deferred.
+- ceiling can be excluded independently;
+- wall and ceiling keep separate quantities/prices but the same real service identity;
+- dynamic Work-entered EUR pricing remains canonical;
+- blank price is never treated as zero;
+- Client remains read-only;
+- downstream D1.5 proves the foundation through Save/Open + Client Preview.
 
-All stacked PRs were previously checked as mergeable/clean, but **no merge is authorized**.
+Important documentation correction already completed:
+- stale Issue #21 planning text was replaced with the real P3.5a+b Owner review gate;
+- stale PR #22 title/body were synchronized to actual P3.5a+b;
+- CURRENT WORK marker moved from finished D1 Issue #23 to P3.5 Issue #21.
+
+No merge is authorized.
 
 ---
 
 ## 10. CURRENT NEXT — OWNER PRODUCT DECISION ON P3.5a+b
 
-Explain P3.5a+b in plain product terms and obtain an explicit Owner decision.
+The next chat must **not restart the audit** and must **not ask Owner to explain the project again**.
+
+First response to Owner:
+- give a very short startup confirmation from the repo;
+- explain P3.5a+b in plain product terms;
+- ask for the one required product decision: approve or reject/change this foundation.
+
+Product decision being presented:
+- finishing operations remain separate;
+- walls use opening-aware net m²;
+- ceiling uses width × length;
+- finishing services applicable to both default to walls + ceiling;
+- ceiling is independently removable;
+- wall and ceiling can have different EUR prices;
+- they remain one real service identity, not fake duplicate catalog services;
+- no fixed global prices;
+- plaster/base putty/broader catalog remain deferred.
 
 If Owner approves P3.5a+b:
-1. prepare one safe integration candidate containing the approved dependency + approved Desktop D1;
-2. sync/rebase only as needed, without altering product behavior;
-3. rerun full final acceptance against the integration candidate;
-4. STOP for explicit Owner merge command.
+1. record explicit approval in Issue #21 + current state;
+2. prepare **one safe integration candidate** containing approved P3.5 + approved Desktop D1;
+3. reconcile current `main` and the stacked branch without product-behavior changes;
+4. run full final acceptance on the integration candidate;
+5. visually verify affected Work/Client states;
+6. STOP and ask for an explicit merge command.
 
-If Owner rejects/changes P3.5a+b:
-- do not merge the D1 stack;
-- modify only the affected dependency behavior after a bounded approved correction.
+If Owner rejects or changes P3.5a+b:
+- do not merge D1;
+- change only the affected P3.5 behavior after a bounded approved correction;
+- rerun impacted acceptance;
+- return to Owner.
 
 No new product phase starts automatically.
 
 ---
 
-## 11. D1 / P3.5 STATUS
+## 11. STACK / MERGE STATUS
 
-- P3.5a+b — technically verified, awaiting explicit Owner product approval.
-- D1.1–D1.5 — Owner-approved, awaiting dependency resolution + integration gate.
-- Mobile Work redesign — deferred; not active.
-- No merge authorized.
+Open dependency chain:
+- PR #22 — P3.5a+b → `main`;
+- PR #24 — D1.1 → #22 branch;
+- PR #25 — D1.2 → #24 branch;
+- PR #27 — canonical D1.3 → #25 branch;
+- PR #28 — D1.4 → #27 branch;
+- PR #29 — Work auth stale-session recovery → #28 branch;
+- PR #30 — D1.4b selected-surface refinement → #29 branch;
+- PR #31 — D1.5 acceptance → #30 branch.
+
+Historical/superseded:
+- PR #26 = old D1.3, CLOSED / SUPERSEDED by PR #27.
+
+Last audit before this handoff:
+- the open stack was checked as mergeable/clean at that checkpoint;
+- **do not assume merge safety later without rechecking current Git state**.
+
+Owner authority:
+- Desktop D1 is approved;
+- P3.5a+b is **not yet explicitly Owner-approved**;
+- no PR in this stack has merge permission;
+- only an explicit Owner merge command authorizes merge.
+
+Mobile:
+- final Mobile Work redesign is deferred and is **not active**;
+- only the existing M0 readability baseline is in the stack.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
