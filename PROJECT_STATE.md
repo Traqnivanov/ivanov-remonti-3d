@@ -259,32 +259,36 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**DEPENDENCY GATE — P3.5 before any Desktop D1 merge.**
+**OWNER PRODUCT DECISION — P3.5a+b wall/ceiling finishing foundation.**
 
-Owner decision:
-- final Desktop D1 (D1.1–D1.5) is **APPROVED**;
-- Desktop D1 remains **NOT MERGED**.
+Dependency audit is complete.
 
-Final approved D1 evidence:
-- final head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
-- CI `37832808003`: **SUCCESS**;
-- 17/17 test files, **169/169 tests PASS**;
-- full Desktop acceptance + Mobile/Client regression: **PASS**;
-- Pages deploy `37833097638`: **SUCCESS** from exact final head.
+Verified P3.5a+b product behavior:
+- real operations remain distinct: Fine Putty / Gypsum Putty / Sanding / Primer / Paint;
+- wall quantity = exact selected wall net m² with opening deductions;
+- ceiling quantity = room width × length;
+- selecting an applicable finishing service defaults to **walls + ceiling**;
+- ceiling can be excluded independently;
+- wall and ceiling remain separate offer lines/scopes with independent EUR unit prices;
+- both scopes keep the same real service identity / serviceCode;
+- dynamic per-offer EUR pricing remains canonical;
+- missing price is never silently zero;
+- real new projects still start with no services selected;
+- Client remains read-only;
+- plaster / reinforced-base putty / broad catalog are explicitly deferred.
 
-Stack audit:
-- #22 P3.5 → main: clean;
-- #24 → #22: clean;
-- #25 → #24: clean;
-- #27 → #25: clean;
-- #28 → #27: clean;
-- #29 → #28: clean;
-- #30 → #29: clean;
-- #31 → #30: clean.
+Evidence:
+- P3.5 head: `cab113478d250c4e74221a6367f883cb5f543881`;
+- P3.5 CI `36343470472`: SUCCESS, 161/161 tests PASS;
+- downstream accepted Desktop D1.5 head `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- D1.5 CI `37832808003`: SUCCESS, 169/169 tests PASS;
+- D1.5 exercises opening-aware walls + separate wall/ceiling prices + Save/Open + Client Preview.
 
-Important:
-- Desktop D1 approval does **not** implicitly approve P3.5 PR #22;
-- no D1/P3.5 merge is authorized yet.
+Documentation drift was reconciled:
+- Issue #21 updated from stale planning-only state to current Owner review gate;
+- PR #22 title/body updated to actual P3.5a+b scope.
 
-**NEXT: resolve the P3.5 dependency (#21 / PR #22) as a separate Owner product decision. After that, prepare one safe integration path to `main`, rerun full acceptance, and STOP for explicit merge approval.**
+Criteria Check: **PASS** across product logic, clarity, quantity truth, EUR price truth, persistence, mobile baseline, scalability and trust.
+
+**NEXT: Owner explicitly approves or rejects P3.5a+b as the dependency under approved Desktop D1. No merge is authorized yet.**
 
