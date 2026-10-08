@@ -801,7 +801,10 @@ function syncD14FullScopePresentation(
   const summary = mustGet("d14FullScopeSummary");
   const selectedEntity = offerInteraction.selectedEntity;
   const selectedAssignmentId = offerInteraction.selectedServiceId;
-  const contextActive = Boolean(selectedEntity && selectedAssignmentId);
+  const contextActive =
+    desktopWorkbenchMedia.matches &&
+    currentCapabilities().canAuthorProject &&
+    Boolean(selectedEntity && selectedAssignmentId);
 
   details.classList.toggle("context-secondary", contextActive);
 
