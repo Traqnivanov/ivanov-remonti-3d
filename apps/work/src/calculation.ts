@@ -5,6 +5,7 @@ import {
   type ClientInfo,
   type ProjectState,
   type ServiceAssignment,
+  type SurfaceId,
   type WallId,
 } from "./domain";
 import { getWallNetAreaM2, summarizeRoomGeometry } from "./geometry";
@@ -65,6 +66,15 @@ export type DynamicOfferSummary = {
   missingPriceAssignmentIds: string[];
 };
 
+export type EntityOfferBreakdown = {
+  assignmentId: string;
+  entityId: SurfaceId;
+  quantity: QuantityResult;
+  unitPriceEur: number | null;
+  totalEur: number | null;
+  priceStatus: "missing" | "priced";
+};
+
 export const devFinePuttyPriceBookItem: PriceBookItem = {
   id: "dev-fine-putty",
   label: "Фина шпакловка — DEV",
@@ -91,10 +101,37 @@ export const devGypsumPuttyPriceBookItem: PriceBookItem = {
   devOnly: true,
 };
 
+export const devSandingPriceBookItem: PriceBookItem = {
+  id: "dev-sanding",
+  label: "Шлайфане — DEV",
+  unit: "m2",
+  unitPriceEur: 1,
+  devOnly: true,
+};
+
+export const devPrimerPriceBookItem: PriceBookItem = {
+  id: "dev-primer",
+  label: "Грунд — DEV",
+  unit: "m2",
+  unitPriceEur: 1,
+  devOnly: true,
+};
+
+export const devPaintPriceBookItem: PriceBookItem = {
+  id: "dev-paint",
+  label: "Боядисване — DEV",
+  unit: "m2",
+  unitPriceEur: 1,
+  devOnly: true,
+};
+
 const devPriceBookItems: Record<string, PriceBookItem> = {
   [devFinePuttyPriceBookItem.id]: devFinePuttyPriceBookItem,
   [devLaminateFlooringPriceBookItem.id]: devLaminateFlooringPriceBookItem,
   [devGypsumPuttyPriceBookItem.id]: devGypsumPuttyPriceBookItem,
+  [devSandingPriceBookItem.id]: devSandingPriceBookItem,
+  [devPrimerPriceBookItem.id]: devPrimerPriceBookItem,
+  [devPaintPriceBookItem.id]: devPaintPriceBookItem,
 };
 
 function calculateWallNetAreaOpeningsQuantity(
@@ -140,6 +177,38 @@ function calculateWallNetAreaOpeningsQuantity(
   };
 }
 
+function calculateCeilingAreaQuantity(
+  project: ProjectState,
+  assignment: ServiceAssignment,
+): QuantityResult {
+  if (!assignment.included) {
+    return {
+      ruleId: "ceiling-area-v1",
+      ruleVersion: "1.0.0",
+      unit: "m2",
+      value: 0,
+      sourceEntityIds: [],
+      usedOverride: false,
+    };
+  }
+
+  if (
+    assignment.targetEntityIds.length !== 1 ||
+    assignment.targetEntityIds[0] !== "room-1.ceiling"
+  ) {
+    throw new Error("ceiling-area-v1 requires exactly the room ceiling target.");
+  }
+
+  return {
+    ruleId: "ceiling-area-v1",
+    ruleVersion: "1.0.0",
+    unit: "m2",
+    value: project.room.widthM * project.room.lengthM,
+    sourceEntityIds: ["room-1.ceiling"],
+    usedOverride: false,
+  };
+}
+
 function calculateFloorAreaQuantity(
   project: ProjectState,
   assignment: ServiceAssignment,
@@ -174,6 +243,7 @@ function calculateFloorAreaQuantity(
 
 const quantityRuleCalculators: Record<string, QuantityRuleCalculator> = {
   "wall-net-area-openings-v1": calculateWallNetAreaOpeningsQuantity,
+  "ceiling-area-v1": calculateCeilingAreaQuantity,
   "floor-area-v1": calculateFloorAreaQuantity,
 };
 
@@ -299,6 +369,55 @@ export function setAssignmentUnitPriceEur(
   return {
     ...project,
     serviceAssignments,
+  };
+}
+
+export function calculateEntityOfferBreakdown(
+  project: ProjectState,
+  assignmentId: string,
+  entityId: SurfaceId,
+): EntityOfferBreakdown | null {
+  const assignment = project.serviceAssignments.find(
+    (item) => item.id === assignmentId,
+  );
+
+  if (
+    !assignment ||
+    !assignment.included ||
+    !assignment.targetEntityIds.includes(entityId)
+  ) {
+    return null;
+  }
+
+  const quantity = calculateAssignmentQuantity(project, {
+    ...assignment,
+    targetEntityIds: [entityId],
+  });
+  if (!quantity) return null;
+
+  const unitPriceEur = assignment.unitPriceEur;
+  if (unitPriceEur === undefined) {
+    return {
+      assignmentId,
+      entityId,
+      quantity,
+      unitPriceEur: null,
+      totalEur: null,
+      priceStatus: "missing",
+    };
+  }
+
+  if (!Number.isFinite(unitPriceEur) || unitPriceEur < 0) {
+    throw new Error("Stored unit price must be a non-negative finite EUR amount.");
+  }
+
+  return {
+    assignmentId,
+    entityId,
+    quantity,
+    unitPriceEur,
+    totalEur: quantity.value * unitPriceEur,
+    priceStatus: "priced",
   };
 }
 
