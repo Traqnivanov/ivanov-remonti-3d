@@ -210,50 +210,46 @@ These do not block P3.5 planning, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — D1 Desktop Workbench
+## 7. CURRENT WORK — P3.5 dependency decision gate
 
 Current Work Issue:
-**#23 — `[CURRENT WORK] D1 — Desktop Workbench UX`**
+**#21 — `[CURRENT WORK] P3.5a+b — Owner product decision gate`**
 
-Owner-approved direction:
-- this D1 line changes **Desktop Work only**;
-- Mobile Work and Client Preview are separate later redesigns and must not be redesigned inside D1;
-- desktop becomes a practical 3-zone workstation:
-  - left = object / room geometry;
-  - center = persistent 3D work area;
-  - right = services / scope / price / Smart Offer;
-- the page must stop forcing constant full-page scrolling between geometry, services and offer;
-- the distinctive product mechanism remains **object → service → exact place → quantity → price → Info**.
+Why this is current:
+- Desktop D1.1–D1.5 is **OWNER-APPROVED / NOT MERGED**;
+- final D1 head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- final D1 CI `37832808003`: SUCCESS, 169/169 tests PASS;
+- D1 is stacked on P3.5a+b PR #22;
+- therefore P3.5 must receive its own explicit Owner product decision before any integration/merge.
 
-Approved bounded sequence — strictly one at a time:
-1. **D1.1 — Desktop skeleton**
-   - persistent three-zone desktop layout;
-   - independent side-panel scrolling;
-   - 3D remains visible while editing;
-   - service controls move into the right Work zone;
-   - no tabs/accordion redesign yet;
-   - no business-logic change.
-2. **D1.2 — Left Work panel**
-   - compact Room / Openings / Scheme organization;
-   - M² scheme becomes secondary/collapsible.
-3. **D1.3 — Right Smart Offer panel**
-   - scalable Services / Scope / Price+Info organization;
-   - total remains easy to see as services grow.
-4. **D1.4 — Unique context link**
-   - 3D selection opens the exact relevant Work context;
-   - preserve exact object/surface → service/offer relationship.
-5. **D1.5 — Desktop acceptance QA**
-   - multi-service real workflow;
-   - openings + separate prices;
-   - Save/Open + Work→Client Preview;
-   - desktop overflow/scroll acceptance;
-   - mobile/client regression only, no redesign.
+P3.5a+b factual scope already implemented and verified:
+- distinct operations remain distinct:
+  - Fine Putty / Фина шпакловка;
+  - Gypsum Putty / Гипсова шпакловка;
+  - Sanding / Шлайфане;
+  - Primer / Грунд;
+  - Paint / Боядисване;
+- ordinary plaster / reinforced-base putty / drywall-joint expansion / decorative plaster are **not** silently merged into this slice;
+- exact wall quantity = net selected-wall m² with door/window deductions;
+- ceiling quantity = room width × length;
+- applicable finishing service defaults to **walls + ceiling**;
+- ceiling can be removed independently;
+- wall and ceiling remain separate offer scopes/lines with independent EUR unit prices;
+- both scopes keep the same real service identity / `serviceCode`;
+- dynamic per-offer EUR pricing remains canonical;
+- missing price ≠ zero;
+- Client remains read-only;
+- Save/Open and canonical Project State semantics remain intact.
 
-Dependency:
-- D1.1 is stacked on the verified P3.5b feature state because PR #22 is not merged yet;
-- P3.5 Issue #21 stays open as **PAUSED / DEPENDENCY**;
-- PR #22 remains DRAFT and is not implicitly approved or merged by starting D1;
-- D1 changes must remain separable from P3.5 logic.
+Evidence:
+- P3.5 PR #22 head: `cab113478d250c4e74221a6367f883cb5f543881`;
+- P3.5 CI `36343470472`: SUCCESS, 161/161 tests PASS;
+- downstream D1.5 acceptance additionally proves the P3.5 foundation with openings, separate wall/ceiling prices, Save/Open and Client Preview.
+
+Desktop D1 Issue:
+**#23 — `[OWNER-APPROVED / NOT MERGED] D1 — Desktop Workbench UX`**
+
+No merge is authorized.
 
 ---
 
