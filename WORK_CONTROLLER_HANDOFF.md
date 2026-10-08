@@ -313,50 +313,50 @@ Dependency stack:
 - D1.1 branch `feat/d1-1-desktop-workbench`, DRAFT PR #24;
 - D1.2 branch `feat/d1-2-left-work-panel`, DRAFT PR #25;
 - canonical D1.3 branch `feat/d1-3-right-smart-offer-panel`, DRAFT PR #27;
-- active D1.4 branch `feat/d1-4-context-link`, DRAFT PR #28.
+- D1.4 branch `feat/d1-4-context-link`, DRAFT PR #28;
+- Work auth recovery branch `fix/work-auth-session-recovery`, DRAFT PR #29;
+- final D1.4 refinement branch `feat/d1-4b-selected-surface-context`, DRAFT PR #30.
 
 Superseded continuity item:
-- old D1.3 branch `feat/d1-3-right-smart-offer`, PR #26;
-- useful search/filter and contextual panel-routing behavior was preserved in canonical #27;
-- PR #26 is **CLOSED / SUPERSEDED**.
+- old D1.3 PR #26 is CLOSED / SUPERSEDED by canonical PR #27.
+
+Live auth status:
+- Supabase project had been paused;
+- Owner resumed it;
+- Owner confirmed successful Work login afterward;
+- PR #29 stale-session recovery is preserved underneath D1.4b.
 
 Active Current Work:
 - Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
-- D1.4 final head `c14291d57ac1513a00f9a4ddc76b255d9445075a`;
-- CI `37820642215` SUCCESS;
-- 17/17 test files, **163/163 tests PASS**;
-- Pages deploy `37820817701` SUCCESS from the exact final head.
+- D1.4b final head `b2f5248bf65965aaea716b7120e343cfb498ebca`;
+- CI `37829605454` SUCCESS;
+- 17/17 test files, **169/169 tests PASS**;
+- Pages deploy `37829798001` SUCCESS from the exact final head.
 
-D1.4 is implemented and visually inspected. It is **awaiting Owner live-preview review**.
-
-Mobile decision:
-- M0 remains only a usable baseline;
-- final Mobile Work polish/redesign is deferred to the dedicated Mobile Work phase.
+D1.4b is implemented and visually inspected. It is **awaiting Owner live-preview review**.
 
 ---
 
-## 10. CURRENT NEXT — OWNER REVIEW OF D1.4
+## 10. CURRENT NEXT — OWNER REVIEW OF D1.4b
 
 Owner reviews:
 `https://traqnivanov.github.io/ivanov-remonti-3d/`
 
-D1.4 behavior:
-- click a 3D surface with one matching active service → exact Work context;
-- if several services apply to the same surface → explicit **3D избор**; never silently choose one;
-- choose one service → selected surface remains highlighted and only that exact service context is edited;
-- click a door/window in 3D → exact left opening editor opens;
-- selection alone does not change scope, quantity or price.
+Expected desktop behavior:
+- click/select one wall in 3D;
+- exact surface remains highlighted;
+- right panel shows exact **Точна позиция** with service, net m², current EUR/unit and derived amount;
+- if price is missing, compact state reads **Без цена**;
+- **Общ обхват · N стени + таван** is secondary/collapsed;
+- opening the full scope editor must not change the exact selected-surface quantity or the offer;
+- multiple matching services still require explicit service choice;
+- opening selection still routes to the exact left editor.
 
-What remains untouched:
-- no quantity formula change;
-- no EUR pricing logic change;
-- no persistence/business-rule change;
-- no Mobile Work redesign;
-- no Client Preview redesign;
-- no D1.5 implementation.
+Important invariant:
+**3D selection is focus, not offer mutation.**
 
 **STOP after Owner review.**
-Do not begin D1.5 and do not merge PR #28 without separate Owner approval.
+Do not begin D1.5 and do not merge PR #30 without separate Owner approval.
 
 ---
 
@@ -365,8 +365,8 @@ Do not begin D1.5 and do not merge PR #28 without separate Owner approval.
 0. **M0 Mobile usability baseline** — done; final mobile polish deferred.
 1. **D1.1 Desktop skeleton** — implemented/verified.
 2. **D1.2 Left Work panel** — Owner live-reviewed and accepted.
-3. **D1.3 Right Smart Offer panel** — Owner continued to D1.4; canonical implementation retained.
-4. **D1.4 Unique context link** — implemented/verified, awaiting Owner review.
+3. **D1.3 Right Smart Offer panel** — accepted by continuation to D1.4.
+4. **D1.4 Unique context link** — implemented; D1.4b final selected-surface refinement implemented/verified, awaiting Owner review.
 5. **D1.5 Desktop acceptance QA** — not started.
 
 The roadmap is approved, but only one step may be active at a time.
