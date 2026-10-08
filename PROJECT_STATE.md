@@ -213,41 +213,39 @@ These do not block the current P3.5 decision gate, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — P3.5 dependency decision gate
+## 7. CURRENT WORK — approved P3.5 + Desktop D1 integration acceptance
 
 Current Work Issue:
-**#21 — `[CURRENT WORK] P3.5a+b — Owner product decision gate`**
+**#21 — `[CURRENT WORK] P3.5 + D1 — integration acceptance gate`**
 
-Why this is current:
-- Desktop D1.1–D1.5 is **OWNER-APPROVED / NOT MERGED**;
-- final D1 head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
-- final D1 CI `37832808003`: SUCCESS, 169/169 tests PASS;
-- D1 is stacked on P3.5a+b PR #22;
-- therefore P3.5 must receive its own explicit Owner product decision before any integration/merge.
+Owner decision on 2026-10-08:
+- **P3.5a+b is OWNER-APPROVED / NOT MERGED**;
+- Desktop D1.1–D1.5 remains **OWNER-APPROVED / NOT MERGED**;
+- this approval does **not** authorize merge.
 
-P3.5a+b factual scope already implemented and verified:
-- distinct operations remain distinct:
-  - Fine Putty / Фина шпакловка;
-  - Gypsum Putty / Гипсова шпакловка;
-  - Sanding / Шлайфане;
-  - Primer / Грунд;
-  - Paint / Боядисване;
-- ordinary plaster / reinforced-base putty / drywall-joint expansion / decorative plaster are **not** silently merged into this slice;
-- exact wall quantity = net selected-wall m² with door/window deductions;
-- ceiling quantity = room width × length;
+Approved P3.5a+b truth:
+- Fine Putty / Gypsum Putty / Sanding / Primer / Paint remain distinct real operations;
 - applicable finishing service defaults to **walls + ceiling**;
-- ceiling can be removed independently;
-- wall and ceiling remain separate offer scopes/lines with independent EUR unit prices;
-- both scopes keep the same real service identity / `serviceCode`;
+- wall quantity = exact selected-wall net m² with door/window deductions;
+- ceiling quantity = room width × length;
+- ceiling can be excluded independently;
+- wall and ceiling remain separate offer scopes/lines with independent Work-entered EUR unit prices;
+- both scopes keep the same real service identity / serviceCode;
 - dynamic per-offer EUR pricing remains canonical;
 - missing price ≠ zero;
 - Client remains read-only;
-- Save/Open and canonical Project State semantics remain intact.
+- ordinary plaster / reinforced-base putty / drywall-joint expansion / decorative plaster / broad catalog remain deferred.
 
-Evidence:
+Verified pre-integration evidence:
 - P3.5 PR #22 head: `cab113478d250c4e74221a6367f883cb5f543881`;
 - P3.5 CI `36343470472`: SUCCESS, 161/161 tests PASS;
-- downstream D1.5 acceptance additionally proves the P3.5 foundation with openings, separate wall/ceiling prices, Save/Open and Client Preview.
+- Desktop D1 final head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- Desktop D1 CI `37832808003`: SUCCESS, 169/169 tests PASS.
+
+Important Git fact:
+- current `main` has advanced since the original P3.5 base through documentation/continuity work;
+- the old stacked PR chain must **not** be merged blindly;
+- the active task is to prepare one reconciled integration candidate with no product-behavior changes.
 
 Desktop D1 Issue:
 **#23 — `[OWNER-APPROVED / NOT MERGED] D1 — Desktop Workbench UX`**
@@ -258,36 +256,20 @@ No merge is authorized.
 
 ## 8. NEXT EXACT STEP
 
-**OWNER PRODUCT DECISION — P3.5a+b wall/ceiling finishing foundation.**
+**SAFE INTEGRATION CANDIDATE + FINAL ACCEPTANCE.**
 
-Dependency audit is complete.
+Required sequence:
+1. create one integration candidate containing approved P3.5a+b + approved Desktop D1 reconciled with current `main`;
+2. preserve current main documentation/continuity truth and introduce no new product behavior;
+3. run the full final technical acceptance against the candidate;
+4. visually verify affected Desktop Work, Work → Client Preview, direct Client and mobile regression states;
+5. record exact commit / CI / visual evidence;
+6. **STOP and ask Owner for an explicit merge command.**
 
-Verified P3.5a+b product behavior:
-- real operations remain distinct: Fine Putty / Gypsum Putty / Sanding / Primer / Paint;
-- wall quantity = exact selected wall net m² with opening deductions;
-- ceiling quantity = room width × length;
-- selecting an applicable finishing service defaults to **walls + ceiling**;
-- ceiling can be excluded independently;
-- wall and ceiling remain separate offer lines/scopes with independent EUR unit prices;
-- both scopes keep the same real service identity / serviceCode;
-- dynamic per-offer EUR pricing remains canonical;
-- missing price is never silently zero;
-- real new projects still start with no services selected;
-- Client remains read-only;
-- plaster / reinforced-base putty / broad catalog are explicitly deferred.
+Do not:
+- merge PR #22 or the D1 stacked PRs directly;
+- start Mobile Work redesign;
+- start P3.6 or another product phase;
+- change the approved P3.5/D1 behavior during reconciliation.
 
-Evidence:
-- P3.5 head: `cab113478d250c4e74221a6367f883cb5f543881`;
-- P3.5 CI `36343470472`: SUCCESS, 161/161 tests PASS;
-- downstream accepted Desktop D1.5 head `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
-- D1.5 CI `37832808003`: SUCCESS, 169/169 tests PASS;
-- D1.5 exercises opening-aware walls + separate wall/ceiling prices + Save/Open + Client Preview.
-
-Documentation drift was reconciled:
-- Issue #21 updated from stale planning-only state to current Owner review gate;
-- PR #22 title/body updated to actual P3.5a+b scope.
-
-Criteria Check: **PASS** across product logic, clarity, quantity truth, EUR price truth, persistence, mobile baseline, scalability and trust.
-
-**NEXT: Owner explicitly approves or rejects P3.5a+b as the dependency under approved Desktop D1. No merge is authorized yet.**
-
+**NEXT: build and verify the single integration candidate. No merge is authorized yet.**
