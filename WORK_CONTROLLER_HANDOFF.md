@@ -170,10 +170,16 @@ Merged proof:
 
 Services are **execution choices**, not mandatory rows.
 
-Current visible proof services:
+Merged baseline proof services:
 - Fine Putty / Фина шпакловка;
 - Laminate / Ламинат;
 - Gypsum Putty / Гипсова шпакловка.
+
+Current verified but **unmerged P3.5a+b** additionally provides:
+- Sanding / Шлайфане;
+- Primer / Грунд;
+- Paint / Боядисване;
+- separate wall + ceiling scopes where applicable.
 
 The UI uses explicit service inclusion checks.
 
