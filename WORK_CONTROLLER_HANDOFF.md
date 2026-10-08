@@ -315,7 +315,8 @@ Dependency stack:
 - canonical D1.3 branch `feat/d1-3-right-smart-offer-panel`, DRAFT PR #27;
 - D1.4 branch `feat/d1-4-context-link`, DRAFT PR #28;
 - Work auth recovery branch `fix/work-auth-session-recovery`, DRAFT PR #29;
-- final D1.4 refinement branch `feat/d1-4b-selected-surface-context`, DRAFT PR #30.
+- D1.4b branch `feat/d1-4b-selected-surface-context`, DRAFT PR #30;
+- D1.5 branch `feat/d1-5-desktop-acceptance`, DRAFT PR #31.
 
 Superseded continuity item:
 - old D1.3 PR #26 is CLOSED / SUPERSEDED by canonical PR #27.
@@ -324,52 +325,54 @@ Live auth status:
 - Supabase project had been paused;
 - Owner resumed it;
 - Owner confirmed successful Work login afterward;
-- PR #29 stale-session recovery is preserved underneath D1.4b.
+- PR #29 stale-session recovery remains preserved in the stack.
 
-Active Current Work:
-- Issue #23 — **[CURRENT WORK] D1 — Desktop Workbench UX**;
-- D1.4b final head `b2f5248bf65965aaea716b7120e343cfb498ebca`;
-- CI `37829605454` SUCCESS;
+Owner acceptance:
+- D1.4b exact selected-surface context was live-reviewed and accepted;
+- D1.5 is technically/visually verified and now awaits final Owner live review.
+
+Final D1.5 evidence:
+- head `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- CI `37832808003` SUCCESS;
 - 17/17 test files, **169/169 tests PASS**;
-- Pages deploy `37829798001` SUCCESS from the exact final head.
-
-D1.4b is implemented and visually inspected. It is **awaiting Owner live-preview review**.
+- full desktop acceptance browser flow PASS;
+- Mobile Work / Owner Preview / direct Client regressions PASS;
+- Pages deploy `37833097638` SUCCESS from exact head.
 
 ---
 
-## 10. CURRENT NEXT — OWNER REVIEW OF D1.4b
+## 10. CURRENT NEXT — OWNER FINAL REVIEW OF DESKTOP D1
 
 Owner reviews:
 `https://traqnivanov.github.io/ivanov-remonti-3d/`
 
-Expected desktop behavior:
-- click/select one wall in 3D;
-- exact surface remains highlighted;
-- right panel shows exact **Точна позиция** with service, net m², current EUR/unit and derived amount;
-- if price is missing, compact state reads **Без цена**;
-- **Общ обхват · N стени + таван** is secondary/collapsed;
-- opening the full scope editor must not change the exact selected-surface quantity or the offer;
-- multiple matching services still require explicit service choice;
-- opening selection still routes to the exact left editor.
+D1.5 acceptance already proves:
+- room + openings;
+- multi-service Fine Putty + Paint;
+- independent wall/ceiling quantities and EUR prices;
+- complete dynamic total;
+- Save → switch project → Open back;
+- persisted quantities/prices/total;
+- Work → Client Preview → Work;
+- independent desktop panel overflow/scroll;
+- integrated dark desktop scrollbars;
+- mobile/client regression only.
 
-Important invariant:
-**3D selection is focus, not offer mutation.**
-
-**STOP after Owner review.**
-Do not begin D1.5 and do not merge PR #30 without separate Owner approval.
+**STOP at Owner review.**
+Do not merge PR #31 or any stacked D1/P3.5 dependency without explicit Owner approval.
 
 ---
 
-## 11. APPROVED D1 SEQUENCE — DO NOT BATCH
+## 11. D1 SEQUENCE STATUS
 
 0. **M0 Mobile usability baseline** — done; final mobile polish deferred.
 1. **D1.1 Desktop skeleton** — implemented/verified.
-2. **D1.2 Left Work panel** — Owner live-reviewed and accepted.
-3. **D1.3 Right Smart Offer panel** — accepted by continuation to D1.4.
-4. **D1.4 Unique context link** — implemented; D1.4b final selected-surface refinement implemented/verified, awaiting Owner review.
-5. **D1.5 Desktop acceptance QA** — not started.
+2. **D1.2 Left Work panel** — Owner accepted.
+3. **D1.3 Right Smart Offer panel** — accepted by continuation.
+4. **D1.4 Unique context link + D1.4b refinement** — Owner accepted.
+5. **D1.5 Desktop acceptance QA** — technically + visually PASS; awaiting final Owner review.
 
-The roadmap is approved, but only one step may be active at a time.
+Desktop D1 implementation sequence is complete. No next product phase starts automatically.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
