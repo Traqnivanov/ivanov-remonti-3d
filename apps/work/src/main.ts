@@ -77,7 +77,10 @@ import {
   setOperationTargets,
   setServiceAssignmentIncluded,
 } from "./operation-authoring";
-import { resolveWorkAccess } from "./work-auth";
+import {
+  clearRecoverableLocalSession,
+  resolveWorkAccess,
+} from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
 import {
   confirmDiscardUnsavedChanges,
@@ -148,6 +151,19 @@ async function bootstrapWorkEntry(): Promise<void> {
       },
     });
   } catch (error) {
+    const recovered = await clearRecoverableLocalSession(client, error);
+    if (recovered) {
+      renderWorkLogin({
+        mount: app,
+        client,
+        access: { status: "signed-out" },
+        onAuthorized: () => {
+          void bootstrapWorkEntry();
+        },
+      });
+      return;
+    }
+
     renderWorkAuthUnavailable(app, error);
   }
 }
