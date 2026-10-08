@@ -259,33 +259,40 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**D1.5 ONLY — Final Desktop acceptance QA.**
+**OWNER FINAL LIVE REVIEW — Desktop D1 (D1.1–D1.5).**
 
-Owner accepted D1.4b from the live screenshot.
+D1.4b:
+- Owner live-reviewed and accepted the selected-surface-leading context.
 
-Acceptance scope:
-- realistic multi-service Work flow;
-- opening-aware quantities;
-- separate wall/ceiling EUR prices where applicable;
-- dynamic totals and missing-price behavior;
-- Save → reopen project → state preserved;
-- Work → Client Preview;
-- desktop side-panel overflow/scroll acceptance;
-- Mobile Work and Client Preview regression only;
-- final desktop visual polish, including the overly bright side-panel scrollbar.
+D1.5 final acceptance result:
+- real room with door + window;
+- opening-aware wall quantity **43.59 m²**;
+- ceiling quantity **20.16 m²**;
+- Fine Putty + Paint with independent wall/ceiling lines;
+- independent EUR prices;
+- complete dynamic total **730.67 €**;
+- Save → v2;
+- switch to second project;
+- reopen saved project;
+- all quantities/prices/total restored;
+- Preview as Client preserves the same saved offer read-only;
+- return to Work preserves saved state;
+- left/right desktop panels scroll independently without moving 3D/page;
+- Work and long desktop Client Preview scrollbars are integrated with the dark UI;
+- Mobile Work / Owner Preview / direct Client regressions pass without redesign.
 
-Non-goals:
-- no new service family;
-- no new product feature;
-- no Mobile Work redesign;
-- no Client redesign;
-- no merge without separate Owner approval.
+Verification:
+- branch: `feat/d1-5-desktop-acceptance`;
+- DRAFT PR #31, base `feat/d1-4b-selected-surface-context`;
+- final head: `2f777372d3c0b6cd05ba28aeb8431fda6e39344c`;
+- CI `37832808003`: **SUCCESS**;
+- 17/17 test files, **169/169 tests PASS**;
+- typecheck + build + full browser smoke: **PASS**;
+- final visuals inspected:
+  - `d15-desktop-acceptance.png`;
+  - `d15-client-preview.png`;
+- Pages deploy `37833097638`: **SUCCESS** from exact final head;
+- live preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
 
-Active branch:
-`feat/d1-5-desktop-acceptance`
-
-Base:
-accepted D1.4b head `b2f5248bf65965aaea716b7120e343cfb498ebca`.
-
-**NEXT after acceptance: exact evidence + Owner review → STOP.**
+**D1.1–D1.5 are technically complete. NEXT: Owner final live review. Do not merge PR #31 or the stacked dependency chain without explicit Owner approval.**
 
