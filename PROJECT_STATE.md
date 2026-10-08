@@ -274,8 +274,8 @@ Verified D1.4 result:
 Verification:
 - branch: `feat/d1-4-context-link`;
 - stacked DRAFT PR: #28, base `feat/d1-3-right-smart-offer-panel`;
-- final head: `c1fa1cb666eae16f33e9e100b2ba9925736b6e99`;
-- CI `36903279668`: **SUCCESS**;
+- final head: `c14291d57ac1513a00f9a4ddc76b255d9445075a`;
+- CI `37820642215`: **SUCCESS**;
 - 17/17 test files, **163/163 tests: PASS**;
 - typecheck + build: **PASS**;
 - desktop/mobile/Client browser smoke: **PASS**;
@@ -285,7 +285,7 @@ Verification:
   - `d14-multi-service-context.png`;
   - `d14-opening-context.png`;
 - active context contrast was corrected and reverified;
-- Pages deploy `36903510087`: **SUCCESS** from exact final head;
+- Pages deploy `37820817701`: **SUCCESS** from exact final head;
 - permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
 
 **NEXT: Owner reviews D1.4 on the live preview. Do not begin D1.5 and do not merge PR #28 without a separate Owner decision.**
