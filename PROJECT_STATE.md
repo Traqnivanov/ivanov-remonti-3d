@@ -2,7 +2,7 @@
 
 **Role:** single official current-state document.  
 **Start here first:** `START_HERE.md`  
-**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.4 verified; live Work auth stale-session blocker fixed/deployed in PR #29; awaiting Owner real-browser recheck. D1.5 remains inactive.**
+**Current Work Issue:** #23 — `[CURRENT WORK] D1 — Desktop Workbench UX` — **D1.5 ACTIVE: final Desktop acceptance QA only. D1.4b accepted by Owner from live screenshot.**
 
 This file answers only: **where the project is now, what is active, what can affect the next work, and what is NEXT.**  
 Detailed execution history belongs to Git, merged PRs and closed Issues.
@@ -259,33 +259,33 @@ Dependency:
 
 ## 8. NEXT EXACT STEP
 
-**OWNER LIVE REVIEW — D1.4b selected surface as leading Work context.**
+**D1.5 ONLY — Final Desktop acceptance QA.**
 
-Auth blocker:
-- Owner resumed the paused `ivanov-remonti-3d` Supabase project;
-- Owner then confirmed successful Work login;
-- stale-session recovery fix remains preserved in DRAFT PR #29.
+Owner accepted D1.4b from the live screenshot.
 
-D1.4b result:
-- 3D-selected surface is the leading context;
-- exact card shows **surface → service → net quantity → EUR unit price → derived selected-surface amount**;
-- missing price is shown as **Без цена**;
-- full service scope becomes secondary/collapsed, e.g. **Общ обхват · 4 стени + таван**;
-- full scope remains editable on demand;
-- clicking/selecting a surface does **not** change assignment targets, canonical quantities, stored price, or offer totals;
-- multi-service explicit choice remains;
-- door/window → exact left editor remains.
+Acceptance scope:
+- realistic multi-service Work flow;
+- opening-aware quantities;
+- separate wall/ceiling EUR prices where applicable;
+- dynamic totals and missing-price behavior;
+- Save → reopen project → state preserved;
+- Work → Client Preview;
+- desktop side-panel overflow/scroll acceptance;
+- Mobile Work and Client Preview regression only;
+- final desktop visual polish, including the overly bright side-panel scrollbar.
 
-Verification:
-- branch: `feat/d1-4b-selected-surface-context`;
-- DRAFT PR #30, base `fix/work-auth-session-recovery`;
-- final head: `b2f5248bf65965aaea716b7120e343cfb498ebca`;
-- CI `37829605454`: **SUCCESS**;
-- 17/17 test files, **169/169 tests PASS**;
-- typecheck + build + desktop/mobile/Client browser smoke: **PASS**;
-- exact visual `d14-selected-surface-leading.png`: inspected;
-- Pages deploy `37829798001`: **SUCCESS** from exact final head;
-- permanent preview: `https://traqnivanov.github.io/ivanov-remonti-3d/`.
+Non-goals:
+- no new service family;
+- no new product feature;
+- no Mobile Work redesign;
+- no Client redesign;
+- no merge without separate Owner approval.
 
-**NEXT: Owner reviews D1.4b live. D1.5 remains STOPPED until explicit Owner approval to continue.**
+Active branch:
+`feat/d1-5-desktop-acceptance`
+
+Base:
+accepted D1.4b head `b2f5248bf65965aaea716b7120e343cfb498ebca`.
+
+**NEXT after acceptance: exact evidence + Owner review → STOP.**
 
