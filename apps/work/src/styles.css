@@ -1295,6 +1295,34 @@ input[type="number"] {
 }
 
 @media (min-width: 981px) {
+  html,
+  body {
+    scrollbar-color: #344a66 #0a1320;
+    scrollbar-width: thin;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: #0a1320;
+  }
+
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    border: 2px solid #0a1320;
+    border-radius: 999px;
+    background: #344a66;
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background: #465f80;
+  }
+
   .app-shell:not(.preview-mode) {
     height: 100vh;
     height: 100dvh;
