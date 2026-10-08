@@ -1098,7 +1098,7 @@ async function runD15DesktopAcceptanceSmoke() {
 
     await assertEval(
       session,
-      'document.querySelector("#d13OfferTotalKpi")?.textContent.includes("730,67") && document.querySelector("#d13OfferTotalStatus")?.textContent.includes("ценово попълнена") && document.querySelector("#offerTotalStatus")?.textContent.includes("пълна")',
+      'document.querySelector("#d13OfferTotalKpi")?.textContent.includes("730,67") && document.querySelector("#d13OfferTotalStatus")?.textContent.includes("ценово попълнена") && document.querySelector("#offerTotalStatus")?.textContent.includes("имат цена")',
       "D1.5: complete multi-service EUR total is incorrect",
     );
 
@@ -1266,7 +1266,7 @@ async function runD15DesktopAcceptanceSmoke() {
     await delay(140);
     await assertEval(
       session,
-      'document.querySelector("#shell").classList.contains("preview-mode") && getComputedStyle(document.querySelector(".panel.left")).display === "none" && getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && document.querySelector("#offerTotalKpi")?.textContent.includes("730,67") && document.querySelector("#offerTotalStatus")?.textContent.includes("пълна") && document.querySelectorAll("#offerRows .offer-row").length === 4',
+      'document.querySelector("#shell").classList.contains("preview-mode") && getComputedStyle(document.querySelector(".panel.left")).display === "none" && getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && document.querySelector("#offerTotalKpi")?.textContent.includes("730,67") && document.querySelector("#offerTotalStatus")?.textContent.includes("имат цена") && document.querySelectorAll("#offerRows .offer-row").length === 4',
       "D1.5: Owner Client Preview did not preserve the saved complete offer read-only",
     );
     await saveScreenshot(session, "/tmp/d15-client-preview.png");
