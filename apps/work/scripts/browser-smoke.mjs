@@ -1269,6 +1269,11 @@ async function runD15DesktopAcceptanceSmoke() {
       'document.querySelector("#shell").classList.contains("preview-mode") && getComputedStyle(document.querySelector(".panel.left")).display === "none" && getComputedStyle(document.querySelector("#unitPriceWorkControl")).display === "none" && document.querySelector("#offerTotalKpi")?.textContent.includes("730,67") && document.querySelector("#offerTotalStatus")?.textContent.includes("имат цена") && document.querySelectorAll("#offerRows .offer-row").length === 4',
       "D1.5: Owner Client Preview did not preserve the saved complete offer read-only",
     );
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector(".panel.right")).scrollbarColor !== "auto"',
+      "D1.5: Client Preview kept the default bright desktop scrollbar",
+    );
     await saveScreenshot(session, "/tmp/d15-client-preview.png");
 
     await evaluate(session, 'document.querySelector("#exitPreviewBtn").click()');
