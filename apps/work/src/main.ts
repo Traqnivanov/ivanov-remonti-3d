@@ -777,7 +777,7 @@ function describeIncludedServiceScope(
 
   for (const assignment of assignments) {
     for (const id of assignment.targetEntityIds) {
-      if (wallIds.includes(id as WallId)) walls.add(id);
+      if (wallIds.includes(id as WallId)) walls.add(id as WallId);
       if (id === "room-1.ceiling") hasCeiling = true;
       if (id === "room-1.floor") hasFloor = true;
     }
