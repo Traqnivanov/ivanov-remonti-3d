@@ -311,53 +311,44 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-**CURRENT WORK:** Issue #34 — P3.6 Object/Edit Core.
+**CURRENT WORK:** Issue #34 — P3.6a SceneObject foundation.
 
-Owner approved P3.6 with:
-- host-local canonical object placement;
-- Radiator as the first later proof object;
-- strict P3.6a→b→c→d→e execution;
-- no automatic transition between sub-steps.
+Status:
+**VERIFIED / NOT MERGED / FINAL MERGE GATE.**
 
-Active step:
-**P3.6a only.**
+PR #35:
+- DRAFT / NOT MERGED;
+- branch `feat/p3-6a-scene-object-foundation`;
+- accepted pre-sync head `4bdb359fd2364699d8f1596c6ff67d7ce4747554`;
+- CI `38464815001`: SUCCESS;
+- 18/18 test files / 187/187 tests PASS;
+- build/typecheck/full browser acceptance PASS;
+- 38-screen visual regression PASS;
+- no DB/migration/production scope.
 
-P3.6a must establish:
-- SceneObject in canonical Project State;
-- stable object IDs;
-- surface-host-local placement + dimensions + lock state;
-- persistence in existing `work_state jsonb`;
+P3.6a established:
+- stable SceneObject IDs;
+- host-local canonical placement;
+- dimensions + lock state;
+- persistence + Save/Open safety;
+- save/open referential integrity for object targets;
 - object-capable entity bridge;
-- generic count-rule infrastructure;
-- focused tests/regression proof.
+- generic entity-count quantity foundation;
+- Undo/Redo compatibility.
 
-P3.6a must not add:
-- visible Radiator controls;
-- direct 3D object drag/snap;
-- a new real service family;
-- Supabase/DB changes;
-- P3.7 asset/material work;
-- Mobile redesign.
+Visible object UI is intentionally not present yet.
 
 ---
 
-## 10. CURRENT NEXT — IMPLEMENT + VERIFY P3.6a
+## 10. CURRENT NEXT — FINAL REFRESH + OWNER MERGE GATE
 
-Use one dedicated branch.
+1. merge only the latest documentation continuity commits from `main` into PR #35;
+2. prove source/product diff is unchanged;
+3. rerun final CI/browser acceptance;
+4. record exact final head;
+5. **STOP for explicit Owner merge command**.
 
-Acceptance before any P3.6b work:
-- domain and persistence truth is explicit;
-- old empty-object projects still open;
-- non-empty supported object projects round-trip;
-- invalid IDs/hosts/placement are rejected;
-- stable IDs survive round-trip;
-- entity bridge can address surfaces and object IDs without changing current visible behavior;
-- generic object-count rule is covered without inventing a customer-facing service;
-- Undo/Redo/state cloning remains compatible;
-- current P3.5/D1 behavior remains green;
-- no DB migration exists in the diff.
-
-Stop after evidence is recorded.
+Do not start P3.6b Radiator work.
 
 ---
 
@@ -365,14 +356,11 @@ Stop after evidence is recorded.
 
 Current single Current Work Issue: **#34**.
 
-Owner has approved P3.6 architecture and sequence, but only **P3.6a is active now**.
+P3.6 is approved, but P3.6 sub-steps remain gated.
 
-Do not:
-- start P3.6b Radiator product/UI work before the P3.6a acceptance gate;
-- treat renderer transforms as canonical object state;
-- broaden the service catalog;
-- touch production/Supabase/DB;
-- redesign Mobile Work.
+P3.6b is not active until P3.6a is merged/closed and the next checkpoint is explicitly opened under the project process.
+
+No Supabase/DB changes, Mobile redesign, broad service catalog, P3.7 assets or production work are authorized.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 

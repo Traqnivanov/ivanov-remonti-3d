@@ -213,61 +213,63 @@ These do not block the current P3.5 decision gate, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — P3.6a SceneObject foundation
+## 7. CURRENT WORK — P3.6a final merge gate
 
 Current Work Issue:
-**#34 — `[CURRENT WORK] P3.6 — Object/Edit Core`**
+**#34 — `[CURRENT WORK] P3.6a — SceneObject foundation`**
 
-Owner decision:
-**P3.6 APPROVED.**
-
-Approved architecture:
-- canonical SceneObject truth = stable ID + surface-host-local placement + dimensions + lock state;
-- Three.js/world transform is derived renderer state, not project truth;
-- existing `work_state jsonb` remains the persistence container;
-- no relational Supabase/DB migration is authorized or required;
+Owner-approved P3.6 architecture remains:
+- canonical SceneObject truth uses stable IDs + surface-host-local placement;
+- renderer/world transforms are derived state;
+- no relational Supabase/DB migration;
 - Client remains read-only;
-- Radiator is approved as the first proof object for the later P3.6b step.
+- Radiator is reserved for P3.6b only;
+- execution remains strict P3.6a → P3.6b → P3.6c → P3.6d → P3.6e.
 
-Approved strict sequence:
-**P3.6a → P3.6b → P3.6c → P3.6d → P3.6e.**
+P3.6a candidate:
+- PR #35 — **DRAFT / NOT MERGED**;
+- branch: `feat/p3-6a-scene-object-foundation`;
+- accepted head before this documentation-only main sync: `4bdb359fd2364699d8f1596c6ff67d7ce4747554`;
+- CI `38464815001`: SUCCESS;
+- 18/18 test files / 187/187 tests PASS;
+- typecheck + build + full browser acceptance PASS;
+- visual artifact `11848041686`: PASS;
+- no UI/layout regression against the accepted P3.5/D1 baseline;
+- no migration/Supabase schema/production files in the diff.
 
-Active step:
-**P3.6a only — SceneObject domain + persistence + entity bridge + generic count-rule infrastructure.**
+Verified P3.6a foundation:
+- canonical SceneObject state exists in Project State;
+- object IDs are stable and room-scalable;
+- object placement is surface-host-local;
+- rotated host-plane bounds and room-depth constraints are validated;
+- existing project JSON / work_state persistence round-trips supported objects;
+- old empty-object projects remain valid;
+- invalid object state is blocked before Save;
+- missing entity references are blocked at Save/Open boundaries;
+- ServiceAssignment/entity interaction can target object IDs;
+- generic `entity-count-v1` infrastructure exists without adding a real service;
+- SceneObject state participates in existing Undo/Redo;
+- current visible Work/Client behavior remains unchanged.
 
-P3.6a scope:
-- introduce canonical SceneObject domain model in Project State;
-- use host-local placement relative to a real surface;
-- keep stable object IDs independent of renderer mesh identity;
-- validate object identity, host surface and bounded placement;
-- serialize/deserialize objects through existing project JSON;
-- preserve old saved projects with empty object arrays;
-- generalize entity targeting/selection types so future Smart Offer links can reference object IDs;
-- add generic count quantity rule infrastructure for future approved object-linked services;
-- keep visible product behavior unchanged;
-- add focused unit/regression coverage.
-
-Not in P3.6a:
-- visible Radiator authoring;
-- object meshes/3D drag/snap UI;
-- object lock controls in UI;
-- new real service family or object-linked price;
+Explicitly not included:
+- visible Radiator authoring/rendering;
+- object drag/snap/lock UI;
+- new real service family;
 - P3.7 assets/materials;
 - Mobile redesign;
-- Supabase/DB schema changes.
+- DB changes.
 
 ---
 
 ## 8. NEXT EXACT STEP
 
-**IMPLEMENT AND VERIFY P3.6a ONLY.**
+**REFRESH PR #35 WITH THIS DOCUMENTATION-ONLY MAIN SYNC → RERUN FINAL CI → OWNER MERGE GATE.**
 
-Required process:
-1. create a dedicated P3.6a branch from current `main`;
-2. implement the bounded domain/persistence/entity/count foundation;
-3. run typecheck/tests/build and focused regression acceptance;
-4. inspect diff for scope creep and persistence safety;
-5. record exact evidence in Issue #34;
-6. stop at the P3.6a acceptance gate before any P3.6b Radiator UI/object work.
+Required:
+1. reconcile PR #35 with latest `main` docs only;
+2. prove no P3.6a product/source behavior changed during refresh;
+3. rerun full CI/browser acceptance;
+4. record final head/evidence in Issue #34;
+5. **STOP for explicit Owner merge command.**
 
 Do not start P3.6b automatically.
