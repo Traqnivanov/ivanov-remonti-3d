@@ -13,7 +13,7 @@ export type Surface = {
   label: string;
 };
 
-export type SceneObjectId = `room-1.object-${string}`;
+export type SceneObjectId = `${string}.object-${string}`;
 export type EntityId = SurfaceId | SceneObjectId;
 
 export type SurfaceLocalPlacement = {
@@ -151,7 +151,7 @@ export function isSurfaceId(id: string): id is SurfaceId {
 }
 
 export function isSceneObjectId(id: string): id is SceneObjectId {
-  return /^room-1\.object-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id);
+  return /^[A-Za-z0-9_-]+\.object-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id);
 }
 
 export function getSceneObjectById(
