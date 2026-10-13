@@ -1,13 +1,14 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ProjectState, SurfaceId, WallId } from "./domain";
-import { getWallOpeningRects } from "./opening-geometry";
+import { getWallOpeningRects, getWallSpanM } from "./opening-geometry";
 import { getAutoHiddenSurfaceIds, isSurfaceVisible } from "./viewer-visibility";
 import { calculateShowcaseFrame } from "./viewer-framing";
 
 type ViewerOptions = {
   container: HTMLElement;
   onEntitySelect?: (id: SurfaceId) => void;
+  onOpeningSelect?: (id: string) => void;
 };
 
 const WALL_THICKNESS = 0.08;
@@ -23,20 +24,25 @@ export class RoomViewer {
   private readonly pointerDown = new THREE.Vector2();
   private readonly entityMeshes = new Map<SurfaceId, THREE.Mesh>();
   private readonly entityOutlines = new Map<SurfaceId, THREE.LineSegments>();
+  private readonly openingHitMeshes = new Map<string, THREE.Mesh>();
+  private readonly openingHitOutlines = new Map<string, THREE.LineSegments>();
   private readonly manualHidden = new Set<SurfaceId>();
   private readonly autoHidden = new Set<SurfaceId>();
   private highlighted = new Set<SurfaceId>();
+  private highlightedOpeningId: string | null = null;
   private floorFinishMesh: THREE.Mesh | null = null;
   private laminateFloorVisible = false;
   private project: ProjectState | null = null;
   private autoCutaway = true;
   private showcaseFrameActive = true;
   private readonly onEntitySelect?: (id: SurfaceId) => void;
+  private readonly onOpeningSelect?: (id: string) => void;
   private animationFrame = 0;
 
   constructor(options: ViewerOptions) {
     this.container = options.container;
     this.onEntitySelect = options.onEntitySelect;
+    this.onOpeningSelect = options.onOpeningSelect;
 
     this.scene.background = new THREE.Color(0x0a0e17);
 
@@ -86,6 +92,11 @@ export class RoomViewer {
     this.applyMaterials();
   }
 
+  setHighlightedOpening(id: string | null): void {
+    this.highlightedOpeningId = id;
+    this.applyOpeningHighlights();
+  }
+
   setLaminateFloorVisible(visible: boolean): void {
     this.laminateFloorVisible = visible;
     this.updateFloorFinishVisibility();
@@ -123,12 +134,14 @@ export class RoomViewer {
     this.controls.removeEventListener("start", this.handleControlsStart);
     this.controls.dispose();
     this.disposeFloorFinish();
+    this.disposeOpeningHitAreas();
     this.renderer.dispose();
     this.container.replaceChildren();
   }
 
   private rebuildRoom(): void {
     this.disposeFloorFinish();
+    this.disposeOpeningHitAreas();
 
     for (const mesh of this.entityMeshes.values()) {
       mesh.geometry.dispose();
@@ -192,7 +205,9 @@ export class RoomViewer {
       Math.PI / 2,
     );
 
+    this.makeOpeningHitAreas();
     this.applyMaterials();
+    this.applyOpeningHighlights();
   }
 
   private makeWallMesh(
@@ -309,6 +324,115 @@ export class RoomViewer {
     this.entityMeshes.set(id, mesh);
     this.entityOutlines.set(id, outline);
     return mesh;
+  }
+
+  private makeOpeningHitAreas(): void {
+    if (!this.project) return;
+
+    const { widthM, lengthM, heightM } = this.project.room;
+    const yAxis = new THREE.Vector3(0, 1, 0);
+
+    for (const opening of this.project.room.openings) {
+      const wallId = opening.hostSurfaceId;
+      const spanM = getWallSpanM(this.project, wallId);
+      const localX =
+        -spanM / 2 + opening.offsetM + opening.widthM / 2;
+      const bottomM = opening.sillM ?? 0;
+      const localY =
+        -heightM / 2 + bottomM + opening.heightM / 2;
+
+      let wallPosition: THREE.Vector3;
+      let rotationY = 0;
+
+      switch (wallId) {
+        case "room-1.wall-front":
+          wallPosition = new THREE.Vector3(0, heightM / 2, lengthM / 2);
+          break;
+        case "room-1.wall-back":
+          wallPosition = new THREE.Vector3(0, heightM / 2, -lengthM / 2);
+          break;
+        case "room-1.wall-left":
+          wallPosition = new THREE.Vector3(-widthM / 2, heightM / 2, 0);
+          rotationY = Math.PI / 2;
+          break;
+        case "room-1.wall-right":
+          wallPosition = new THREE.Vector3(widthM / 2, heightM / 2, 0);
+          rotationY = Math.PI / 2;
+          break;
+      }
+
+      const localPosition = new THREE.Vector3(localX, localY, 0);
+      localPosition.applyAxisAngle(yAxis, rotationY);
+      localPosition.add(wallPosition);
+
+      const geometry = new THREE.PlaneGeometry(
+        opening.widthM,
+        opening.heightM,
+      );
+      const material = new THREE.MeshBasicMaterial({
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+      const hitMesh = new THREE.Mesh(geometry, material);
+      hitMesh.position.copy(localPosition);
+      hitMesh.rotation.y = rotationY;
+      hitMesh.userData.openingId = opening.id;
+      hitMesh.userData.hostSurfaceId = wallId;
+      hitMesh.renderOrder = 3;
+
+      const outline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geometry),
+        new THREE.LineBasicMaterial({
+          color: 0xe8b84b,
+          transparent: true,
+          opacity: 0,
+          depthTest: false,
+        }),
+      );
+      outline.position.z = 0.002;
+      outline.renderOrder = 4;
+      hitMesh.add(outline);
+
+      this.scene.add(hitMesh);
+      this.openingHitMeshes.set(opening.id, hitMesh);
+      this.openingHitOutlines.set(opening.id, outline);
+    }
+  }
+
+  private disposeOpeningHitAreas(): void {
+    for (const mesh of this.openingHitMeshes.values()) {
+      mesh.geometry.dispose();
+      const material = mesh.material;
+      if (Array.isArray(material)) {
+        material.forEach((item) => item.dispose());
+      } else {
+        material.dispose();
+      }
+      this.scene.remove(mesh);
+    }
+
+    for (const outline of this.openingHitOutlines.values()) {
+      outline.geometry.dispose();
+      const material = outline.material;
+      if (Array.isArray(material)) {
+        material.forEach((item) => item.dispose());
+      } else {
+        material.dispose();
+      }
+    }
+
+    this.openingHitMeshes.clear();
+    this.openingHitOutlines.clear();
+  }
+
+  private applyOpeningHighlights(): void {
+    for (const [id, outline] of this.openingHitOutlines) {
+      const material = outline.material as THREE.LineBasicMaterial;
+      material.opacity = this.highlightedOpeningId === id ? 1 : 0;
+      material.needsUpdate = true;
+    }
   }
 
   private makeLaminateFloor(width: number, length: number): void {
@@ -477,6 +601,18 @@ export class RoomViewer {
     for (const [id, mesh] of this.entityMeshes) {
       mesh.visible = isSurfaceVisible(id, this.manualHidden, this.autoHidden);
     }
+
+    for (const mesh of this.openingHitMeshes.values()) {
+      const hostSurfaceId = mesh.userData.hostSurfaceId as SurfaceId | undefined;
+      mesh.visible = hostSurfaceId
+        ? isSurfaceVisible(
+            hostSurfaceId,
+            this.manualHidden,
+            this.autoHidden,
+          )
+        : true;
+    }
+
     this.updateFloorFinishVisibility();
   }
 
@@ -501,10 +637,21 @@ export class RoomViewer {
 
     this.raycaster.setFromCamera(this.pointer, this.camera);
     const hits = this.raycaster.intersectObjects(
-      [...this.entityMeshes.values()].filter((mesh) => mesh.visible),
+      [
+        ...this.openingHitMeshes.values(),
+        ...this.entityMeshes.values(),
+      ].filter((mesh) => mesh.visible),
       false,
     );
-    const id = hits[0]?.object.userData.entityId as SurfaceId | undefined;
+
+    const firstHit = hits[0]?.object;
+    const openingId = firstHit?.userData.openingId as string | undefined;
+    if (openingId) {
+      this.onOpeningSelect?.(openingId);
+      return;
+    }
+
+    const id = firstHit?.userData.entityId as SurfaceId | undefined;
     if (id) this.onEntitySelect?.(id);
   };
 

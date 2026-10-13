@@ -5,7 +5,9 @@ import {
   createInitialOfferInteraction,
   getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
+  getLinkedServiceAssignments,
   selectModelEntity,
+  selectModelEntityService,
   selectOfferService,
   shouldShowLaminateFloor,
   showWholeResult,
@@ -19,6 +21,7 @@ import {
 } from "./calculation";
 import {
   createDefaultProject,
+  FINE_PUTTY_CEILING_ASSIGNMENT_ID,
   getFinePuttyAssignment,
   getLaminateFlooringAssignment,
 } from "./domain";
@@ -71,15 +74,31 @@ describe("Smart Offer core interaction loop", () => {
     ]);
   });
 
-  it("does not invent a linked offer position for an unrelated surface", () => {
+  it("Model → Offer resolves the default Fine Putty ceiling scope", () => {
     const project = createDefaultProject();
     const interaction = selectModelEntity(project, "room-1.ceiling");
 
-    expect(interaction.selectedServiceId).toBeNull();
+    expect(interaction.selectedServiceId).toBe(
+      FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+    );
     expect(interaction.selectedEntity).toBe("room-1.ceiling");
-    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([]);
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+    ]);
     expect(getHighlightedEntityIds(project, interaction)).toEqual([
       "room-1.ceiling",
+    ]);
+  });
+
+  it("does not invent a linked offer position for an unrelated surface", () => {
+    const project = createDefaultProject();
+    const interaction = selectModelEntity(project, "room-1.floor");
+
+    expect(interaction.selectedServiceId).toBeNull();
+    expect(interaction.selectedEntity).toBe("room-1.floor");
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([]);
+    expect(getHighlightedEntityIds(project, interaction)).toEqual([
+      "room-1.floor",
     ]);
   });
 
@@ -103,6 +122,58 @@ describe("Smart Offer core interaction loop", () => {
       LAMINATE_ASSIGNMENT_ID,
       "assignment-second-floor-service",
     ]);
+  });
+
+  it("D1.4 keeps the selected surface while a specific linked service is chosen", () => {
+    const project = createDefaultProject();
+    getLaminateFlooringAssignment(project).included = true;
+    project.serviceAssignments.push({
+      id: "assignment-second-floor-service",
+      serviceCode: "second-floor-service",
+      label: "Second floor service",
+      targetEntityIds: ["room-1.floor"],
+      included: true,
+      quantityRuleId: "test-rule",
+      presentationMode: "highlight",
+    });
+
+    expect(
+      getLinkedServiceAssignments(project, "room-1.floor").map(
+        (assignment) => assignment.id,
+      ),
+    ).toEqual([
+      LAMINATE_ASSIGNMENT_ID,
+      "assignment-second-floor-service",
+    ]);
+
+    const interaction = selectModelEntityService(
+      project,
+      "room-1.floor",
+      LAMINATE_ASSIGNMENT_ID,
+    );
+
+    expect(interaction).toEqual({
+      selectedServiceId: LAMINATE_ASSIGNMENT_ID,
+      selectedEntity: "room-1.floor",
+    });
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      LAMINATE_ASSIGNMENT_ID,
+    ]);
+    expect(getHighlightedEntityIds(project, interaction)).toEqual([
+      "room-1.floor",
+    ]);
+  });
+
+  it("D1.4 rejects a service choice that is not linked to the selected surface", () => {
+    const project = createDefaultProject();
+
+    expect(() =>
+      selectModelEntityService(
+        project,
+        "room-1.floor",
+        FINE_PUTTY_ASSIGNMENT_ID,
+      ),
+    ).toThrow(/is not linked/);
   });
 
   it("exits focus mode without mutating project quantity or price", () => {

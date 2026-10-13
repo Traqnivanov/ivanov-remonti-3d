@@ -2,9 +2,12 @@ import "./styles.css";
 import type { Opening, ProjectState, SurfaceId, WallId } from "./domain";
 import {
   createDefaultProject,
+  createFinePuttyCeilingAssignment,
   createOpeningProofProject,
+  findFinePuttyCeilingAssignment,
   getFinePuttyAssignment,
   wallIds,
+  FINE_PUTTY_CEILING_ASSIGNMENT_ID,
 } from "./domain";
 import type { ProjectRepository } from "./project-repository";
 import {
@@ -32,18 +35,22 @@ import {
 import {
   calculateDynamicOfferLine,
   calculateDynamicOfferSummary,
+  calculateEntityOfferBreakdown,
   setAssignmentUnitPriceEur,
   type DynamicOfferLineCalculation,
   type QuantityUnit,
 } from "./calculation";
 import { RoomViewer } from "./viewer";
 import { renderM2Schema } from "./m2-schema";
+import { summarizeRoomGeometry } from "./geometry";
 import { getModeCapabilities, type AppEntry } from "./capabilities";
 import {
   FINE_PUTTY_ASSIGNMENT_ID,
   getFocusedServiceAssignmentIds,
   getHighlightedEntityIds,
+  getLinkedServiceAssignments,
   selectModelEntity,
+  selectModelEntityService,
   selectOfferService,
   shouldShowLaminateFloor,
   showWholeResult,
@@ -60,12 +67,21 @@ import {
 } from "./opening-authoring";
 import {
   addOperationAssignment,
+  addOperationCeilingAssignment,
+  addOperationScopeAssignments,
   findOperationAssignment,
+  findOperationCeilingAssignment,
   gypsumPuttyOperation,
+  paintOperation,
+  primerOperation,
+  sandingOperation,
   setOperationTargets,
   setServiceAssignmentIncluded,
 } from "./operation-authoring";
-import { resolveWorkAccess } from "./work-auth";
+import {
+  clearRecoverableLocalSession,
+  resolveWorkAccess,
+} from "./work-auth";
 import { renderWorkAuthUnavailable, renderWorkLogin } from "./work-login";
 import {
   confirmDiscardUnsavedChanges,
@@ -78,6 +94,12 @@ import {
 const directClientEntry =
   new URLSearchParams(window.location.search).get("preview") === "1";
 const DEV_QA_AUTH_KEY = "ivanov-remonti:qa-authorized";
+const authorableWallOperations = [
+  gypsumPuttyOperation,
+  sandingOperation,
+  primerOperation,
+  paintOperation,
+];
 
 let activeViewer: RoomViewer | null = null;
 
@@ -108,8 +130,9 @@ async function bootstrapWorkEntry(): Promise<void> {
   const app = document.querySelector<HTMLDivElement>("#app");
   if (!app) throw new Error("Missing #app");
 
+  const client = createWorkSupabaseClient();
+
   try {
-    const client = createWorkSupabaseClient();
     const access = await resolveWorkAccess(client);
 
     if (access.status === "authorized") {
@@ -130,6 +153,19 @@ async function bootstrapWorkEntry(): Promise<void> {
       },
     });
   } catch (error) {
+    const recovered = await clearRecoverableLocalSession(client, error);
+    if (recovered) {
+      renderWorkLogin({
+        mount: app,
+        client,
+        access: { status: "signed-out" },
+        onAuthorized: () => {
+          void bootstrapWorkEntry();
+        },
+      });
+      return;
+    }
+
     renderWorkAuthUnavailable(app, error);
   }
 }
@@ -223,7 +259,7 @@ type StartSmartOfferAppOptions = {
   repository: ProjectRepository | null;
 };
 
-function startSmartOfferApp(
+export function startSmartOfferApp(
   options: StartSmartOfferAppOptions,
 ): void {
 activeViewer?.dispose();
@@ -244,6 +280,11 @@ let offerInteraction = initialIncludedService
   ? selectOfferService(initialIncludedService.id)
   : showWholeResult();
 let expandedOperationId: string | null = null;
+let expandedOpeningId: string | null = null;
+let selectedOpeningId: string | null = null;
+let fullScopeExpandedInContext = false;
+let desktopRightPane: "services" | "scope" | "price" = "services";
+const desktopWorkbenchMedia = window.matchMedia("(min-width: 981px)");
 let autoCutaway = true;
 
 const appNode = document.querySelector<HTMLDivElement>("#app");
@@ -289,7 +330,7 @@ app.innerHTML = `
       <aside class="panel left">
         <h2>Работен проект</h2>
 
-        <section class="section">
+        <section class="section left-work-section room-section">
           <div class="section-title">Размери на стаята</div>
           <div class="dims">
             <label>Ширина, m<input id="widthInput" type="number" min="1" step="0.1"></label>
@@ -298,8 +339,11 @@ app.innerHTML = `
           </div>
         </section>
 
-        <section class="section work-only openings-section">
-          <div class="section-title">Отвори</div>
+        <section class="section work-only openings-section left-work-section">
+          <div class="left-section-head">
+            <div class="section-title">Отвори</div>
+            <span id="openingsCount" class="left-section-meta"></span>
+          </div>
           <div id="openingsEditor"></div>
           <div class="opening-add-actions">
             <button id="addDoorButton" type="button">Добави врата</button>
@@ -308,27 +352,16 @@ app.innerHTML = `
           <p id="openingsStatus" class="opening-status" role="status" aria-live="polite"></p>
         </section>
 
-        <section class="section">
-          <div class="section-title">M² схема · същата геометрия</div>
-          <div id="m2Schema"></div>
-        </section>
-
-        <section class="section work-only">
-          <div class="section-title">Услуги за изпълнение</div>
-          <div id="serviceScopeControls" class="service-scope-list"></div>
-          <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
-        </section>
-
-        <section class="section work-only" id="finePuttyTargetsSection">
-          <div class="section-title">Фина шпакловка · стени</div>
-          <div id="wallTargets"></div>
-        </section>
-
-        <section class="section work-only" id="operationSettingsSection">
-          <div class="section-title">Настройки на услуга</div>
-          <div id="operationAuthoring"></div>
-          <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
-        </section>
+        <details id="m2SchemeDetails" class="section m2-scheme-details left-work-section">
+          <summary class="m2-scheme-summary">
+            <span>М² схема</span>
+            <span id="m2SchemaCompactSummary" class="left-section-meta"></span>
+          </summary>
+          <div class="m2-scheme-body">
+            <div class="section-title">Същата геометрия</div>
+            <div id="m2Schema"></div>
+          </div>
+        </details>
 
       </aside>
 
@@ -353,47 +386,141 @@ app.innerHTML = `
       </section>
 
       <aside class="panel right">
-        <h2>Smart Offer</h2>
-
-        <div id="offerRows"></div>
-
-        <section class="offer-summary" id="offerSummarySection">
-          <div class="offer-summary-row">
-            <span>Общо</span>
-            <strong id="offerTotalKpi">—</strong>
+        <div class="d13-work-header work-only">
+          <div class="d13-work-title-row">
+            <h2 class="workbench-zone-title">Работа и оферта</h2>
+            <div class="d13-live-total" aria-label="Текуща обща стойност">
+              <span>Общо</span>
+              <strong id="d13OfferTotalKpi">—</strong>
+            </div>
           </div>
-          <p id="offerTotalStatus"></p>
-        </section>
+          <p id="d13OfferTotalStatus" class="d13-total-status"></p>
 
-        <section class="section" id="offerDetailsSection">
-          <div class="section-title">Оферта</div>
-          <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
-          <div class="kpi price-kpi">
-            <span id="unitPriceLabel">Ед. цена</span>
-            <label class="price-input-wrap work-only" id="unitPriceWorkControl">
-              <input
-                id="unitPriceInput"
-                type="text"
-                inputmode="decimal"
-                placeholder="Въведи цена"
-                aria-label="Единична цена в евро"
-              />
-              <span id="unitPriceSuffix">€/m²</span>
-            </label>
-            <strong id="unitPriceKpi" class="client-price-value">—</strong>
-          </div>
-          <div class="kpi"><span id="totalLabel">Сума</span><strong id="totalKpi">—</strong></div>
-        </section>
-
-        <div class="info-card" id="offerInfoCard">
-          <h3><span class="info-glyph" aria-hidden="true">i</span> <span id="infoTitle"></span></h3>
-          <b>Какво е</b><p id="infoWhat"></p>
-          <b>Защо се прави</b><p id="infoWhy"></p>
-          <b>Какво получавате</b><p id="infoResult"></p>
-          <b>Какво включва тази позиция</b><p id="infoIncludes"></p>
+          <nav class="d13-tabs" aria-label="Работни секции">
+            <button type="button" class="active" data-d13-tab="services" aria-selected="true">
+              <span>Услуги</span><b id="d13ServicesBadge">0</b>
+            </button>
+            <button type="button" data-d13-tab="scope" aria-selected="false">
+              <span>Обхват</span><b id="d13ScopeBadge">0</b>
+            </button>
+            <button type="button" data-d13-tab="price" aria-selected="false">
+              <span>Цена / Info</span><b id="d13PriceBadge">0</b>
+            </button>
+          </nav>
         </div>
 
-        <button id="showResultBtn" style="width:100%;margin-top:12px">Виж целия резултат</button>
+        <section id="d14ModelContext" class="d14-model-context work-only" hidden>
+          <div class="d14-context-head">
+            <span>3D избор</span>
+            <strong id="d14ContextEntity"></strong>
+          </div>
+          <div id="d14ContextServices" class="d14-context-services"></div>
+
+          <div id="d14ContextBreakdown" class="d14-context-breakdown" hidden>
+            <div class="d14-breakdown-title">
+              <span>Точна позиция</span>
+              <strong id="d14BreakdownService"></strong>
+            </div>
+            <div class="d14-breakdown-grid">
+              <div>
+                <span id="d14BreakdownQuantityLabel">Количество</span>
+                <strong id="d14BreakdownQuantity">—</strong>
+              </div>
+              <div>
+                <span>Цена</span>
+                <strong id="d14BreakdownPrice">—</strong>
+              </div>
+              <div>
+                <span>Сума</span>
+                <strong id="d14BreakdownTotal">—</strong>
+              </div>
+            </div>
+            <p id="d14BreakdownScope" class="d14-breakdown-scope"></p>
+          </div>
+
+          <p id="d14ContextHint" class="d14-context-hint"></p>
+        </section>
+
+        <div class="d13-pane work-only active" data-d13-pane="services">
+          <section class="section d13-services-section">
+            <div class="section-title">Услуги за изпълнение</div>
+            <input
+              id="d13ServiceFilterInput"
+              class="d13-service-filter"
+              type="search"
+              placeholder="Търси услуга"
+              aria-label="Търси услуга"
+              autocomplete="off"
+            />
+            <div id="serviceScopeControls" class="service-scope-list"></div>
+            <p id="d13ServiceFilterEmpty" class="d13-empty-state d13-filter-empty" hidden>Няма услуга с това име.</p>
+            <p class="service-scope-help">Само избраните услуги влизат в офертата и участват в общата сума.</p>
+          </section>
+        </div>
+
+        <div class="d13-pane work-only" data-d13-pane="scope">
+          <div id="d13ScopeEmpty" class="d13-empty-state">
+            Избери услуга от „Услуги“, за да настроиш обхвата ѝ.
+          </div>
+
+          <details id="d14FullScopeDetails" class="d14-full-scope-details" open>
+            <summary id="d14FullScopeSummary">Общ обхват на услугата</summary>
+
+            <section class="section" id="finePuttyTargetsSection">
+              <div class="section-title">Фина шпакловка · обхват</div>
+              <div id="wallTargets"></div>
+            </section>
+
+            <section class="section" id="operationSettingsSection">
+              <div class="section-title">Настройки на услуга</div>
+              <div id="operationAuthoring"></div>
+              <p id="operationStatus" class="opening-status" role="status" aria-live="polite"></p>
+            </section>
+          </details>
+        </div>
+
+        <div class="d13-pane d13-price-pane active-for-client" data-d13-pane="price">
+          <h2 class="smart-offer-heading">Smart Offer</h2>
+          <div id="offerRows"></div>
+
+          <section class="offer-summary" id="offerSummarySection">
+            <div class="offer-summary-row">
+              <span>Общо</span>
+              <strong id="offerTotalKpi">—</strong>
+            </div>
+            <p id="offerTotalStatus"></p>
+          </section>
+
+          <section class="section" id="offerDetailsSection">
+            <div class="section-title">Оферта</div>
+            <div class="kpi"><span>Количество</span><strong id="quantityKpi">—</strong></div>
+            <div class="kpi price-kpi">
+              <span id="unitPriceLabel">Ед. цена</span>
+              <label class="price-input-wrap work-only" id="unitPriceWorkControl">
+                <input
+                  id="unitPriceInput"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Въведи цена"
+                  aria-label="Единична цена в евро"
+                />
+                <span id="unitPriceSuffix">€/m²</span>
+              </label>
+              <strong id="unitPriceKpi" class="client-price-value">—</strong>
+            </div>
+            <div class="kpi"><span id="totalLabel">Сума</span><strong id="totalKpi">—</strong></div>
+          </section>
+
+          <div class="info-card" id="offerInfoCard">
+            <h3><span class="info-glyph" aria-hidden="true">i</span> <span id="infoTitle"></span></h3>
+            <b>Какво е</b><p id="infoWhat"></p>
+            <b>Защо се прави</b><p id="infoWhy"></p>
+            <b>Какво получавате</b><p id="infoResult"></p>
+            <b>Какво включва тази позиция</b><p id="infoIncludes"></p>
+          </div>
+
+          <button id="showResultBtn" style="width:100%;margin-top:12px">Виж целия резултат</button>
+        </div>
       </aside>
     </main>
   </div>
@@ -402,11 +529,8 @@ app.innerHTML = `
 const viewerHost = mustGet<HTMLElement>("viewer");
 const viewer = new RoomViewer({
   container: viewerHost,
-  onEntitySelect: (id) => {
-    offerInteraction = selectModelEntity(project, id);
-    syncViewerFocus();
-    renderOffer();
-  },
+  onEntitySelect: handleModelEntitySelect,
+  onOpeningSelect: handleOpeningSelect,
 });
 activeViewer = viewer;
 
@@ -426,11 +550,17 @@ for (const input of [widthInput, lengthInput, heightInput]) {
   input.addEventListener("change", updateDimensions);
 }
 
+mustGet<HTMLDetailsElement>("m2SchemeDetails").open =
+  !desktopWorkbenchMedia.matches;
+
+syncDesktopRightPane();
 renderOpeningEditor();
+renderD14ModelContext();
 renderServiceScopeControls();
 renderWallTargets();
 renderOperationAuthoring();
 renderM2Schema(mustGet("m2Schema"), project);
+renderLeftGeometrySummary();
 viewer.setProject(project);
 syncViewerFocus();
 renderOffer();
@@ -448,6 +578,29 @@ function wireControls(): void {
   mustGet("workModeBtn").addEventListener("click", () => setPreviewMode(false));
   mustGet("previewModeBtn").addEventListener("click", () => setPreviewMode(true));
   mustGet("exitPreviewBtn").addEventListener("click", () => setPreviewMode(false));
+
+  document.querySelectorAll<HTMLButtonElement>("[data-d13-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const pane = button.dataset.d13Tab;
+      if (pane !== "services" && pane !== "scope" && pane !== "price") return;
+      desktopRightPane = pane;
+      syncDesktopRightPane();
+    });
+  });
+
+  mustGet<HTMLInputElement>("d13ServiceFilterInput").addEventListener("input", () => {
+    renderServiceScopeControls();
+  });
+
+  mustGet<HTMLDetailsElement>("d14FullScopeDetails").addEventListener(
+    "toggle",
+    () => {
+      const details = mustGet<HTMLDetailsElement>("d14FullScopeDetails");
+      if (details.classList.contains("context-secondary")) {
+        fullScopeExpandedInContext = details.open;
+      }
+    },
+  );
 
   mustGet("resetCameraBtn").addEventListener("click", () => viewer.resetCamera());
 
@@ -493,15 +646,451 @@ function wireControls(): void {
     if (!serviceId) return;
 
     offerInteraction = selectOfferService(serviceId);
+    if (desktopWorkbenchMedia.matches) {
+      desktopRightPane = "price";
+      syncDesktopRightPane();
+    }
     syncViewerFocus();
     renderOffer();
   });
 
   mustGet("showResultBtn").addEventListener("click", () => {
+    selectedOpeningId = null;
     offerInteraction = showWholeResult();
+    if (desktopWorkbenchMedia.matches) {
+      desktopRightPane = "price";
+      syncDesktopRightPane();
+    }
     syncViewerFocus();
     renderOffer();
   });
+}
+
+function assignmentHasEditableScope(assignmentId: string): boolean {
+  if (
+    assignmentId === FINE_PUTTY_ASSIGNMENT_ID ||
+    assignmentId === FINE_PUTTY_CEILING_ASSIGNMENT_ID
+  ) {
+    return true;
+  }
+
+  return authorableWallOperations.some(
+    (definition) =>
+      definition.assignmentId === assignmentId ||
+      definition.ceilingAssignmentId === assignmentId,
+  );
+}
+
+function routeModelServiceContext(assignmentId: string): void {
+  if (
+    !desktopWorkbenchMedia.matches ||
+    !currentCapabilities().canAuthorProject
+  ) {
+    return;
+  }
+
+  const definition = authorableWallOperations.find(
+    (item) =>
+      item.assignmentId === assignmentId ||
+      item.ceilingAssignmentId === assignmentId,
+  );
+
+  if (definition) {
+    expandedOperationId = definition.assignmentId;
+  }
+
+  desktopRightPane = assignmentHasEditableScope(assignmentId)
+    ? "scope"
+    : "price";
+  syncDesktopRightPane();
+}
+
+function handleModelEntitySelect(id: SurfaceId): void {
+  selectedOpeningId = null;
+  fullScopeExpandedInContext = false;
+  const linkedAssignments = getLinkedServiceAssignments(project, id);
+
+  if (linkedAssignments.length === 1) {
+    offerInteraction = selectModelEntityService(
+      project,
+      id,
+      linkedAssignments[0]!.id,
+    );
+    routeModelServiceContext(linkedAssignments[0]!.id);
+  } else {
+    offerInteraction = selectModelEntity(project, id);
+
+    if (
+      desktopWorkbenchMedia.matches &&
+      currentCapabilities().canAuthorProject
+    ) {
+      desktopRightPane =
+        linkedAssignments.length === 0 ? "services" : "scope";
+      syncDesktopRightPane();
+    }
+  }
+
+  renderWallTargets();
+  renderOperationAuthoring();
+  renderD14ModelContext();
+  syncViewerFocus();
+  renderOffer();
+}
+
+function handleOpeningSelect(id: string): void {
+  if (!currentCapabilities().canAuthorProject) return;
+
+  const opening = project.room.openings.find((item) => item.id === id);
+  if (!opening) return;
+
+  selectedOpeningId = id;
+  expandedOpeningId = id;
+  offerInteraction = showWholeResult();
+
+  renderOpeningEditor();
+  renderD14ModelContext();
+  syncViewerFocus();
+  renderOffer();
+
+  if (desktopWorkbenchMedia.matches) {
+    requestAnimationFrame(() => {
+      const card = document.querySelector<HTMLElement>(
+        `.opening-card[data-opening-id="${CSS.escape(id)}"]`,
+      );
+      card?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  }
+}
+
+function describeIncludedServiceScope(
+  sourceProject: ProjectState,
+  serviceCode: string,
+): string {
+  const assignments = sourceProject.serviceAssignments.filter(
+    (assignment) =>
+      assignment.included && assignment.serviceCode === serviceCode,
+  );
+  const walls = new Set<SurfaceId>();
+  let hasCeiling = false;
+  let hasFloor = false;
+
+  for (const assignment of assignments) {
+    for (const id of assignment.targetEntityIds) {
+      if (wallIds.includes(id as WallId)) walls.add(id);
+      if (id === "room-1.ceiling") hasCeiling = true;
+      if (id === "room-1.floor") hasFloor = true;
+    }
+  }
+
+  const parts: string[] = [];
+  if (walls.size > 0) {
+    parts.push(
+      `${walls.size} ${walls.size === 1 ? "стена" : "стени"}`,
+    );
+  }
+  if (hasCeiling) parts.push("таван");
+  if (hasFloor) parts.push("под");
+
+  return parts.length > 0 ? parts.join(" + ") : "няма избран обхват";
+}
+
+function syncD14FullScopePresentation(
+  sourceProject: ProjectState = project,
+): void {
+  const details = mustGet<HTMLDetailsElement>("d14FullScopeDetails");
+  const summary = mustGet("d14FullScopeSummary");
+  const selectedEntity = offerInteraction.selectedEntity;
+  const selectedAssignmentId = offerInteraction.selectedServiceId;
+  const contextActive =
+    desktopWorkbenchMedia.matches &&
+    currentCapabilities().canAuthorProject &&
+    Boolean(selectedEntity && selectedAssignmentId);
+
+  details.classList.toggle("context-secondary", contextActive);
+
+  if (!contextActive) {
+    details.open = true;
+    summary.textContent = "Общ обхват на услугата";
+    return;
+  }
+
+  const assignment = sourceProject.serviceAssignments.find(
+    (item) => item.id === selectedAssignmentId,
+  );
+  const scope = assignment
+    ? describeIncludedServiceScope(sourceProject, assignment.serviceCode)
+    : "";
+
+  summary.textContent =
+    scope ? `Общ обхват · ${scope}` : "Общ обхват на услугата";
+  details.open = fullScopeExpandedInContext;
+}
+
+function renderD14ModelContext(
+  sourceProject: ProjectState = project,
+): void {
+  const context = mustGet<HTMLElement>("d14ModelContext");
+  const entityLabel = mustGet("d14ContextEntity");
+  const choices = mustGet("d14ContextServices");
+  const breakdown = mustGet<HTMLElement>("d14ContextBreakdown");
+  const breakdownService = mustGet("d14BreakdownService");
+  const breakdownQuantityLabel = mustGet("d14BreakdownQuantityLabel");
+  const breakdownQuantity = mustGet("d14BreakdownQuantity");
+  const breakdownPrice = mustGet("d14BreakdownPrice");
+  const breakdownTotal = mustGet("d14BreakdownTotal");
+  const breakdownScope = mustGet("d14BreakdownScope");
+  const hint = mustGet("d14ContextHint");
+
+  choices.replaceChildren();
+  breakdown.hidden = true;
+  breakdownService.textContent = "";
+  breakdownQuantity.textContent = "—";
+  breakdownPrice.textContent = "—";
+  breakdownTotal.textContent = "—";
+  breakdownScope.textContent = "";
+
+  if (!offerInteraction.selectedEntity) {
+    context.hidden = true;
+    entityLabel.textContent = "";
+    hint.textContent = "";
+    syncD14FullScopePresentation(sourceProject);
+    return;
+  }
+
+  const selectedEntity = offerInteraction.selectedEntity;
+  const surface = sourceProject.room.surfaces.find(
+    (item) => item.id === selectedEntity,
+  );
+  const linkedAssignments = getLinkedServiceAssignments(
+    sourceProject,
+    selectedEntity,
+  );
+
+  context.hidden = false;
+  entityLabel.textContent = surface?.label ?? selectedEntity;
+
+  if (linkedAssignments.length === 0) {
+    hint.textContent =
+      "Няма активна услуга за тази повърхност. Избери услуга, ако ще се работи тук.";
+
+    const showServices = document.createElement("button");
+    showServices.type = "button";
+    showServices.className = "d14-context-action";
+    showServices.textContent = "Виж услуги";
+    showServices.addEventListener("click", () => {
+      desktopRightPane = "services";
+      syncDesktopRightPane();
+    });
+    choices.append(showServices);
+    syncD14FullScopePresentation(sourceProject);
+    return;
+  }
+
+  for (const assignment of linkedAssignments) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "d14-context-service";
+    button.dataset.d14ServiceId = assignment.id;
+    button.classList.toggle(
+      "active",
+      offerInteraction.selectedServiceId === assignment.id,
+    );
+
+    const scope =
+      assignment.quantityRuleId === "ceiling-area-v1"
+        ? "Таван"
+        : assignment.quantityRuleId === "floor-area-v1"
+          ? "Под"
+          : "Стени";
+
+    button.innerHTML =
+      `<strong>${escapeHtml(assignment.label)}</strong>` +
+      `<span>${escapeHtml(scope)}</span>`;
+
+    button.addEventListener("click", () => {
+      if (!offerInteraction.selectedEntity) return;
+
+      fullScopeExpandedInContext = false;
+      offerInteraction = selectModelEntityService(
+        project,
+        offerInteraction.selectedEntity,
+        assignment.id,
+      );
+      routeModelServiceContext(assignment.id);
+      renderWallTargets();
+      renderOperationAuthoring();
+      renderD14ModelContext();
+      syncViewerFocus();
+      renderOffer();
+    });
+
+    choices.append(button);
+  }
+
+  const selectedAssignmentId = offerInteraction.selectedServiceId;
+  const selectedAssignment = selectedAssignmentId
+    ? sourceProject.serviceAssignments.find(
+        (assignment) => assignment.id === selectedAssignmentId,
+      )
+    : null;
+  const exactBreakdown =
+    selectedAssignmentId
+      ? calculateEntityOfferBreakdown(
+          sourceProject,
+          selectedAssignmentId,
+          selectedEntity,
+        )
+      : null;
+
+  if (selectedAssignment && exactBreakdown) {
+    const unit = formatQuantityUnit(exactBreakdown.quantity.unit);
+    const isWall =
+      selectedAssignment.quantityRuleId === "wall-net-area-openings-v1";
+
+    breakdown.hidden = false;
+    breakdownService.textContent = selectedAssignment.label;
+    breakdownQuantityLabel.textContent = isWall ? "Нето" : "Количество";
+    breakdownQuantity.textContent =
+      `${formatNumber(exactBreakdown.quantity.value)} ${unit}`;
+    breakdownPrice.textContent =
+      exactBreakdown.unitPriceEur === null
+        ? "Без цена"
+        : `${formatMoney(exactBreakdown.unitPriceEur)} €/${unit}`;
+    breakdownTotal.textContent =
+      exactBreakdown.totalEur === null
+        ? "—"
+        : `${formatMoney(exactBreakdown.totalEur)} €`;
+    breakdownScope.textContent =
+      `Общ обхват на „${selectedAssignment.label}“: ` +
+      describeIncludedServiceScope(
+        sourceProject,
+        selectedAssignment.serviceCode,
+      );
+  }
+
+  if (linkedAssignments.length > 1 && !offerInteraction.selectedServiceId) {
+    hint.textContent =
+      "Тази повърхност участва в няколко услуги. Избери коя редактираш.";
+  } else {
+    hint.textContent =
+      "3D изборът е само фокус. Количествата и цените на общата оферта не се променят.";
+  }
+
+  syncD14FullScopePresentation(sourceProject);
+}
+
+function syncDesktopRightPane(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-d13-tab]").forEach((button) => {
+    const active = button.dataset.d13Tab === desktopRightPane;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+
+  document.querySelectorAll<HTMLElement>("[data-d13-pane]").forEach((pane) => {
+    pane.classList.toggle("active", pane.dataset.d13Pane === desktopRightPane);
+  });
+}
+
+function syncD13ScopeState(): void {
+  const includedServices = new Set(
+    project.serviceAssignments
+      .filter((assignment) => assignment.included)
+      .map((assignment) => assignment.serviceCode),
+  );
+  mustGet("d13ScopeBadge").textContent = String(includedServices.size);
+
+  const empty = mustGet<HTMLElement>("d13ScopeEmpty");
+
+  if (offerInteraction.selectedEntity) {
+    const linkedAssignments = getLinkedServiceAssignments(
+      project,
+      offerInteraction.selectedEntity,
+    );
+
+    if (!offerInteraction.selectedServiceId) {
+      empty.hidden = false;
+      empty.textContent =
+        linkedAssignments.length > 1
+          ? "Избери услуга от 3D контекста, за да редактираш точния обхват."
+          : "Няма активна услуга с редактируем обхват за тази повърхност.";
+      return;
+    }
+
+    const editable = assignmentHasEditableScope(
+      offerInteraction.selectedServiceId,
+    );
+    empty.hidden = editable;
+    if (!editable) {
+      empty.textContent =
+        "За избраната услуга няма допълнителен избор на обхват.";
+    }
+    return;
+  }
+
+  const finePutty = getFinePuttyAssignment(project);
+  const finePuttyCeiling = findFinePuttyCeilingAssignment(project);
+  const hasFinePuttyScope =
+    finePutty.included || Boolean(finePuttyCeiling?.included);
+  const hasOperationScope = authorableWallOperations.some((definition) => {
+    return (
+      findOperationAssignment(project, definition)?.included ||
+      findOperationCeilingAssignment(project, definition)?.included
+    );
+  });
+
+  const hasEditableScope = hasFinePuttyScope || hasOperationScope;
+  empty.toggleAttribute("hidden", hasEditableScope);
+
+  if (!hasEditableScope) {
+    const selectedAssignment = offerInteraction.selectedServiceId
+      ? project.serviceAssignments.find(
+          (assignment) =>
+            assignment.id === offerInteraction.selectedServiceId &&
+            assignment.included,
+        )
+      : null;
+    empty.textContent = selectedAssignment
+      ? "За избраната услуга няма допълнителен избор на обхват."
+      : "Избери услуга от „Услуги“, за да настроиш обхвата ѝ.";
+  }
+}
+
+function syncD13ServiceBadge(): void {
+  mustGet("d13ServicesBadge").textContent = String(
+    mustGet("serviceScopeControls").children.length,
+  );
+}
+
+function renderD13PersistentSummary(
+  summary: ReturnType<typeof calculateDynamicOfferSummary>,
+): void {
+  const total = mustGet("d13OfferTotalKpi");
+  const status = mustGet("d13OfferTotalStatus");
+  mustGet("d13PriceBadge").textContent = String(summary.lines.length);
+
+  if (summary.lines.length === 0) {
+    total.textContent = "—";
+    total.dataset.state = "empty";
+    status.textContent = "Няма избрани услуги.";
+    status.dataset.state = "empty";
+    return;
+  }
+
+  if (summary.complete) {
+    total.textContent = `${formatMoney(summary.pricedSubtotalEur)} €`;
+    total.dataset.state = "complete";
+    status.textContent = "Офертата е ценово попълнена.";
+    status.dataset.state = "complete";
+    return;
+  }
+
+  const missingCount = summary.missingPriceAssignmentIds.length;
+  total.textContent = "Непълна";
+  total.dataset.state = "incomplete";
+  status.textContent =
+    `${missingCount} ${missingCount === 1 ? "позиция без цена" : "позиции без цена"} · ` +
+    `${formatMoney(summary.pricedSubtotalEur)} € въведени`;
+  status.dataset.state = "incomplete";
 }
 
 function syncProjectBar(): void {
@@ -611,13 +1200,16 @@ function renderCanonicalProjectState(): void {
   lengthInput.value = String(project.room.lengthM);
   heightInput.value = String(project.room.heightM);
   renderOpeningEditor();
+  renderD14ModelContext();
   renderServiceScopeControls();
   renderWallTargets();
   renderOperationAuthoring();
   renderM2Schema(mustGet("m2Schema"), project);
+  renderLeftGeometrySummary();
   viewer.setProject(project);
   syncViewerFocus();
   renderOffer();
+  syncDesktopRightPane();
   syncProjectBar();
 }
 
@@ -687,6 +1279,10 @@ function setPreviewMode(enabled: boolean): void {
   if (!enabled && !currentCapabilities().canReturnToWork) return;
 
   previewMode = enabled;
+  if (previewMode) {
+    selectedOpeningId = null;
+    viewer.setHighlightedOpening(null);
+  }
   mustGet("shell").classList.toggle("preview-mode", previewMode);
   mustGet("shell").classList.toggle("direct-client-entry", directClientEntry);
   mustGet("workModeBtn").classList.toggle("active", !previewMode);
@@ -694,6 +1290,7 @@ function setPreviewMode(enabled: boolean): void {
   mustGet("brandSubtitle").textContent = previewMode
     ? "Интерактивна оферта"
     : "Vertical Slice v1 · Work / Client Preview";
+  syncDesktopRightPane();
   renderOffer();
   requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
 }
@@ -746,6 +1343,10 @@ function updateDimensions(): void {
 function renderOpeningEditor(): void {
   const host = mustGet("openingsEditor");
   host.replaceChildren();
+  mustGet("openingsCount").textContent =
+    project.room.openings.length === 0
+      ? "няма"
+      : `${project.room.openings.length} ${project.room.openings.length === 1 ? "отвор" : "отвора"}`;
 
   if (!project.room.openings.length) {
     const empty = document.createElement("p");
@@ -756,12 +1357,34 @@ function renderOpeningEditor(): void {
   }
 
   project.room.openings.forEach((opening) => {
-    const card = document.createElement("div");
+    const card = document.createElement("details");
     card.className = "opening-card";
     card.dataset.openingId = opening.id;
+    card.classList.toggle(
+      "context-selected",
+      selectedOpeningId === opening.id,
+    );
+    card.open =
+      !desktopWorkbenchMedia.matches ||
+      expandedOpeningId === opening.id ||
+      selectedOpeningId === opening.id;
 
-    const head = document.createElement("div");
-    head.className = "opening-card-head";
+    card.addEventListener("toggle", () => {
+      if (!desktopWorkbenchMedia.matches) return;
+      if (card.open) {
+        expandedOpeningId = opening.id;
+        host
+          .querySelectorAll<HTMLDetailsElement>(".opening-card[open]")
+          .forEach((other) => {
+            if (other !== card) other.open = false;
+          });
+      } else if (expandedOpeningId === opening.id) {
+        expandedOpeningId = null;
+      }
+    });
+
+    const summary = document.createElement("summary");
+    summary.className = "opening-card-summary";
 
     const title = document.createElement("strong");
     title.textContent =
@@ -769,17 +1392,36 @@ function renderOpeningEditor(): void {
         ? `Врата ${openingOrdinal(opening, "door")}`
         : `Прозорец ${openingOrdinal(opening, "window")}`;
 
+    const meta = document.createElement("span");
+    meta.className = "opening-card-meta";
+    meta.textContent =
+      `${openingWallLabels[opening.hostSurfaceId]} · ${formatNumber(opening.widthM)} × ${formatNumber(opening.heightM)} m`;
+
+    summary.append(title, meta);
+    card.append(summary);
+
+    const body = document.createElement("div");
+    body.className = "opening-card-body";
+
+    const tools = document.createElement("div");
+    tools.className = "opening-card-tools";
+
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.className = "opening-remove";
     removeButton.textContent = "Премахни";
     removeButton.addEventListener("click", () => {
       if (!currentCapabilities().canAuthorProject) return;
+      if (expandedOpeningId === opening.id) {
+        expandedOpeningId = null;
+      }
+      if (selectedOpeningId === opening.id) {
+        selectedOpeningId = null;
+      }
       applyOpeningMutation(removeOpening(project, opening.id));
     });
-
-    head.append(title, removeButton);
-    card.append(head);
+    tools.append(removeButton);
+    body.append(tools);
 
     const grid = document.createElement("div");
     grid.className = "opening-fields";
@@ -799,6 +1441,7 @@ function renderOpeningEditor(): void {
         renderOpeningEditor();
         return;
       }
+      expandedOpeningId = opening.id;
       applyOpeningMutation(
         updateOpening(project, opening.id, {
           hostSurfaceId: wallSelect.value as WallId,
@@ -824,7 +1467,8 @@ function renderOpeningEditor(): void {
       );
     }
 
-    card.append(grid);
+    body.append(grid);
+    card.append(body);
     host.append(card);
   });
 }
@@ -872,6 +1516,7 @@ function openingNumberField(
     }
 
     const nextValue = Number.parseFloat(input.value);
+    expandedOpeningId = opening.id;
     applyOpeningMutation(
       updateOpening(project, opening.id, {
         [field]: nextValue,
@@ -886,6 +1531,8 @@ function addOpeningFromWork(kind: Opening["kind"]): void {
   if (!currentCapabilities().canAuthorProject) return;
 
   const id = `room-1.${kind}-${crypto.randomUUID()}`;
+  expandedOpeningId = id;
+  selectedOpeningId = id;
   applyOpeningMutation(addOpening(project, kind, id));
 }
 
@@ -900,6 +1547,12 @@ function applyOpeningMutation(result: OpeningMutationResult): void {
   nextProject.room.openings = result.openings;
   setOpeningStatus("", "idle");
   commitCanonicalProject(nextProject);
+}
+
+function renderLeftGeometrySummary(): void {
+  const geometry = summarizeRoomGeometry(project);
+  mustGet("m2SchemaCompactSummary").textContent =
+    `Стени ${formatNumber(geometry.grossWallsM2)} · Таван ${formatNumber(geometry.ceilingM2)} m²`;
 }
 
 function setOpeningStatus(
@@ -917,34 +1570,63 @@ function renderServiceScopeControls(): void {
 
   const services = [
     {
-      assignmentId: FINE_PUTTY_ASSIGNMENT_ID,
+      primaryAssignmentId: FINE_PUTTY_ASSIGNMENT_ID,
+      scopeAssignmentIds: [
+        FINE_PUTTY_ASSIGNMENT_ID,
+        FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+      ],
       label: "Фина шпакловка",
+      kind: "fine-putty" as const,
+      operationDefinition: null,
     },
     {
-      assignmentId: "assignment-laminate-flooring-1",
+      primaryAssignmentId: "assignment-laminate-flooring-1",
+      scopeAssignmentIds: ["assignment-laminate-flooring-1"],
       label: "Ламинат",
+      kind: "single" as const,
+      operationDefinition: null,
     },
-    {
-      assignmentId: gypsumPuttyOperation.assignmentId,
-      label: gypsumPuttyOperation.label,
-    },
+    ...authorableWallOperations.map((definition) => ({
+      primaryAssignmentId: definition.assignmentId,
+      scopeAssignmentIds: [
+        definition.assignmentId,
+        definition.ceilingAssignmentId,
+      ],
+      label: definition.label,
+      kind: "operation" as const,
+      operationDefinition: definition,
+    })),
   ];
 
-  for (const service of services) {
-    const assignment = project.serviceAssignments.find(
-      (item) => item.id === service.assignmentId,
+  const filterQuery =
+    mustGet<HTMLInputElement>("d13ServiceFilterInput")
+      .value.trim()
+      .toLocaleLowerCase("bg-BG");
+  const visibleServices = filterQuery
+    ? services.filter((service) =>
+        service.label.toLocaleLowerCase("bg-BG").includes(filterQuery),
+      )
+    : services;
+
+  mustGet<HTMLElement>("d13ServiceFilterEmpty").hidden =
+    visibleServices.length !== 0;
+
+  for (const service of visibleServices) {
+    const included = service.scopeAssignmentIds.some(
+      (assignmentId) =>
+        project.serviceAssignments.find((item) => item.id === assignmentId)
+          ?.included,
     );
-    const included = assignment?.included ?? false;
 
     const toggle = document.createElement("label");
     toggle.className = "service-scope-toggle";
     toggle.classList.toggle("selected", included);
-    toggle.dataset.serviceScopeId = service.assignmentId;
+    toggle.dataset.serviceScopeId = service.primaryAssignmentId;
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = included;
-    checkbox.dataset.serviceInclude = service.assignmentId;
+    checkbox.dataset.serviceInclude = service.primaryAssignmentId;
     checkbox.setAttribute(
       "aria-label",
       `Включи ${service.label} в офертата`,
@@ -960,41 +1642,90 @@ function renderServiceScopeControls(): void {
       }
 
       let nextProject = getCurrentProjectState(projectHistory);
-      const currentAssignment = nextProject.serviceAssignments.find(
-        (item) => item.id === service.assignmentId,
-      );
 
       try {
-        if (
-          service.assignmentId === gypsumPuttyOperation.assignmentId &&
-          !currentAssignment &&
-          checkbox.checked
-        ) {
-          nextProject = addOperationAssignment(
-            nextProject,
-            gypsumPuttyOperation,
-          );
-        } else if (currentAssignment) {
+        if (service.kind === "operation" && service.operationDefinition) {
+          if (checkbox.checked) {
+            nextProject = addOperationScopeAssignments(
+              nextProject,
+              service.operationDefinition,
+            );
+          } else {
+            for (const assignmentId of service.scopeAssignmentIds) {
+              if (
+                nextProject.serviceAssignments.some(
+                  (item) => item.id === assignmentId,
+                )
+              ) {
+                nextProject = setServiceAssignmentIncluded(
+                  nextProject,
+                  assignmentId,
+                  false,
+                );
+              }
+            }
+          }
+        } else if (service.kind === "fine-putty") {
           nextProject = setServiceAssignmentIncluded(
             nextProject,
-            service.assignmentId,
+            FINE_PUTTY_ASSIGNMENT_ID,
             checkbox.checked,
           );
+
+          const ceilingAssignment =
+            findFinePuttyCeilingAssignment(nextProject);
+          if (checkbox.checked && !ceilingAssignment) {
+            nextProject = {
+              ...nextProject,
+              serviceAssignments: [
+                ...nextProject.serviceAssignments,
+                createFinePuttyCeilingAssignment(true),
+              ],
+            };
+          } else if (ceilingAssignment) {
+            nextProject = setServiceAssignmentIncluded(
+              nextProject,
+              FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+              checkbox.checked,
+            );
+          }
         } else {
-          renderServiceScopeControls();
-          return;
+          const assignment = nextProject.serviceAssignments.find(
+            (item) => item.id === service.primaryAssignmentId,
+          );
+          if (!assignment) {
+            renderServiceScopeControls();
+            return;
+          }
+          nextProject = setServiceAssignmentIncluded(
+            nextProject,
+            service.primaryAssignmentId,
+            checkbox.checked,
+          );
         }
 
         if (checkbox.checked) {
-          offerInteraction = selectOfferService(service.assignmentId);
-          if (service.assignmentId === gypsumPuttyOperation.assignmentId) {
-            expandedOperationId = gypsumPuttyOperation.assignmentId;
+          offerInteraction = selectOfferService(service.primaryAssignmentId);
+          if (service.operationDefinition) {
+            expandedOperationId = service.operationDefinition.assignmentId;
+          }
+          if (desktopWorkbenchMedia.matches) {
+            desktopRightPane =
+              service.kind === "single" ? "price" : "scope";
           }
         } else {
-          if (offerInteraction.selectedServiceId === service.assignmentId) {
+          if (
+            offerInteraction.selectedServiceId &&
+            service.scopeAssignmentIds.includes(
+              offerInteraction.selectedServiceId,
+            )
+          ) {
             offerInteraction = showWholeResult();
           }
-          if (service.assignmentId === gypsumPuttyOperation.assignmentId) {
+          if (
+            service.operationDefinition &&
+            expandedOperationId === service.operationDefinition.assignmentId
+          ) {
             expandedOperationId = null;
           }
         }
@@ -1010,6 +1741,9 @@ function renderServiceScopeControls(): void {
     toggle.append(checkbox, text);
     host.append(toggle);
   }
+
+  syncD13ServiceBadge();
+  syncD13ScopeState();
 }
 
 function renderWallTargets(): void {
@@ -1017,8 +1751,33 @@ function renderWallTargets(): void {
   targetHost.replaceChildren();
 
   const finePutty = getFinePuttyAssignment(project);
-  mustGet<HTMLElement>("finePuttyTargetsSection").hidden = !finePutty.included;
-  if (!finePutty.included) return;
+  const ceilingAssignment = findFinePuttyCeilingAssignment(project);
+  const serviceIncluded =
+    finePutty.included || Boolean(ceilingAssignment?.included);
+  const hasModelContext = Boolean(offerInteraction.selectedEntity);
+  const selectedContextAssignmentId = hasModelContext
+    ? offerInteraction.selectedServiceId
+    : null;
+  const finePuttyContextAllowed =
+    !hasModelContext ||
+    selectedContextAssignmentId === FINE_PUTTY_ASSIGNMENT_ID ||
+    selectedContextAssignmentId === FINE_PUTTY_CEILING_ASSIGNMENT_ID;
+  const showFinePuttySection =
+    serviceIncluded && finePuttyContextAllowed;
+
+  mustGet<HTMLElement>("finePuttyTargetsSection").hidden =
+    !showFinePuttySection;
+  if (!showFinePuttySection) {
+    syncD13ScopeState();
+    return;
+  }
+
+  const showWallScope =
+    !hasModelContext ||
+    selectedContextAssignmentId === FINE_PUTTY_ASSIGNMENT_ID;
+  const showCeilingScope =
+    !hasModelContext ||
+    selectedContextAssignmentId === FINE_PUTTY_CEILING_ASSIGNMENT_ID;
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -1027,127 +1786,200 @@ function renderWallTargets(): void {
     "room-1.wall-right": "Дясна стена",
   };
 
-  wallIds.forEach((id) => {
-    const row = document.createElement("label");
-    row.className = "check-row";
+  const wallScopeRow = document.createElement("label");
+  wallScopeRow.className = "check-row";
+  const wallScopeCheckbox = document.createElement("input");
+  wallScopeCheckbox.type = "checkbox";
+  wallScopeCheckbox.checked = finePutty.included;
+  wallScopeCheckbox.dataset.serviceScopeTarget = "fine-putty-walls";
+  wallScopeCheckbox.addEventListener("change", () => {
+    if (!currentCapabilities().canAuthorProject) {
+      renderWallTargets();
+      return;
+    }
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = getFinePuttyAssignment(project).targetEntityIds.includes(id);
-    checkbox.addEventListener("change", () => {
-      if (!currentCapabilities().canAuthorProject) {
-        checkbox.checked = getFinePuttyAssignment(project).targetEntityIds.includes(id);
-        return;
-      }
-
-      const previousTargets =
-        getFinePuttyAssignment(project).targetEntityIds;
-      const targets = new Set(previousTargets);
-      if (checkbox.checked) targets.add(id);
-      else targets.delete(id);
-
-      const nextTargets = wallIds.filter((wallId) =>
-        targets.has(wallId),
+    try {
+      const nextProject = setServiceAssignmentIncluded(
+        getCurrentProjectState(projectHistory),
+        FINE_PUTTY_ASSIGNMENT_ID,
+        wallScopeCheckbox.checked,
       );
-      const changed =
-        nextTargets.length !== previousTargets.length ||
-        nextTargets.some(
-          (wallId, index) => wallId !== previousTargets[index],
-        );
-
-      offerInteraction = selectOfferService(FINE_PUTTY_ASSIGNMENT_ID);
-
-      if (changed) {
-        const nextProject = getCurrentProjectState(projectHistory);
-        getFinePuttyAssignment(nextProject).targetEntityIds = nextTargets;
-        commitCanonicalProject(nextProject);
-        return;
-      }
-
-      syncViewerFocus();
-      renderOffer();
-    });
-
-    const text = document.createElement("span");
-    text.textContent = labelById[id];
-
-    row.append(checkbox, text);
-    targetHost.append(row);
+      offerInteraction = wallScopeCheckbox.checked
+        ? selectOfferService(FINE_PUTTY_ASSIGNMENT_ID)
+        : findFinePuttyCeilingAssignment(nextProject)?.included
+          ? selectOfferService(FINE_PUTTY_CEILING_ASSIGNMENT_ID)
+          : showWholeResult();
+      commitCanonicalProject(nextProject);
+    } catch (error) {
+      setOperationStatus(operationErrorMessage(error), "error");
+      renderWallTargets();
+    }
   });
+  const wallScopeText = document.createElement("strong");
+  wallScopeText.textContent = "Стени";
+  wallScopeRow.append(wallScopeCheckbox, wallScopeText);
+  if (showWallScope) {
+    targetHost.append(wallScopeRow);
+  }
+
+  if (showWallScope && finePutty.included) {
+    wallIds.forEach((id) => {
+      const row = document.createElement("label");
+      row.className = "check-row";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked =
+        getFinePuttyAssignment(project).targetEntityIds.includes(id);
+      checkbox.addEventListener("change", () => {
+        if (!currentCapabilities().canAuthorProject) {
+          checkbox.checked =
+            getFinePuttyAssignment(project).targetEntityIds.includes(id);
+          return;
+        }
+
+        const previousTargets =
+          getFinePuttyAssignment(project).targetEntityIds;
+        const targets = new Set(previousTargets);
+        if (checkbox.checked) targets.add(id);
+        else targets.delete(id);
+
+        const nextTargets = wallIds.filter((wallId) =>
+          targets.has(wallId),
+        );
+        const changed =
+          nextTargets.length !== previousTargets.length ||
+          nextTargets.some(
+            (wallId, index) => wallId !== previousTargets[index],
+          );
+
+        if (nextTargets.length === 0) {
+          checkbox.checked = true;
+          setOperationStatus(
+            "Остави поне една стена или изключи обхвата „Стени“.",
+            "error",
+          );
+          return;
+        }
+
+        offerInteraction = selectOfferService(FINE_PUTTY_ASSIGNMENT_ID);
+
+        if (changed) {
+          const nextProject = getCurrentProjectState(projectHistory);
+          getFinePuttyAssignment(nextProject).targetEntityIds = nextTargets;
+          setOperationStatus("");
+          commitCanonicalProject(nextProject);
+          return;
+        }
+
+        syncViewerFocus();
+        renderOffer();
+      });
+
+      const text = document.createElement("span");
+      text.textContent = labelById[id];
+
+      row.append(checkbox, text);
+      targetHost.append(row);
+    });
+  }
+
+  const ceilingRow = document.createElement("label");
+  ceilingRow.className = "check-row";
+  const ceilingCheckbox = document.createElement("input");
+  ceilingCheckbox.type = "checkbox";
+  ceilingCheckbox.checked = Boolean(ceilingAssignment?.included);
+  ceilingCheckbox.dataset.serviceScopeTarget = "fine-putty-ceiling";
+  ceilingCheckbox.addEventListener("change", () => {
+    if (!currentCapabilities().canAuthorProject) {
+      renderWallTargets();
+      return;
+    }
+
+    let nextProject = getCurrentProjectState(projectHistory);
+    const currentCeiling = findFinePuttyCeilingAssignment(nextProject);
+
+    if (ceilingCheckbox.checked && !currentCeiling) {
+      nextProject = {
+        ...nextProject,
+        serviceAssignments: [
+          ...nextProject.serviceAssignments,
+          createFinePuttyCeilingAssignment(true),
+        ],
+      };
+    } else if (currentCeiling) {
+      nextProject = setServiceAssignmentIncluded(
+        nextProject,
+        FINE_PUTTY_CEILING_ASSIGNMENT_ID,
+        ceilingCheckbox.checked,
+      );
+    }
+
+    offerInteraction = ceilingCheckbox.checked
+      ? selectOfferService(FINE_PUTTY_CEILING_ASSIGNMENT_ID)
+      : getFinePuttyAssignment(nextProject).included
+        ? selectOfferService(FINE_PUTTY_ASSIGNMENT_ID)
+        : showWholeResult();
+    setOperationStatus("");
+    commitCanonicalProject(nextProject);
+  });
+  const ceilingText = document.createElement("strong");
+  ceilingText.textContent = "Таван";
+  ceilingRow.append(ceilingCheckbox, ceilingText);
+  if (showCeilingScope) {
+    targetHost.append(ceilingRow);
+  }
+
+  syncD13ScopeState();
 }
 
 function renderOperationAuthoring(): void {
   const host = mustGet("operationAuthoring");
   host.replaceChildren();
 
-  const assignment = findOperationAssignment(project, gypsumPuttyOperation);
-  const settingsSection = mustGet<HTMLElement>("operationSettingsSection");
+  const hasModelContext = Boolean(offerInteraction.selectedEntity);
+  const selectedContextAssignmentId = hasModelContext
+    ? offerInteraction.selectedServiceId
+    : null;
 
-  if (!assignment || !assignment.included) {
+  const activeOperations = authorableWallOperations
+    .map((definition) => ({
+      definition,
+      wallAssignment: findOperationAssignment(project, definition),
+      ceilingAssignment: findOperationCeilingAssignment(project, definition),
+    }))
+    .filter(
+      (item) =>
+        item.wallAssignment?.included || item.ceilingAssignment?.included,
+    )
+    .filter((item) => {
+      if (!hasModelContext) return true;
+      if (!selectedContextAssignmentId) return false;
+      return (
+        item.definition.assignmentId === selectedContextAssignmentId ||
+        item.definition.ceilingAssignmentId ===
+          selectedContextAssignmentId
+      );
+    });
+
+  const settingsSection = mustGet<HTMLElement>("operationSettingsSection");
+  if (activeOperations.length === 0) {
     expandedOperationId = null;
     settingsSection.hidden = true;
+    syncD13ScopeState();
     return;
+  }
+
+  if (
+    expandedOperationId &&
+    !activeOperations.some(
+      (item) => item.definition.assignmentId === expandedOperationId,
+    )
+  ) {
+    expandedOperationId = null;
   }
 
   settingsSection.hidden = false;
-
-  const card = document.createElement("div");
-  card.className = "operation-card";
-
-  const summaryButton = document.createElement("button");
-  summaryButton.id = "gypsumPuttySummaryButton";
-  summaryButton.type = "button";
-  summaryButton.className = "operation-summary";
-
-  const expanded =
-    expandedOperationId === gypsumPuttyOperation.assignmentId;
-  summaryButton.setAttribute("aria-expanded", String(expanded));
-
-  const summaryText = document.createElement("span");
-  summaryText.className = "operation-summary-text";
-
-  const title = document.createElement("strong");
-  title.textContent = assignment.label;
-
-  const summaryMeta = document.createElement("span");
-  summaryMeta.className = "operation-summary-meta";
-  const wallCount = assignment.targetEntityIds.filter((id) =>
-    wallIds.includes(id as WallId),
-  ).length;
-  summaryMeta.textContent = assignment.included
-    ? `${wallCount} ${wallCount === 1 ? "стена" : "стени"}`
-    : "Изключена";
-
-  summaryText.append(title, summaryMeta);
-
-  const chevron = document.createElement("span");
-  chevron.className = "operation-chevron";
-  chevron.setAttribute("aria-hidden", "true");
-  chevron.textContent = expanded ? "▴" : "▾";
-
-  summaryButton.append(summaryText, chevron);
-  summaryButton.addEventListener("click", () => {
-    expandedOperationId = expanded ? null : gypsumPuttyOperation.assignmentId;
-    offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
-    renderOperationAuthoring();
-    syncViewerFocus();
-    renderOffer();
-  });
-
-  card.append(summaryButton);
-
-  if (!expanded) {
-    host.append(card);
-    return;
-  }
-
-  const editor = document.createElement("div");
-  editor.className = "operation-editor";
-
-  const targetTitle = document.createElement("div");
-  targetTitle.className = "operation-target-title";
-  targetTitle.textContent = "Избери стени";
-  editor.append(targetTitle);
 
   const labelById: Record<WallId, string> = {
     "room-1.wall-front": "Предна стена",
@@ -1156,37 +1988,116 @@ function renderOperationAuthoring(): void {
     "room-1.wall-right": "Дясна стена",
   };
 
-  for (const wallId of wallIds) {
-    const row = document.createElement("label");
-    row.className = "check-row";
+  for (const {
+    definition,
+    wallAssignment,
+    ceilingAssignment,
+  } of activeOperations) {
+    const displayAssignment = wallAssignment ?? ceilingAssignment;
+    if (!displayAssignment) continue;
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.dataset.operationTarget = wallId;
-    checkbox.checked = assignment.targetEntityIds.includes(wallId);
-    checkbox.addEventListener("change", () => {
+    const card = document.createElement("div");
+    card.className = "operation-card";
+
+    const summaryButton = document.createElement("button");
+    summaryButton.type = "button";
+    summaryButton.className = "operation-summary";
+    summaryButton.dataset.operationSummary = definition.assignmentId;
+    if (definition.assignmentId === gypsumPuttyOperation.assignmentId) {
+      summaryButton.id = "gypsumPuttySummaryButton";
+    } else {
+      summaryButton.id = `operationSummary-${definition.serviceCode}`;
+    }
+
+    const expanded = expandedOperationId === definition.assignmentId;
+    summaryButton.setAttribute("aria-expanded", String(expanded));
+
+    const summaryText = document.createElement("span");
+    summaryText.className = "operation-summary-text";
+
+    const title = document.createElement("strong");
+    title.textContent = displayAssignment.label;
+
+    const summaryMeta = document.createElement("span");
+    summaryMeta.className = "operation-summary-meta";
+    const wallCount = wallAssignment?.included
+      ? wallAssignment.targetEntityIds.filter((id) =>
+          wallIds.includes(id as WallId),
+        ).length
+      : 0;
+    const hasCeiling = Boolean(ceilingAssignment?.included);
+    summaryMeta.textContent =
+      wallCount > 0 && hasCeiling
+        ? `${wallCount} ${wallCount === 1 ? "стена" : "стени"} + таван`
+        : wallCount > 0
+          ? `${wallCount} ${wallCount === 1 ? "стена" : "стени"}`
+          : "Таван";
+
+    summaryText.append(title, summaryMeta);
+
+    const chevron = document.createElement("span");
+    chevron.className = "operation-chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.textContent = expanded ? "▴" : "▾";
+
+    summaryButton.append(summaryText, chevron);
+    summaryButton.addEventListener("click", () => {
+      expandedOperationId = expanded ? null : definition.assignmentId;
+      offerInteraction = wallAssignment?.included
+        ? selectOfferService(definition.assignmentId)
+        : selectOfferService(definition.ceilingAssignmentId);
+      renderOperationAuthoring();
+      syncViewerFocus();
+      renderOffer();
+    });
+
+    card.append(summaryButton);
+
+    if (!expanded) {
+      host.append(card);
+      continue;
+    }
+
+    const editor = document.createElement("div");
+    editor.className = "operation-editor";
+
+    const showWallScope =
+      !hasModelContext ||
+      selectedContextAssignmentId === definition.assignmentId;
+    const showCeilingScope =
+      !hasModelContext ||
+      selectedContextAssignmentId === definition.ceilingAssignmentId;
+
+    const wallScopeRow = document.createElement("label");
+    wallScopeRow.className = "check-row";
+    const wallScopeCheckbox = document.createElement("input");
+    wallScopeCheckbox.type = "checkbox";
+    wallScopeCheckbox.checked = Boolean(wallAssignment?.included);
+    wallScopeCheckbox.dataset.operationScope = "walls";
+    wallScopeCheckbox.dataset.operationId = definition.assignmentId;
+    wallScopeCheckbox.addEventListener("change", () => {
       if (!currentCapabilities().canAuthorProject) {
         renderOperationAuthoring();
         return;
       }
 
-      const currentAssignment = findOperationAssignment(
-        project,
-        gypsumPuttyOperation,
-      );
-      if (!currentAssignment) return;
-
-      const nextTargets = new Set(currentAssignment.targetEntityIds);
-      if (checkbox.checked) nextTargets.add(wallId);
-      else nextTargets.delete(wallId);
-
+      let nextProject = getCurrentProjectState(projectHistory);
       try {
-        const nextProject = setOperationTargets(
-          getCurrentProjectState(projectHistory),
-          gypsumPuttyOperation,
-          wallIds.filter((id) => nextTargets.has(id)),
-        );
-        offerInteraction = selectOfferService(gypsumPuttyOperation.assignmentId);
+        const currentWall = findOperationAssignment(nextProject, definition);
+        if (!currentWall && wallScopeCheckbox.checked) {
+          nextProject = addOperationAssignment(nextProject, definition);
+        } else if (currentWall) {
+          nextProject = setServiceAssignmentIncluded(
+            nextProject,
+            definition.assignmentId,
+            wallScopeCheckbox.checked,
+          );
+        }
+        offerInteraction = wallScopeCheckbox.checked
+          ? selectOfferService(definition.assignmentId)
+          : findOperationCeilingAssignment(nextProject, definition)?.included
+            ? selectOfferService(definition.ceilingAssignmentId)
+            : showWholeResult();
         setOperationStatus("");
         commitCanonicalProject(nextProject);
       } catch (error) {
@@ -1194,24 +2105,126 @@ function renderOperationAuthoring(): void {
         renderOperationAuthoring();
       }
     });
+    const wallScopeText = document.createElement("strong");
+    wallScopeText.textContent = "Стени";
+    wallScopeRow.append(wallScopeCheckbox, wallScopeText);
+    if (showWallScope) {
+      editor.append(wallScopeRow);
+    }
 
-    const text = document.createElement("span");
-    text.textContent = labelById[wallId];
-    row.append(checkbox, text);
-    editor.append(row);
+    if (showWallScope && wallAssignment?.included) {
+      for (const wallId of wallIds) {
+        const row = document.createElement("label");
+        row.className = "check-row";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.operationTarget = wallId;
+        checkbox.dataset.operationId = definition.assignmentId;
+        checkbox.checked = wallAssignment.targetEntityIds.includes(wallId);
+        checkbox.addEventListener("change", () => {
+          if (!currentCapabilities().canAuthorProject) {
+            renderOperationAuthoring();
+            return;
+          }
+
+          const currentAssignment = findOperationAssignment(
+            project,
+            definition,
+          );
+          if (!currentAssignment) return;
+
+          const nextTargets = new Set(currentAssignment.targetEntityIds);
+          if (checkbox.checked) nextTargets.add(wallId);
+          else nextTargets.delete(wallId);
+
+          try {
+            const nextProject = setOperationTargets(
+              getCurrentProjectState(projectHistory),
+              definition,
+              wallIds.filter((id) => nextTargets.has(id)),
+            );
+            offerInteraction = selectOfferService(definition.assignmentId);
+            setOperationStatus("");
+            commitCanonicalProject(nextProject);
+          } catch (error) {
+            setOperationStatus(operationErrorMessage(error), "error");
+            renderOperationAuthoring();
+          }
+        });
+
+        const text = document.createElement("span");
+        text.textContent = labelById[wallId];
+        row.append(checkbox, text);
+        editor.append(row);
+      }
+    }
+
+    const ceilingScopeRow = document.createElement("label");
+    ceilingScopeRow.className = "check-row";
+    const ceilingScopeCheckbox = document.createElement("input");
+    ceilingScopeCheckbox.type = "checkbox";
+    ceilingScopeCheckbox.checked = Boolean(ceilingAssignment?.included);
+    ceilingScopeCheckbox.dataset.operationScope = "ceiling";
+    ceilingScopeCheckbox.dataset.operationId = definition.assignmentId;
+    ceilingScopeCheckbox.addEventListener("change", () => {
+      if (!currentCapabilities().canAuthorProject) {
+        renderOperationAuthoring();
+        return;
+      }
+
+      let nextProject = getCurrentProjectState(projectHistory);
+      try {
+        if (ceilingScopeCheckbox.checked) {
+          nextProject = addOperationCeilingAssignment(
+            nextProject,
+            definition,
+            true,
+          );
+        } else if (
+          findOperationCeilingAssignment(nextProject, definition)
+        ) {
+          nextProject = setServiceAssignmentIncluded(
+            nextProject,
+            definition.ceilingAssignmentId,
+            false,
+          );
+        }
+
+        offerInteraction = ceilingScopeCheckbox.checked
+          ? selectOfferService(definition.ceilingAssignmentId)
+          : findOperationAssignment(nextProject, definition)?.included
+            ? selectOfferService(definition.assignmentId)
+            : showWholeResult();
+        setOperationStatus("");
+        commitCanonicalProject(nextProject);
+      } catch (error) {
+        setOperationStatus(operationErrorMessage(error), "error");
+        renderOperationAuthoring();
+      }
+    });
+    const ceilingScopeText = document.createElement("strong");
+    ceilingScopeText.textContent = "Таван";
+    ceilingScopeRow.append(ceilingScopeCheckbox, ceilingScopeText);
+    if (showCeilingScope) {
+      editor.append(ceilingScopeRow);
+    }
+
+    const footer = document.createElement("div");
+    footer.className = "operation-editor-footer";
+
+    const meta = document.createElement("span");
+    meta.className = "operation-meta";
+    meta.textContent =
+      "Стени: m² нето след отвори · Таван: отделни m² и цена";
+
+    footer.append(meta);
+    editor.append(footer);
+    card.append(editor);
+    host.append(card);
   }
 
-  const footer = document.createElement("div");
-  footer.className = "operation-editor-footer";
-
-  const meta = document.createElement("span");
-  meta.className = "operation-meta";
-  meta.textContent = "m² · нето след отвори";
-
-  footer.append(meta);
-  editor.append(footer);
-  card.append(editor);
-  host.append(card);
+  syncD13ScopeState();
 }
 
 function setOperationStatus(
@@ -1228,12 +2241,37 @@ function operationErrorMessage(error: unknown): string {
 }
 
 function syncViewerFocus(): void {
-  viewer.setHighlightedEntities(getHighlightedEntityIds(project, offerInteraction));
+  if (
+    selectedOpeningId &&
+    (offerInteraction.selectedEntity || offerInteraction.selectedServiceId)
+  ) {
+    selectedOpeningId = null;
+  }
+
+  viewer.setHighlightedEntities(
+    getHighlightedEntityIds(project, offerInteraction),
+  );
+  viewer.setHighlightedOpening(selectedOpeningId);
   viewer.setLaminateFloorVisible(
     shouldShowLaminateFloor(project, offerInteraction),
   );
+  renderD14ModelContext();
 
   const chip = mustGet("selectionChip");
+
+  if (selectedOpeningId) {
+    const opening = project.room.openings.find(
+      (item) => item.id === selectedOpeningId,
+    );
+    if (opening) {
+      const label =
+        opening.kind === "door"
+          ? `Врата ${openingOrdinal(opening, "door")}`
+          : `Прозорец ${openingOrdinal(opening, "window")}`;
+      chip.innerHTML = `<span class="focus-chip">Избрано: ${escapeHtml(label)}</span>`;
+      return;
+    }
+  }
   if (offerInteraction.selectedEntity) {
     const label = project.room.surfaces.find(
       (surface) => surface.id === offerInteraction.selectedEntity,
@@ -1263,6 +2301,7 @@ function renderOffer(
   sourceProject: ProjectState = project,
   priceInputRaw?: string,
 ): void {
+  renderD14ModelContext(sourceProject);
   const summary = calculateDynamicOfferSummary(sourceProject);
   const lines = summary.lines;
   const focusedIds = new Set(
@@ -1285,7 +2324,22 @@ function renderOffer(
     }
 
     const title = document.createElement("strong");
-    title.append(document.createTextNode(`${line.label} `));
+    const lineAssignment = sourceProject.serviceAssignments.find(
+      (assignment) => assignment.id === line.assignmentId,
+    );
+    const scopeLabel =
+      lineAssignment?.quantityRuleId === "ceiling-area-v1"
+        ? "Таван"
+        : lineAssignment?.quantityRuleId === "wall-net-area-openings-v1"
+          ? "Стени"
+          : lineAssignment?.quantityRuleId === "floor-area-v1"
+            ? "Под"
+            : null;
+    title.append(
+      document.createTextNode(
+        `${line.label}${scopeLabel ? ` · ${scopeLabel}` : ""} `,
+      ),
+    );
     const infoGlyph = document.createElement("span");
     infoGlyph.className = "info-glyph";
     infoGlyph.setAttribute("aria-label", "Информация");
@@ -1360,7 +2414,19 @@ function renderOffer(
       ? "Цена не е въведена"
       : `${formatMoney(detailLine.totalEur)} €`;
 
-  mustGet("infoTitle").textContent = detailLine.label;
+  const detailAssignment = sourceProject.serviceAssignments.find(
+    (assignment) => assignment.id === detailLine.assignmentId,
+  );
+  const detailScopeLabel =
+    detailAssignment?.quantityRuleId === "ceiling-area-v1"
+      ? "Таван"
+      : detailAssignment?.quantityRuleId === "wall-net-area-openings-v1"
+        ? "Стени"
+        : detailAssignment?.quantityRuleId === "floor-area-v1"
+          ? "Под"
+          : null;
+  mustGet("infoTitle").textContent =
+    `${detailLine.label}${detailScopeLabel ? ` · ${detailScopeLabel}` : ""}`;
   mustGet("infoWhat").textContent = detailLine.clientInfo.what;
   mustGet("infoWhy").textContent = detailLine.clientInfo.why;
   mustGet("infoResult").textContent = detailLine.clientInfo.result;
@@ -1370,6 +2436,8 @@ function renderOffer(
 function renderOfferSummary(
   summary: ReturnType<typeof calculateDynamicOfferSummary>,
 ): void {
+  renderD13PersistentSummary(summary);
+
   const total = mustGet("offerTotalKpi");
   const status = mustGet("offerTotalStatus");
 

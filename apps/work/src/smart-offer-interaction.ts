@@ -24,18 +24,46 @@ export function selectOfferService(
   };
 }
 
+export function getLinkedServiceAssignments(
+  project: ProjectState,
+  id: SurfaceId,
+) {
+  return project.serviceAssignments.filter(
+    (assignment) =>
+      assignment.included && assignment.targetEntityIds.includes(id),
+  );
+}
+
 export function selectModelEntity(
   project: ProjectState,
   id: SurfaceId,
 ): OfferInteractionState {
-  const linkedAssignments = project.serviceAssignments.filter(
-    (assignment) =>
-      assignment.included && assignment.targetEntityIds.includes(id),
-  );
+  const linkedAssignments = getLinkedServiceAssignments(project, id);
 
   return {
     selectedServiceId:
       linkedAssignments.length === 1 ? linkedAssignments[0]!.id : null,
+    selectedEntity: id,
+  };
+}
+
+export function selectModelEntityService(
+  project: ProjectState,
+  id: SurfaceId,
+  serviceAssignmentId: string,
+): OfferInteractionState {
+  const linked = getLinkedServiceAssignments(project, id).some(
+    (assignment) => assignment.id === serviceAssignmentId,
+  );
+
+  if (!linked) {
+    throw new Error(
+      `Service assignment ${serviceAssignmentId} is not linked to ${id}.`,
+    );
+  }
+
+  return {
+    selectedServiceId: serviceAssignmentId,
     selectedEntity: id,
   };
 }
@@ -52,13 +80,21 @@ export function getFocusedServiceAssignmentIds(
   interaction: OfferInteractionState,
 ): string[] {
   if (interaction.selectedEntity) {
-    return project.serviceAssignments
-      .filter(
-        (assignment) =>
-          assignment.included &&
-          assignment.targetEntityIds.includes(interaction.selectedEntity!),
+    const linkedAssignments = getLinkedServiceAssignments(
+      project,
+      interaction.selectedEntity,
+    );
+
+    if (
+      interaction.selectedServiceId &&
+      linkedAssignments.some(
+        (assignment) => assignment.id === interaction.selectedServiceId,
       )
-      .map((assignment) => assignment.id);
+    ) {
+      return [interaction.selectedServiceId];
+    }
+
+    return linkedAssignments.map((assignment) => assignment.id);
   }
 
   if (

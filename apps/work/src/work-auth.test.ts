@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import {
+  clearRecoverableLocalSession,
   WorkAuthBoundaryError,
+  isRecoverableLocalSessionError,
   resolveWorkAccess,
 } from "./work-auth";
 
@@ -53,10 +55,13 @@ function createFakeClient(options: FakeOptions = {}) {
   const select = vi.fn().mockReturnValue({ eq: eqUser });
   const from = vi.fn().mockReturnValue({ select });
 
+  const signOut = vi.fn().mockResolvedValue({ error: null });
+
   const client = {
     auth: {
       getSession,
       getUser,
+      signOut,
     },
     from,
   } as unknown as SupabaseClient;
@@ -66,6 +71,7 @@ function createFakeClient(options: FakeOptions = {}) {
     spies: {
       getSession,
       getUser,
+      signOut,
       from,
       select,
       eqUser,
@@ -164,6 +170,65 @@ describe("Work authorization boundary", () => {
     );
 
     expect(spies.from).not.toHaveBeenCalled();
+  });
+
+  it("treats stale-session boundary failures as locally recoverable", async () => {
+    expect(
+      isRecoverableLocalSessionError(
+        new WorkAuthBoundaryError(
+          "SESSION_READ_FAILED",
+          "stale session",
+        ),
+      ),
+    ).toBe(true);
+
+    expect(
+      isRecoverableLocalSessionError(
+        new WorkAuthBoundaryError(
+          "IDENTITY_VERIFICATION_FAILED",
+          "invalid identity",
+        ),
+      ),
+    ).toBe(true);
+
+    expect(
+      isRecoverableLocalSessionError(
+        new WorkAuthBoundaryError(
+          "WORK_USER_LOOKUP_FAILED",
+          "database unavailable",
+        ),
+      ),
+    ).toBe(false);
+  });
+
+  it("clears only the current browser session for recoverable auth failures", async () => {
+    const { client, spies } = createFakeClient();
+    const error = new WorkAuthBoundaryError(
+      "IDENTITY_VERIFICATION_FAILED",
+      "expired token",
+    );
+
+    await expect(
+      clearRecoverableLocalSession(client, error),
+    ).resolves.toBe(true);
+
+    expect(spies.signOut).toHaveBeenCalledWith({
+      scope: "local",
+    });
+  });
+
+  it("does not sign out for Work authorization/database failures", async () => {
+    const { client, spies } = createFakeClient();
+    const error = new WorkAuthBoundaryError(
+      "WORK_USER_LOOKUP_FAILED",
+      "database unavailable",
+    );
+
+    await expect(
+      clearRecoverableLocalSession(client, error),
+    ).resolves.toBe(false);
+
+    expect(spies.signOut).not.toHaveBeenCalled();
   });
 
   it("does not hide Work authorization lookup failures as unauthorized", async () => {

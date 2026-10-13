@@ -9,6 +9,8 @@ import {
   type ProjectSession,
 } from "./project-session";
 
+const PROJECT_OPEN_TIMEOUT_MS = 15000;
+
 type OpenProjectsDialogOptions = {
   mount: HTMLElement;
   repository: ProjectRepository;
@@ -246,14 +248,23 @@ export async function openProjectsDialog(
       setStatus(status, "Отваряне на проекта…", "progress");
 
       try {
-        const opened = await repository.open(id);
+        const opened = await withTimeout(
+          repository.open(id),
+          PROJECT_OPEN_TIMEOUT_MS,
+          "Отварянето на проекта отне твърде дълго.",
+        );
         closeDialog();
+        renderProjectGate(mount, "Подготовка на проекта…");
+        await waitForBrowserPaint();
         onProjectReady(createProjectSession(opened));
       } catch (error) {
+        if (!dialog.isConnected) return;
         setDialogBusy(dialog, false);
         setStatus(
           status,
-          "Проектът не можа да се отвори. Опитайте отново.",
+          error instanceof ProjectUiTimeoutError
+            ? "Отварянето отне твърде дълго. Опитайте отново."
+            : "Проектът не можа да се отвори. Опитайте отново.",
           "error",
         );
         console.error("Open project failed", error);
@@ -303,16 +314,23 @@ export async function openProjectsDialog(
       setStatus(status, "Създаване на проекта…", "progress");
 
       try {
-        const opened = await repository.create(
-          prepareNewProjectDraft(title),
+        const opened = await withTimeout(
+          repository.create(prepareNewProjectDraft(title)),
+          PROJECT_OPEN_TIMEOUT_MS,
+          "Създаването на проекта отне твърде дълго.",
         );
         closeDialog();
+        renderProjectGate(mount, "Подготовка на проекта…");
+        await waitForBrowserPaint();
         onProjectReady(createProjectSession(opened));
       } catch (error) {
+        if (!dialog.isConnected) return;
         setDialogBusy(dialog, false);
         setStatus(
           status,
-          "Проектът не можа да се създаде. Опитайте отново.",
+          error instanceof ProjectUiTimeoutError
+            ? "Създаването отне твърде дълго. Опитайте отново."
+            : "Проектът не можа да се създаде. Опитайте отново.",
           "error",
         );
         console.error("Create project failed", error);
@@ -531,6 +549,44 @@ function renderProjectList(
     row.append(meta, button);
     mount.append(row);
   }
+}
+
+class ProjectUiTimeoutError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ProjectUiTimeoutError";
+  }
+}
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new ProjectUiTimeoutError(message));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+}
+
+function waitForBrowserPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
 }
 
 function setDialogBusy(
