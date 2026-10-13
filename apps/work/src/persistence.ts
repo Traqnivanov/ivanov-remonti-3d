@@ -105,6 +105,9 @@ export class ProjectPersistenceError extends Error {
 }
 
 export function serializeProjectState(project: ProjectState): PersistedProjectV1 {
+  const objectError = validateSceneObjects(project.room);
+  if (objectError) invalid(objectError);
+
   return {
     schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
     projectId: project.projectId,
