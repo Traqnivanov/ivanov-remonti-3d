@@ -311,44 +311,56 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-**CURRENT WORK:** Issue #21 — `[CURRENT WORK] P3.5 + D1 — final merge gate`.
+P3.5a+b + Desktop D1 are **MERGED / CLOSED / VERIFIED**.
 
-Owner-approved / not merged:
-- P3.5a+b;
-- Desktop D1.1–D1.5.
+Final merge:
+- PR #33 — MERGED;
+- merge commit: `cde9becd701076fb1f0163d7d6cf3734ea0e6c80`;
+- tested candidate head: `3f6fd5561c6c802c348793340e7a7bb526e6232b`;
+- merge tree is byte-identical to the fully accepted candidate tree;
+- final CI `37841386724`: SUCCESS;
+- 17/17 test files / 169/169 tests PASS;
+- build/typecheck/full browser acceptance PASS;
+- final visual QA and exact Pages deployment PASS.
 
-Single current integration candidate:
-- PR #33 — DRAFT / NOT MERGED;
-- branch `review/p35-d1-final-acceptance`;
-- exact latest head / CI / visual / deploy evidence lives in Issue #21;
-- product behavior must remain identical to the accepted P3.5 + D1 integration.
+Merged behavior:
+- separate finishing operations remain distinct;
+- applicable finishing services default to walls + ceiling;
+- exact opening-aware wall quantities + canonical ceiling area;
+- independent Work-entered EUR prices for wall/ceiling scopes;
+- blank price ≠ zero;
+- Client remains read-only;
+- approved Desktop three-zone Workbench + contextual 3D↔Work link are now on `main`.
 
-The candidate already passed full technical and visual acceptance before this final documentation-only continuity sync. The main branch is now receiving only the current-state/handoff update, so PR #33 must refresh from latest main and rerun the final checks once more.
-
-No merge is authorized.
-
----
-
-## 10. CURRENT NEXT — REFRESH PR #33, RE-RUN FINAL ACCEPTANCE, STOP
-
-Do not restart P3.5 or Desktop D1.
-
-Required:
-1. reconcile PR #33 with the latest documentation-only `main`;
-2. prove no product file changed because of that refresh;
-3. rerun CI + exact Pages deployment;
-4. verify the candidate remains visually/product-wise unchanged;
-5. record the final head and evidence in Issue #21;
-6. **STOP for explicit Owner merge command**.
-
-Do not start Mobile Work redesign or P3.6.
+No new product phase is active.
 
 ---
 
-## 11. STACK / MERGE STATUS
+## 10. CURRENT NEXT — OPEN A NEW CHECKPOINT BEFORE MORE IMPLEMENTATION
 
-Historical stacked PR chain remains evidence only:
-- #22 P3.5a+b;
+Do **not** restart P3.5 or Desktop D1.
+
+The roadmap's next staged candidate is **P3.6 — Object/Edit Core**, but the merge does not authorize implementation.
+
+To continue product development:
+1. inspect current merged `main`;
+2. open exactly one new `[CURRENT WORK]` Issue for the chosen next checkpoint;
+3. audit dependencies and current contracts;
+4. prepare bounded proposal + Criteria Check;
+5. obtain Owner approval;
+6. then execute.
+
+Mobile Work redesign remains separate/deferred unless explicitly chosen.
+
+---
+
+## 11. HISTORICAL STACK STATUS
+
+Final current merge path:
+- PR #33 — **MERGED** into `main`.
+
+Historical stacked branches/PRs are evidence only and must not be merged individually:
+- #22 P3.5a+b is now reachable from `main` through #33;
 - #24 D1.1;
 - #25 D1.2;
 - #27 canonical D1.3;
@@ -358,17 +370,13 @@ Historical stacked PR chain remains evidence only:
 - #31 D1.5;
 - #26 old D1.3 = CLOSED / SUPERSEDED.
 
-Current merge path:
-- **PR #33 only** after final refresh/acceptance;
-- do not merge the historical stack one-by-one.
+Issues:
+- #21 = closed merged P3.5 + D1 integration checkpoint;
+- #23 = closed merged Desktop D1 checkpoint.
 
-Owner authority:
-- P3.5a+b approved;
-- Desktop D1 approved;
-- **merge permission not yet given**;
-- only an explicit Owner merge command for PR #33 authorizes merge.
-
-Mobile Work redesign remains deferred.
+Owner authority remains unchanged:
+- new product scope requires normal audit/proposal/Criteria Check/Owner approval;
+- no later phase starts automatically from a successful merge.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
