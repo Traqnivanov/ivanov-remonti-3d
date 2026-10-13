@@ -213,69 +213,72 @@ These do not block the current P3.5 decision gate, but must not be forgotten:
 
 ---
 
-## 7. MERGED CHECKPOINT — P3.6a SceneObject foundation
+## 7. CURRENT WORK — P3.6b Radiator proof object proposal gate
+
+Current Work Issue:
+**#36 — `[CURRENT WORK] P3.6b — Radiator proof object proposal gate`**
 
 Status:
-**MERGED / CLOSED / VERIFIED.**
+**AUDIT COMPLETE / BOUNDED PROPOSAL + CRITERIA CHECK READY / IMPLEMENTATION NOT YET AUTHORIZED.**
 
-Owner explicitly authorized merge of PR #35.
+Owner approved opening the P3.6b checkpoint after P3.6a was merged/closed.
 
-Final merge:
-- PR #35 — MERGED;
+Merged baseline:
+- P3.6a SceneObject foundation — MERGED / CLOSED / VERIFIED;
 - merge commit: `ab0c901a557c5201d85841462244de0ef4ce5888`;
-- tested candidate head: `9bbd2a8d0fdcba006ccd8ae2ffb65bb89eace231`;
-- merge commit tree is byte-identical to the tested candidate tree: `f5eb237560578120b54c71a141bee1e45a32eaf9`;
-- final pre-merge CI `38465353270`: SUCCESS;
-- 18/18 test files / 187/187 tests PASS;
-- typecheck + build + full browser acceptance PASS;
-- final visual artifact `11848262735`: PASS;
-- no UI/layout/content regression;
-- no Supabase/DB schema migration or production change.
+- current `main` before P3.6b is `fa0ed362db25a4c9e8e8becc582211a8d3048c73`.
 
-Merged P3.6a truth:
-- canonical SceneObject is part of Project State;
-- object IDs are stable and room-scalable;
-- canonical placement is surface-host-local, not Three.js/world coordinates;
-- dimensions + lock state are canonical project state;
-- rotated host-plane bounds and room-depth constraints are validated;
-- supported objects persist through the existing project JSON / `work_state` path;
-- old projects with `objects: []` remain compatible;
-- invalid object state is rejected before Save;
-- missing object/entity references are rejected at Save/Open boundaries;
-- ServiceAssignment / Smart Offer entity bridge can target object IDs;
-- generic `entity-count-v1` infrastructure exists without introducing a fake customer-facing service;
-- SceneObject state participates in existing Undo/Redo;
-- current visible Work/Client behavior remains unchanged.
+Audit result:
+- current viewer renders/raycasts surfaces + openings only;
+- P3.6a already provides canonical SceneObject IDs, host-local placement, persistence and EntityId bridge;
+- viewer callback/highlight path remains surface-only and is the main P3.6b integration point;
+- Client capability contract already permits read-only object inspection;
+- Work capability contract already permits object authoring;
+- no new auth/capability system is required;
+- room resize currently validates openings only and must become object-aware once a real object exists;
+- no DB/Supabase migration is required or proposed.
 
-Still not implemented:
-- visible Radiator object authoring/rendering;
-- object drag/snap;
-- object lock controls in UI;
-- real object-linked service family/pricing;
+Bounded proposed P3.6b:
+- one real object category: **Radiator**;
+- Work Objects section in the existing left zone;
+- add/select/change wall/exact numeric position/dimensions/lock/duplicate/delete;
+- wall-hosted only;
+- reject opening overlap and radiator/radiator overlap;
+- procedural recognizable radiator geometry only;
+- viewer object raycast/highlight/select using canonical object ID;
+- Work object selection focuses its editor;
+- Client/Preview selection is read-only and uses a human label;
+- radiator follows host-wall visibility/cutaway;
+- room resize cannot invalidate object placement;
+- Save/Open/Undo/Redo reuse P3.6a;
+- no fake service or price is created.
+
+Explicitly outside P3.6b:
+- direct 3D drag;
+- snapping while dragging;
+- transform gizmos;
+- new radiator/plumbing/electrical service family;
+- object pricing;
 - P3.7 assets/materials;
-- Mobile Work redesign.
+- Mobile Work redesign;
+- Supabase/DB changes.
+
+Criteria Check on the bounded proposal: **PASS**.
 
 ---
 
 ## 8. NEXT EXACT STEP
 
-**NO NEW P3.6 SUB-STEP IS ACTIVE.**
+**OWNER PRODUCT/SCOPE DECISION — P3.6b proposal.**
 
-The approved sequence points next to **P3.6b — Radiator proof object**, but P3.6b must be opened as a new bounded Current Work checkpoint before implementation.
+Recommended decision:
+**Approve P3.6b as bounded in Issue #36: numeric Work authoring + procedural Radiator render + exact object selection + read-only Client inspection + visibility/resize safety; no direct drag/snap and no new service family.**
 
-Required before P3.6b code:
-1. open exactly one new `[CURRENT WORK]` Issue for P3.6b;
-2. re-read the merged P3.6a baseline and relevant viewer/object contracts;
-3. define the smallest real Radiator proof behavior that uses the merged SceneObject foundation;
-4. run Criteria Check and confirm scope/risks;
-5. obtain Owner approval for that bounded P3.6b checkpoint;
-6. only then implement.
+Until explicit approval of this bounded scope:
+- do not create a P3.6b implementation branch;
+- do not change product/runtime code;
+- do not start P3.6c;
+- do not touch Supabase/DB;
+- do not add real service/pricing scope.
 
-Do not:
-- reopen/rebuild P3.6a;
-- start P3.6c drag/snap early;
-- broaden to electrical/furniture/service catalogs;
-- touch Supabase/DB by implication;
-- start P3.7 or Mobile redesign.
-
-**Stable P3.6a merge baseline: `ab0c901a557c5201d85841462244de0ef4ce5888` plus documentation-only post-merge continuity sync.**
+Detailed audit and proposal are recorded in Issue #36.
