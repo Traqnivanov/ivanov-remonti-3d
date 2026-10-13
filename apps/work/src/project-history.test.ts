@@ -101,6 +101,44 @@ describe("project history", () => {
     ]);
   });
 
+  it("undoes and redoes canonical scene object placement", () => {
+    const initial = createDefaultProject("history-scene-object");
+    initial.room.objects.push({
+      id: "room-1.object-radiator-proof",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 2.1,
+        vM: 0.55,
+        normalOffsetM: 0.05,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1.2,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+    let history = createProjectHistory(initial);
+
+    const edited = getCurrentProjectState(history);
+    edited.room.objects[0]!.placement.uM = 3;
+    edited.room.objects[0]!.locked = true;
+    history = commitProjectState(history, edited);
+
+    expect(getCurrentProjectState(history).room.objects[0]!.placement.uM).toBe(3);
+    expect(getCurrentProjectState(history).room.objects[0]!.locked).toBe(true);
+
+    history = undoProjectState(history);
+    expect(getCurrentProjectState(history).room.objects[0]!.placement.uM).toBe(2.1);
+    expect(getCurrentProjectState(history).room.objects[0]!.locked).toBe(false);
+
+    history = redoProjectState(history);
+    expect(getCurrentProjectState(history).room.objects[0]!.placement.uM).toBe(3);
+    expect(getCurrentProjectState(history).room.objects[0]!.locked).toBe(true);
+  });
+
   it("clears redo history after a new edit", () => {
     let history = createProjectHistory(createDefaultProject("history-branch"));
 
