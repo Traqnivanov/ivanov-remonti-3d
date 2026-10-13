@@ -182,6 +182,24 @@ describe("project persistence boundary", () => {
     ).toEqual(["room-1.object-radiator-proof"]);
   });
 
+  it("rejects a persisted service target that points to a missing object entity", () => {
+    const persisted = serializeProjectState(createDefaultProject("missing-object-target"));
+    persisted.serviceAssignments.push({
+      id: "assignment-missing-object-target",
+      serviceCode: "object-link-proof",
+      label: "Missing object target",
+      targetEntityIds: ["room-1.object-missing"],
+      included: true,
+      quantityRuleId: "entity-count-v1",
+      presentationMode: "object",
+    });
+
+    expectPersistenceError(
+      () => deserializeProjectState(persisted),
+      "UNSUPPORTED_RUNTIME_SHAPE",
+    );
+  });
+
   it("keeps old persisted projects with objects: [] valid", () => {
     const persisted = serializeProjectState(createDefaultProject("old-empty-objects"));
 
