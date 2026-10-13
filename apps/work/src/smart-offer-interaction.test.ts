@@ -176,6 +176,52 @@ describe("Smart Offer core interaction loop", () => {
     ).toThrow(/is not linked/);
   });
 
+  it("P3.6a resolves Model → Offer links for a stable object entity without adding object UI", () => {
+    const project = createDefaultProject("object-entity-bridge");
+    project.room.objects.push({
+      id: "room-1.object-radiator-proof",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 2.1,
+        vM: 0.55,
+        normalOffsetM: 0.05,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1.2,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+    project.serviceAssignments.push({
+      id: "assignment-object-link-proof",
+      serviceCode: "object-link-proof",
+      label: "Object link proof",
+      targetEntityIds: ["room-1.object-radiator-proof"],
+      included: true,
+      quantityRuleId: "entity-count-v1",
+      presentationMode: "object",
+    });
+
+    const interaction = selectModelEntity(
+      project,
+      "room-1.object-radiator-proof",
+    );
+
+    expect(interaction).toEqual({
+      selectedServiceId: "assignment-object-link-proof",
+      selectedEntity: "room-1.object-radiator-proof",
+    });
+    expect(getFocusedServiceAssignmentIds(project, interaction)).toEqual([
+      "assignment-object-link-proof",
+    ]);
+    expect(getHighlightedEntityIds(project, interaction)).toEqual([
+      "room-1.object-radiator-proof",
+    ]);
+  });
+
   it("exits focus mode without mutating project quantity or price", () => {
     const project = createDefaultProject();
     getLaminateFlooringAssignment(project).included = true;
