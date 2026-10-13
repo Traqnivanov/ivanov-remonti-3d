@@ -213,64 +213,64 @@ These do not block the current P3.5 decision gate, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — final integration merge gate
+## 7. MERGED CHECKPOINT — P3.5a+b + Desktop D1
 
-Current Work Issue:
-**#21 — `[CURRENT WORK] P3.5 + D1 — final merge gate`**
+Status:
+**MERGED / CLOSED / VERIFIED.**
 
-Owner-approved scope:
-- P3.5a+b — **OWNER-APPROVED / NOT MERGED**;
-- Desktop D1.1–D1.5 — **OWNER-APPROVED / NOT MERGED**.
+Owner explicitly authorized `merge PR #33`.
 
-Single current integration candidate:
-- PR #33 — **DRAFT / NOT MERGED**;
-- branch: `review/p35-d1-final-acceptance`;
-- latest exact head / CI / visual / deploy evidence is recorded in Current Work Issue #21;
-- candidate product code preserves the accepted D1 behavior;
-- reconciliation preserves current main documentation/preview workflow truth and introduces no new product behavior.
-
-Final acceptance already established on the candidate before this documentation-only continuity sync:
-- typecheck PASS;
+Final integration:
+- PR #33 — **MERGED**;
+- merge commit: `cde9becd701076fb1f0163d7d6cf3734ea0e6c80`;
+- tested candidate head: `3f6fd5561c6c802c348793340e7a7bb526e6232b`;
+- merge commit tree is byte-identical to the tested candidate tree: `b73af8dcbef91f4de8f58563864b00ee95a46636`;
+- final pre-merge CI `37841386724`: SUCCESS;
 - 17/17 test files / 169/169 tests PASS;
-- build PASS;
-- full browser acceptance PASS;
-- Desktop Work / Owner Preview / direct Client / mobile Work-Preview-Client visual review PASS;
-- exact Pages deployment PASS.
+- typecheck + build + full browser acceptance PASS;
+- final visual QA artifact `11578650085`: PASS;
+- exact pre-merge Pages deploy `37841590852`: SUCCESS.
 
-Because this file and the handoff are now being synchronized on `main`, PR #33 must include this documentation-only main movement and rerun the final CI/deploy check before merge authorization can be requested. No product behavior may change during that refresh.
-
-Approved P3.5a+b truth remains:
+Merged product truth:
 - Fine Putty / Gypsum Putty / Sanding / Primer / Paint are distinct real operations;
-- applicable finishing service defaults to walls + ceiling;
+- applicable finishing services default to **walls + ceiling**;
 - walls use opening-aware net m²;
 - ceiling uses room width × length;
-- ceiling is independently removable;
-- wall/ceiling are separate price scopes with Work-entered EUR prices;
-- both scopes keep one real service identity;
-- missing price ≠ zero;
+- ceiling can be excluded independently;
+- wall and ceiling remain separate Work-entered EUR price scopes;
+- both scopes keep the same real service identity / serviceCode;
+- blank price ≠ zero;
 - Client remains read-only;
-- plaster/base-putty/broad catalog remain deferred.
+- approved Desktop Work is the three-zone workbench: geometry left → persistent 3D center → services/offer right;
+- exact 3D surface/opening context remains linked to service → scope → quantity → EUR price → Info;
+- Save/Open and Client Preview acceptance are preserved.
 
-No merge is authorized.
+Explicitly deferred:
+- ordinary plaster / reinforced-base putty / drywall-joint expansion / decorative plaster;
+- Mobile Work redesign;
+- P3.6 Object/Edit Core and all later roadmap phases until a new checkpoint is explicitly opened.
+
+Current Work Issue #21 and Desktop D1 Issue #23 are closed as merged checkpoints.
 
 ---
 
 ## 8. NEXT EXACT STEP
 
-**REFRESH PR #33 WITH THIS DOCUMENTATION-ONLY MAIN SYNC → RERUN FINAL ACCEPTANCE → OWNER MERGE GATE.**
+**NO NEW PRODUCT PHASE IS ACTIVE.**
 
-Required:
-1. reconcile PR #33 with the latest `main` documentation-only commits;
-2. prove product files remain unchanged from the accepted integration behavior;
-3. rerun final CI and exact Pages deployment;
-4. verify no visual/product regression from the doc-only refresh;
-5. record final head/evidence in Issue #21;
-6. **STOP for explicit Owner merge command.**
+The approved staged roadmap still points next to **P3.6 — Object/Edit Core**, but it is **not authorized automatically by this merge**.
+
+Before any P3.6 implementation:
+1. open a new single `[CURRENT WORK]` Issue;
+2. audit the current merged `main` and task-relevant contracts;
+3. produce a bounded proposal + Criteria Check;
+4. obtain Owner approval for that new checkpoint;
+5. only then implement.
 
 Do not:
-- change P3.5/D1 product behavior;
-- merge old stacked PRs directly;
-- start Mobile Work redesign;
-- start P3.6 or another phase.
+- reopen/rebuild P3.5 or Desktop D1;
+- merge historical stacked D1 PRs individually;
+- start Mobile Work redesign by implication;
+- change merged product truth without the normal Owner decision process.
 
-**No merge without an explicit Owner command for PR #33.**
+**Current stable baseline: `cde9becd701076fb1f0163d7d6cf3734ea0e6c80` plus documentation-only post-merge continuity sync.**
