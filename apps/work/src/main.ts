@@ -6,6 +6,7 @@ import {
   createOpeningProofProject,
   findFinePuttyCeilingAssignment,
   getFinePuttyAssignment,
+  isSurfaceId,
   wallIds,
   FINE_PUTTY_CEILING_ASSIGNMENT_ID,
 } from "./domain";
@@ -2249,7 +2250,7 @@ function syncViewerFocus(): void {
   }
 
   viewer.setHighlightedEntities(
-    getHighlightedEntityIds(project, offerInteraction),
+    getHighlightedEntityIds(project, offerInteraction).filter(isSurfaceId),
   );
   viewer.setHighlightedOpening(selectedOpeningId);
   viewer.setLaminateFloorVisible(
