@@ -311,72 +311,64 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-P3.5a+b + Desktop D1 are **MERGED / CLOSED / VERIFIED**.
+**CURRENT WORK:** Issue #34 — `[CURRENT WORK] P3.6 — Object/Edit Core proposal gate`.
 
-Final merge:
-- PR #33 — MERGED;
-- merge commit: `cde9becd701076fb1f0163d7d6cf3734ea0e6c80`;
-- tested candidate head: `3f6fd5561c6c802c348793340e7a7bb526e6232b`;
-- merge tree is byte-identical to the fully accepted candidate tree;
-- final CI `37841386724`: SUCCESS;
-- 17/17 test files / 169/169 tests PASS;
-- build/typecheck/full browser acceptance PASS;
-- final visual QA and exact Pages deployment PASS.
+P3.5a+b + Desktop D1 are already **MERGED / CLOSED / VERIFIED**.
 
-Merged behavior:
-- separate finishing operations remain distinct;
-- applicable finishing services default to walls + ceiling;
-- exact opening-aware wall quantities + canonical ceiling area;
-- independent Work-entered EUR prices for wall/ceiling scopes;
-- blank price ≠ zero;
-- Client remains read-only;
-- approved Desktop three-zone Workbench + contextual 3D↔Work link are now on `main`.
+P3.6:
+- repository/contract audit complete;
+- proposal + Criteria Check ready;
+- implementation **not authorized**.
 
-No new product phase is active.
+Key audit facts:
+- no runtime SceneObject model exists yet;
+- viewer selection/rendering handles surfaces/openings, not objects;
+- persistence reserves object storage but rejects non-empty objects;
+- object edits can reuse canonical Project State Undo/Redo + Save/Open;
+- no relational Supabase/DB migration is required or authorized.
 
----
+Recommended architecture:
+- object truth = stable ID + **surface-host-local placement** + dimensions + lock state;
+- renderer derives Three.js world transform;
+- do not make mesh/world coordinates canonical business state.
 
-## 10. CURRENT NEXT — OPEN A NEW CHECKPOINT BEFORE MORE IMPLEMENTATION
+Recommended sequence:
+**P3.6a domain/persistence/entity bridge → P3.6b Radiator proof → P3.6c drag/snap/lock → P3.6d Object↔Smart Offer foundation → P3.6e acceptance.**
 
-Do **not** restart P3.5 or Desktop D1.
-
-The roadmap's next staged candidate is **P3.6 — Object/Edit Core**, but the merge does not authorize implementation.
-
-To continue product development:
-1. inspect current merged `main`;
-2. open exactly one new `[CURRENT WORK]` Issue for the chosen next checkpoint;
-3. audit dependencies and current contracts;
-4. prepare bounded proposal + Criteria Check;
-5. obtain Owner approval;
-6. then execute.
-
-Mobile Work redesign remains separate/deferred unless explicitly chosen.
+No broad service/object catalog or P3.7 assets inside this checkpoint.
 
 ---
 
-## 11. HISTORICAL STACK STATUS
+## 10. CURRENT NEXT — OWNER DECISION
 
-Final current merge path:
-- PR #33 — **MERGED** into `main`.
+Present the bounded proposal from Issue #34.
 
-Historical stacked branches/PRs are evidence only and must not be merged individually:
-- #22 P3.5a+b is now reachable from `main` through #33;
-- #24 D1.1;
-- #25 D1.2;
-- #27 canonical D1.3;
-- #28 D1.4;
-- #29 Work auth stale-session recovery;
-- #30 D1.4b;
-- #31 D1.5;
-- #26 old D1.3 = CLOSED / SUPERSEDED.
+Recommended approval:
+**host-local canonical object placement + Radiator as first proof object + strict P3.6a→b→c→d→e execution.**
 
-Issues:
-- #21 = closed merged P3.5 + D1 integration checkpoint;
-- #23 = closed merged Desktop D1 checkpoint.
+If Owner approves:
+1. record the decision in Issue #34 + Decision Log/current state;
+2. start **P3.6a only**;
+3. run its bounded tests/Criteria Check;
+4. stop before P3.6b unless the approved sequence/process permits the next micro-step through the normal gate.
 
-Owner authority remains unchanged:
-- new product scope requires normal audit/proposal/Criteria Check/Owner approval;
-- no later phase starts automatically from a successful merge.
+If Owner changes/rejects:
+- update the proposal only;
+- no implementation until resolved.
+
+---
+
+## 11. AUTHORITY / GUARDRAILS
+
+Do not:
+- restart merged P3.5/D1;
+- start P3.7;
+- redesign Mobile Work;
+- touch production/Supabase/DB;
+- invent a new real service family or price rule;
+- treat Three.js mesh state as canonical object truth.
+
+Current single Current Work Issue: **#34**.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
