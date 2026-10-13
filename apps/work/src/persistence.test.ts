@@ -182,6 +182,24 @@ describe("project persistence boundary", () => {
     ).toEqual(["room-1.object-radiator-proof"]);
   });
 
+  it("refuses to serialize a service target that points to a missing object entity", () => {
+    const project = createDefaultProject("missing-object-target-save");
+    project.serviceAssignments.push({
+      id: "assignment-missing-object-target-save",
+      serviceCode: "object-link-proof",
+      label: "Missing object target save",
+      targetEntityIds: ["room-1.object-missing"],
+      included: true,
+      quantityRuleId: "entity-count-v1",
+      presentationMode: "object",
+    });
+
+    expectPersistenceError(
+      () => serializeProjectState(project),
+      "INVALID_STATE",
+    );
+  });
+
   it("rejects a persisted service target that points to a missing object entity", () => {
     const persisted = serializeProjectState(createDefaultProject("missing-object-target"));
     persisted.serviceAssignments.push({
