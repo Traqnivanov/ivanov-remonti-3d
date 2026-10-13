@@ -165,21 +165,43 @@ Whether an opening is deducted from a service quantity is decided by that servic
 
 ## 6. Scene objects
 
-Minimum object model:
+P3.6 refines the earlier minimum object sketch.
+
+**Canonical rule:** Three.js/world coordinates are not project truth. A scene object is stored relative to a stable host surface; the renderer derives its world transform.
+
+Current minimum object model:
 
 ```ts
+type SceneObjectId = `room-1.object-${string}`
+
 type SceneObject = {
-  id: string
+  id: SceneObjectId
   kind: string
-  hostEntityId?: string
-  position: { x: number; y: number; z: number }
-  rotation: { x: number; y: number; z: number }
-  dimensions?: { x: number; y: number; z: number }
-  assetRef?: string
+  placement: {
+    hostSurfaceId: SurfaceId
+    uM: number
+    vM: number
+    normalOffsetM: number
+    rotationDeg: number
+  }
+  dimensionsM: {
+    widthM: number
+    heightM: number
+    depthM: number
+  }
+  locked: boolean
 }
 ```
 
-Examples:
+Host-local coordinate meaning:
+- `uM` / `vM` locate the object center in the host surface plane from the canonical local origin;
+- wall hosts use horizontal span × room height;
+- floor/ceiling hosts use room width × room length;
+- `normalOffsetM` is the non-negative offset from the host plane toward the room interior before the object depth/height;
+- `rotationDeg` rotates inside the host plane;
+- placement validation keeps the rotated object footprint inside the host plane and its normal extent inside the room.
+
+Examples of later supported object categories:
 - outlet;
 - switch;
 - light;
@@ -187,11 +209,18 @@ Examples:
 - sanitary object;
 - furniture.
 
-Work Mode can mutate them.
+Work Mode may mutate canonical object state.
 
-Client Mode may inspect them but not persist edits.
+Client Mode may select/inspect objects but must not persist edits.
 
----
+Stable object IDs survive:
+- camera changes;
+- cutaway/wall hiding;
+- Save/Open;
+- renderer rebuilds;
+- future asset replacement.
+
+P3.6a establishes this domain/persistence contract only. Visible object authoring/rendering starts in later approved P3.6 sub-steps.
 
 ## 7. Service assignments
 
