@@ -797,3 +797,22 @@ Locked direction for this checkpoint:
 
 Only P3.6a is active immediately after this decision. A successful P3.6a does not authorize P3.6b automatically.
 
+## 13.10.2026 — P3.6a SceneObject foundation merged through PR #35
+
+**Owner command:** merge PR #35.
+
+Final merge:
+- PR #35 merged to `main`;
+- merge commit: `ab0c901a557c5201d85841462244de0ef4ce5888`;
+- final tested head: `9bbd2a8d0fdcba006ccd8ae2ffb65bb89eace231`;
+- merge commit tree is byte-identical to the fully verified candidate tree;
+- final CI `38465353270`: SUCCESS;
+- 18/18 test files / 187/187 tests PASS;
+- typecheck/build/full browser acceptance PASS;
+- final visual QA PASS;
+- no Supabase/DB migration or production change.
+
+P3.6a establishes canonical SceneObject identity, host-local placement, persistence, entity referential integrity, generic count quantity infrastructure and Undo/Redo compatibility.
+
+**P3.6b does not start automatically.** The next bounded checkpoint is the Radiator proof object and requires a new Current Work Issue, audit/Criteria Check and Owner approval before implementation.
+
