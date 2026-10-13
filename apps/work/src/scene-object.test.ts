@@ -65,6 +65,29 @@ describe("P3.6a scene object domain", () => {
     expect(validateSceneObject(room, object)).toBeNull();
   });
 
+  it("uses floor-local width × depth with room height as the normal span", () => {
+    const room = createDefaultProject("scene-object-floor").room;
+    const object: SceneObject = {
+      id: "room-1.object-floor-proof",
+      kind: "furniture",
+      placement: {
+        hostSurfaceId: "room-1.floor",
+        uM: 2.1,
+        vM: 2.4,
+        normalOffsetM: 0,
+        rotationDeg: 90,
+      },
+      dimensionsM: {
+        widthM: 1,
+        heightM: 0.8,
+        depthM: 2,
+      },
+      locked: false,
+    };
+
+    expect(validateSceneObject(room, object)).toBeNull();
+  });
+
   it("accounts for host-plane rotation when validating bounds", () => {
     const room = createDefaultProject("scene-object-rotation").room;
     const object = proofRadiator({
