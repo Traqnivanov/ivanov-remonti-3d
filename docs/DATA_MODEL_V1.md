@@ -172,7 +172,7 @@ P3.6 refines the earlier minimum object sketch.
 Current minimum object model:
 
 ```ts
-type SceneObjectId = `room-1.object-${string}`
+type SceneObjectId = `${string}.object-${string}`
 
 type SceneObject = {
   id: SceneObjectId
