@@ -213,64 +213,71 @@ These do not block the current P3.5 decision gate, but must not be forgotten:
 
 ---
 
-## 7. MERGED CHECKPOINT — P3.5a+b + Desktop D1
+## 7. CURRENT WORK — P3.6 Object/Edit Core proposal gate
+
+Current Work Issue:
+**#34 — `[CURRENT WORK] P3.6 — Object/Edit Core proposal gate`**
 
 Status:
-**MERGED / CLOSED / VERIFIED.**
+**AUDIT COMPLETE / PROPOSAL + CRITERIA CHECK READY / IMPLEMENTATION NOT AUTHORIZED.**
 
-Owner explicitly authorized `merge PR #33`.
-
-Final integration:
-- PR #33 — **MERGED**;
+Merged baseline before this checkpoint:
+- P3.5a+b + Desktop D1 — MERGED / CLOSED / VERIFIED;
 - merge commit: `cde9becd701076fb1f0163d7d6cf3734ea0e6c80`;
-- tested candidate head: `3f6fd5561c6c802c348793340e7a7bb526e6232b`;
-- merge commit tree is byte-identical to the tested candidate tree: `b73af8dcbef91f4de8f58563864b00ee95a46636`;
-- final pre-merge CI `37841386724`: SUCCESS;
-- 17/17 test files / 169/169 tests PASS;
-- typecheck + build + full browser acceptance PASS;
-- final visual QA artifact `11578650085`: PASS;
-- exact pre-merge Pages deploy `37841590852`: SUCCESS.
+- later `main` movement before P3.6 is documentation-only continuity sync.
 
-Merged product truth:
-- Fine Putty / Gypsum Putty / Sanding / Primer / Paint are distinct real operations;
-- applicable finishing services default to **walls + ceiling**;
-- walls use opening-aware net m²;
-- ceiling uses room width × length;
-- ceiling can be excluded independently;
-- wall and ceiling remain separate Work-entered EUR price scopes;
-- both scopes keep the same real service identity / serviceCode;
-- blank price ≠ zero;
-- Client remains read-only;
-- approved Desktop Work is the three-zone workbench: geometry left → persistent 3D center → services/offer right;
-- exact 3D surface/opening context remains linked to service → scope → quantity → EUR price → Info;
-- Save/Open and Client Preview acceptance are preserved.
+P3.6 audit result:
+- runtime currently has surfaces + openings but no runtime `SceneObject[]`;
+- viewer raycasts surfaces/openings only;
+- persistence reserves `objects: unknown[]` but rejects non-empty objects at runtime;
+- Smart Offer target/selection runtime is still surface-oriented;
+- existing canonical Undo/Redo and Save/Open can be reused once objects enter Project State;
+- existing Supabase relational schema does not need a P3.6 migration because canonical state already lives in `work_state jsonb`;
+- no production/Supabase/DB change is proposed.
 
-Explicitly deferred:
-- ordinary plaster / reinforced-base putty / drywall-joint expansion / decorative plaster;
+Recommended architecture:
+- canonical object placement should be **host-local to a surface**, not raw Three.js/world coordinates;
+- renderer derives world transform from domain placement;
+- stable ID + host-local position + dimensions + lock state become Project State;
+- this is a stronger refinement of the old minimum SceneObject example and needs Owner approval before implementation.
+
+Recommended bounded sequence:
+**P3.6a SceneObject domain/persistence/entity bridge → P3.6b Radiator proof object → P3.6c direct 3D drag/snap/lock → P3.6d Object↔Smart Offer interaction foundation → P3.6e acceptance.**
+
+Recommended first proof object:
+**Radiator**
+- real approved object category;
+- wall-hosted;
+- visually large enough for reliable 3D/mobile selection;
+- proves the difficult placement/edit core without starting the broader Electrical catalog;
+- procedural geometry only; real assets/materials remain P3.7.
+
+Explicitly outside P3.6:
+- materials/colors/images/assets;
+- broad object/furniture catalog;
+- new Electrical/Plumbing/Radiator pricing/service-family expansion;
 - Mobile Work redesign;
-- P3.6 Object/Edit Core and all later roadmap phases until a new checkpoint is explicitly opened.
+- publishing/export/photo assist;
+- irregular rooms;
+- production hardening;
+- opening drag refactor unless separately approved.
 
-Current Work Issue #21 and Desktop D1 Issue #23 are closed as merged checkpoints.
+Criteria Check on the proposal: **PASS**, with Owner approval required before code.
 
 ---
 
 ## 8. NEXT EXACT STEP
 
-**NO NEW PRODUCT PHASE IS ACTIVE.**
+**OWNER PRODUCT/ARCHITECTURE DECISION — P3.6 proposal.**
 
-The approved staged roadmap still points next to **P3.6 — Object/Edit Core**, but it is **not authorized automatically by this merge**.
+Recommended decision:
+**Approve P3.6 with host-local canonical object placement and Radiator as the first proof object, executed strictly P3.6a → P3.6b → P3.6c → P3.6d → P3.6e, one step at a time.**
 
-Before any P3.6 implementation:
-1. open a new single `[CURRENT WORK]` Issue;
-2. audit the current merged `main` and task-relevant contracts;
-3. produce a bounded proposal + Criteria Check;
-4. obtain Owner approval for that new checkpoint;
-5. only then implement.
+Until Owner approval:
+- do not create a P3.6 implementation branch;
+- do not change runtime/product code;
+- do not touch Supabase/DB;
+- do not add a real service family;
+- do not start P3.7 or Mobile redesign.
 
-Do not:
-- reopen/rebuild P3.5 or Desktop D1;
-- merge historical stacked D1 PRs individually;
-- start Mobile Work redesign by implication;
-- change merged product truth without the normal Owner decision process.
-
-**Current stable baseline: `cde9becd701076fb1f0163d7d6cf3734ea0e6c80` plus documentation-only post-merge continuity sync.**
+All audit evidence and the detailed proposal are in Current Work Issue #34.
