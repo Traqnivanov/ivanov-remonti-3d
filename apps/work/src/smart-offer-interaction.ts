@@ -1,11 +1,11 @@
-import type { ProjectState, SurfaceId } from "./domain";
+import type { EntityId, ProjectState } from "./domain";
 
 export const FINE_PUTTY_ASSIGNMENT_ID = "assignment-fine-putty-1";
 export const LAMINATE_ASSIGNMENT_ID = "assignment-laminate-flooring-1";
 
 export type OfferInteractionState = {
   selectedServiceId: string | null;
-  selectedEntity: SurfaceId | null;
+  selectedEntity: EntityId | null;
 };
 
 export function createInitialOfferInteraction(): OfferInteractionState {
@@ -26,7 +26,7 @@ export function selectOfferService(
 
 export function getLinkedServiceAssignments(
   project: ProjectState,
-  id: SurfaceId,
+  id: EntityId,
 ) {
   return project.serviceAssignments.filter(
     (assignment) =>
@@ -36,7 +36,7 @@ export function getLinkedServiceAssignments(
 
 export function selectModelEntity(
   project: ProjectState,
-  id: SurfaceId,
+  id: EntityId,
 ): OfferInteractionState {
   const linkedAssignments = getLinkedServiceAssignments(project, id);
 
@@ -49,7 +49,7 @@ export function selectModelEntity(
 
 export function selectModelEntityService(
   project: ProjectState,
-  id: SurfaceId,
+  id: EntityId,
   serviceAssignmentId: string,
 ): OfferInteractionState {
   const linked = getLinkedServiceAssignments(project, id).some(
@@ -114,7 +114,7 @@ export function getFocusedServiceAssignmentIds(
 export function getHighlightedEntityIds(
   project: ProjectState,
   interaction: OfferInteractionState,
-): SurfaceId[] {
+): EntityId[] {
   if (interaction.selectedEntity) {
     return [interaction.selectedEntity];
   }
