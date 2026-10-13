@@ -67,6 +67,9 @@ export function validateSceneObject(
   if (!isSceneObjectId(object.id)) {
     return `Invalid scene object id: ${object.id}.`;
   }
+  if (!object.id.startsWith(`${room.id}.object-`)) {
+    return `Scene object ${object.id} belongs to a different room.`;
+  }
 
   if (!object.kind.trim()) {
     return `Scene object ${object.id} requires a non-empty kind.`;
