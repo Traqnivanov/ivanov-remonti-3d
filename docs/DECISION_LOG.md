@@ -783,3 +783,17 @@ This closes both the P3.5a+b dependency gate and Desktop D1 checkpoint.
 
 **No next phase is authorized automatically.** The staged roadmap still points toward P3.6 Object/Edit Core, but a new Current Work Issue, audit/proposal, Criteria Check and Owner approval are required before implementation.
 
+## 13.10.2026 — Owner approves P3.6 Object/Edit Core
+
+Owner approved the bounded P3.6 proposal.
+
+Locked direction for this checkpoint:
+- SceneObject project truth uses stable IDs and surface-host-local placement;
+- Three.js/world transforms are derived renderer state;
+- P3.6 reuses the existing project JSON persistence path and does not require a relational Supabase/DB migration;
+- Client remains read-only;
+- Radiator is the first approved proof object for P3.6b;
+- execution order is strict: P3.6a → P3.6b → P3.6c → P3.6d → P3.6e.
+
+Only P3.6a is active immediately after this decision. A successful P3.6a does not authorize P3.6b automatically.
+
