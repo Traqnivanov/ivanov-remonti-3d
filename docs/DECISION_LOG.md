@@ -765,3 +765,21 @@ Approved behavior:
 
 This approval does **not** authorize merge. The next gate is one reconciled integration candidate against current `main`, full final acceptance, visual verification, then an explicit Owner merge command.
 
+## 13.10.2026 — P3.5a+b + Desktop D1 merged through final integration PR #33
+
+**Owner command:** `merge PR #33`.
+
+Final merge:
+- PR #33 merged to `main`;
+- merge commit: `cde9becd701076fb1f0163d7d6cf3734ea0e6c80`;
+- final tested candidate head: `3f6fd5561c6c802c348793340e7a7bb526e6232b`;
+- merge commit tree is byte-identical to the fully verified candidate tree;
+- final CI `37841386724`: SUCCESS, 17/17 test files and 169/169 tests PASS;
+- typecheck/build/full browser acceptance PASS;
+- final visual QA artifact `11578650085` PASS;
+- exact candidate Pages deploy `37841590852` SUCCESS.
+
+This closes both the P3.5a+b dependency gate and Desktop D1 checkpoint.
+
+**No next phase is authorized automatically.** The staged roadmap still points toward P3.6 Object/Edit Core, but a new Current Work Issue, audit/proposal, Criteria Check and Owner approval are required before implementation.
+
