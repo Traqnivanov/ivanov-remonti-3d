@@ -1,5 +1,6 @@
 import {
   getFinePuttyAssignment,
+  isEntityId,
   isSceneObjectId,
   isSurfaceId,
   isWallId,
@@ -107,6 +108,17 @@ export class ProjectPersistenceError extends Error {
 export function serializeProjectState(project: ProjectState): PersistedProjectV1 {
   const objectError = validateSceneObjects(project.room);
   if (objectError) invalid(objectError);
+
+  for (const assignment of project.serviceAssignments) {
+    const missingTarget = assignment.targetEntityIds.find(
+      (id) => !isEntityId(project, id),
+    );
+    if (missingTarget) {
+      invalid(
+        `Service assignment ${assignment.id} references missing entity ${missingTarget}.`,
+      );
+    }
+  }
 
   return {
     schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
