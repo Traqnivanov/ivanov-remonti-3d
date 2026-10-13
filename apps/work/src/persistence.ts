@@ -1,14 +1,19 @@
 import {
   getFinePuttyAssignment,
+  isEntityId,
+  isSceneObjectId,
+  isSurfaceId,
   isWallId,
-  surfaceIds,
+  type EntityId,
   type Opening,
   type ProjectState,
+  type SceneObject,
   type ServiceAssignment,
   type Surface,
   type SurfaceId,
   type WallId,
 } from "./domain";
+import { validateSceneObjects } from "./scene-object";
 
 export const CURRENT_PROJECT_SCHEMA_VERSION = 1 as const;
 
@@ -28,6 +33,24 @@ export type PersistedOpeningV1 = {
   sillM?: number;
 };
 
+export type PersistedSceneObjectV1 = {
+  id: string;
+  kind: string;
+  placement: {
+    hostSurfaceId: string;
+    uM: number;
+    vM: number;
+    normalOffsetM: number;
+    rotationDeg: number;
+  };
+  dimensionsM: {
+    widthM: number;
+    heightM: number;
+    depthM: number;
+  };
+  locked: boolean;
+};
+
 export type PersistedRoomV1 = {
   id: string;
   name: string;
@@ -38,7 +61,7 @@ export type PersistedRoomV1 = {
   };
   surfaces: PersistedSurfaceV1[];
   openings: PersistedOpeningV1[];
-  objects: unknown[];
+  objects: PersistedSceneObjectV1[];
   materials: unknown[];
 };
 
@@ -83,6 +106,20 @@ export class ProjectPersistenceError extends Error {
 }
 
 export function serializeProjectState(project: ProjectState): PersistedProjectV1 {
+  const objectError = validateSceneObjects(project.room);
+  if (objectError) invalid(objectError);
+
+  for (const assignment of project.serviceAssignments) {
+    const missingTarget = assignment.targetEntityIds.find(
+      (id) => !isEntityId(project, id),
+    );
+    if (missingTarget) {
+      invalid(
+        `Service assignment ${assignment.id} references missing entity ${missingTarget}.`,
+      );
+    }
+  }
+
   return {
     schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
     projectId: project.projectId,
@@ -97,7 +134,13 @@ export function serializeProjectState(project: ProjectState): PersistedProjectV1
         },
         surfaces: project.room.surfaces.map((surface) => ({ ...surface })),
         openings: project.room.openings.map((opening) => ({ ...opening })),
-        objects: [],
+        objects: project.room.objects.map((object) => ({
+          id: object.id,
+          kind: object.kind,
+          placement: { ...object.placement },
+          dimensionsM: { ...object.dimensionsM },
+          locked: object.locked,
+        })),
         materials: [],
       },
     ],
@@ -152,27 +195,41 @@ export function deserializeProjectState(raw: unknown): ProjectState {
   }
 
   if (room.id !== "room-1") unsupported("Current Work runtime expects room-1.");
-  if (room.objects.length || room.materials.length) {
-    unsupported("Current Work runtime does not yet support persisted objects or materials.");
+  if (room.materials.length) {
+    unsupported("Current Work runtime does not yet support persisted materials.");
   }
 
-  const serviceAssignments = persisted.serviceAssignments.map(
-    toRuntimeServiceAssignment,
+  const surfaces = toRuntimeSurfaces(room.surfaces);
+  const openings = toRuntimeOpenings(room.openings);
+  const objects = toRuntimeSceneObjects(room.objects);
+
+  const runtimeRoom = {
+    id: "room-1" as const,
+    name: room.name,
+    widthM: room.geometry.widthM,
+    lengthM: room.geometry.lengthM,
+    heightM: room.geometry.heightM,
+    surfaces,
+    openings,
+    objects,
+  };
+
+  const objectError = validateSceneObjects(runtimeRoom);
+  if (objectError) invalid(objectError);
+
+  const knownEntityIds = new Set<string>([
+    ...surfaces.map((surface) => surface.id),
+    ...objects.map((object) => object.id),
+  ]);
+  const serviceAssignments = persisted.serviceAssignments.map((assignment) =>
+    toRuntimeServiceAssignment(assignment, knownEntityIds),
   );
   assertUniqueAssignmentIds(serviceAssignments);
 
   const project: ProjectState = {
     schemaVersion: 1,
     projectId: persisted.projectId,
-    room: {
-      id: "room-1",
-      name: room.name,
-      widthM: room.geometry.widthM,
-      lengthM: room.geometry.lengthM,
-      heightM: room.geometry.heightM,
-      surfaces: toRuntimeSurfaces(room.surfaces),
-      openings: toRuntimeOpenings(room.openings),
-    },
+    room: runtimeRoom,
     serviceAssignments,
   };
 
@@ -245,6 +302,9 @@ function validateRoom(raw: unknown, index: number): PersistedRoomV1 {
   const openings = expectArray(room.openings, `rooms[${index}].openings`).map(
     (opening, openingIndex) => validateOpening(opening, index, openingIndex),
   );
+  const objects = expectArray(room.objects, `rooms[${index}].objects`).map(
+    (object, objectIndex) => validateSceneObjectRecord(object, index, objectIndex),
+  );
 
   validateOpeningPlacement(openings, surfaces, geometry, index);
 
@@ -254,7 +314,7 @@ function validateRoom(raw: unknown, index: number): PersistedRoomV1 {
     geometry,
     surfaces,
     openings,
-    objects: [...expectArray(room.objects, `rooms[${index}].objects`)],
+    objects,
     materials: [...expectArray(room.materials, `rooms[${index}].materials`)],
   };
 }
@@ -302,6 +362,53 @@ function validateOpening(
     heightM: expectPositiveNumber(opening.heightM, `${path}.heightM`),
     offsetM: expectNonNegativeNumber(opening.offsetM, `${path}.offsetM`),
     ...(sillM === undefined ? {} : { sillM }),
+  };
+}
+
+function validateSceneObjectRecord(
+  raw: unknown,
+  roomIndex: number,
+  objectIndex: number,
+): PersistedSceneObjectV1 {
+  const path = `rooms[${roomIndex}].objects[${objectIndex}]`;
+  const object = expectRecord(raw, path);
+  const placement = expectRecord(object.placement, `${path}.placement`);
+  const dimensionsM = expectRecord(object.dimensionsM, `${path}.dimensionsM`);
+
+  return {
+    id: expectNonEmptyString(object.id, `${path}.id`),
+    kind: expectNonEmptyString(object.kind, `${path}.kind`),
+    placement: {
+      hostSurfaceId: expectNonEmptyString(
+        placement.hostSurfaceId,
+        `${path}.placement.hostSurfaceId`,
+      ),
+      uM: expectNonNegativeNumber(placement.uM, `${path}.placement.uM`),
+      vM: expectNonNegativeNumber(placement.vM, `${path}.placement.vM`),
+      normalOffsetM: expectNonNegativeNumber(
+        placement.normalOffsetM,
+        `${path}.placement.normalOffsetM`,
+      ),
+      rotationDeg: expectFiniteNumber(
+        placement.rotationDeg,
+        `${path}.placement.rotationDeg`,
+      ),
+    },
+    dimensionsM: {
+      widthM: expectPositiveNumber(
+        dimensionsM.widthM,
+        `${path}.dimensionsM.widthM`,
+      ),
+      heightM: expectPositiveNumber(
+        dimensionsM.heightM,
+        `${path}.dimensionsM.heightM`,
+      ),
+      depthM: expectPositiveNumber(
+        dimensionsM.depthM,
+        `${path}.dimensionsM.depthM`,
+      ),
+    },
+    locked: expectBoolean(object.locked, `${path}.locked`),
   };
 }
 
@@ -482,15 +589,44 @@ function toRuntimeOpenings(openings: PersistedOpeningV1[]): Opening[] {
   });
 }
 
+function toRuntimeSceneObjects(
+  objects: PersistedSceneObjectV1[],
+): SceneObject[] {
+  return objects.map((object) => {
+    if (!isSceneObjectId(object.id)) {
+      unsupported(`Unsupported runtime scene object id: ${object.id}.`);
+    }
+    if (!isSurfaceId(object.placement.hostSurfaceId)) {
+      unsupported(
+        `Unsupported runtime scene object host: ${object.placement.hostSurfaceId}.`,
+      );
+    }
+
+    return {
+      id: object.id,
+      kind: object.kind,
+      placement: {
+        hostSurfaceId: object.placement.hostSurfaceId,
+        uM: object.placement.uM,
+        vM: object.placement.vM,
+        normalOffsetM: object.placement.normalOffsetM,
+        rotationDeg: object.placement.rotationDeg,
+      },
+      dimensionsM: { ...object.dimensionsM },
+      locked: object.locked,
+    };
+  });
+}
+
 function toRuntimeServiceAssignment(
   assignment: PersistedServiceAssignmentV1,
+  knownEntityIds: ReadonlySet<string>,
 ): ServiceAssignment {
-  const knownSurfaceIds = new Set<SurfaceId>(surfaceIds);
   const targetEntityIds = assignment.targetEntityIds.map((id) => {
-    if (!knownSurfaceIds.has(id as SurfaceId)) {
+    if (!knownEntityIds.has(id)) {
       unsupported(`Unsupported service target: ${id}.`);
     }
-    return id as SurfaceId;
+    return id as EntityId;
   });
 
   return {
@@ -551,6 +687,13 @@ function expectPositiveNumber(value: unknown, path: string): number {
 function expectNonNegativeNumber(value: unknown, path: string): number {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     invalid(`${path} must be a non-negative finite number.`);
+  }
+  return value;
+}
+
+function expectFiniteNumber(value: unknown, path: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    invalid(`${path} must be a finite number.`);
   }
   return value;
 }

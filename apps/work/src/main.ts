@@ -6,6 +6,7 @@ import {
   createOpeningProofProject,
   findFinePuttyCeilingAssignment,
   getFinePuttyAssignment,
+  isSurfaceId,
   wallIds,
   FINE_PUTTY_CEILING_ASSIGNMENT_ID,
 } from "./domain";
@@ -776,7 +777,7 @@ function describeIncludedServiceScope(
 
   for (const assignment of assignments) {
     for (const id of assignment.targetEntityIds) {
-      if (wallIds.includes(id as WallId)) walls.add(id);
+      if (wallIds.includes(id as WallId)) walls.add(id as WallId);
       if (id === "room-1.ceiling") hasCeiling = true;
       if (id === "room-1.floor") hasFloor = true;
     }
@@ -2249,7 +2250,7 @@ function syncViewerFocus(): void {
   }
 
   viewer.setHighlightedEntities(
-    getHighlightedEntityIds(project, offerInteraction),
+    getHighlightedEntityIds(project, offerInteraction).filter(isSurfaceId),
   );
   viewer.setHighlightedOpening(selectedOpeningId);
   viewer.setLaminateFloorVisible(

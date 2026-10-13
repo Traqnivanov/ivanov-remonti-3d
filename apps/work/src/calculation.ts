@@ -1,11 +1,12 @@
 import {
   getFinePuttyAssignment,
   getLaminateFlooringAssignment,
+  isEntityId,
   isWallId,
   type ClientInfo,
+  type EntityId,
   type ProjectState,
   type ServiceAssignment,
-  type SurfaceId,
   type WallId,
 } from "./domain";
 import { getWallNetAreaM2, summarizeRoomGeometry } from "./geometry";
@@ -68,7 +69,7 @@ export type DynamicOfferSummary = {
 
 export type EntityOfferBreakdown = {
   assignmentId: string;
-  entityId: SurfaceId;
+  entityId: EntityId;
   quantity: QuantityResult;
   unitPriceEur: number | null;
   totalEur: number | null;
@@ -241,10 +242,49 @@ function calculateFloorAreaQuantity(
   };
 }
 
+function calculateEntityCountQuantity(
+  project: ProjectState,
+  assignment: ServiceAssignment,
+): QuantityResult {
+  if (!assignment.included) {
+    return {
+      ruleId: "entity-count-v1",
+      ruleVersion: "1.0.0",
+      unit: "count",
+      value: 0,
+      sourceEntityIds: [],
+      usedOverride: false,
+    };
+  }
+
+  if (assignment.targetEntityIds.length === 0) {
+    throw new Error("entity-count-v1 requires one or more entity targets.");
+  }
+
+  const uniqueIds = new Set(assignment.targetEntityIds);
+  if (uniqueIds.size !== assignment.targetEntityIds.length) {
+    throw new Error("entity-count-v1 does not allow duplicate entity targets.");
+  }
+
+  if (assignment.targetEntityIds.some((id) => !isEntityId(project, id))) {
+    throw new Error("entity-count-v1 requires existing project entity targets.");
+  }
+
+  return {
+    ruleId: "entity-count-v1",
+    ruleVersion: "1.0.0",
+    unit: "count",
+    value: assignment.targetEntityIds.length,
+    sourceEntityIds: [...assignment.targetEntityIds],
+    usedOverride: false,
+  };
+}
+
 const quantityRuleCalculators: Record<string, QuantityRuleCalculator> = {
   "wall-net-area-openings-v1": calculateWallNetAreaOpeningsQuantity,
   "ceiling-area-v1": calculateCeilingAreaQuantity,
   "floor-area-v1": calculateFloorAreaQuantity,
+  "entity-count-v1": calculateEntityCountQuantity,
 };
 
 export function calculateAssignmentQuantity(
@@ -375,7 +415,7 @@ export function setAssignmentUnitPriceEur(
 export function calculateEntityOfferBreakdown(
   project: ProjectState,
   assignmentId: string,
-  entityId: SurfaceId,
+  entityId: EntityId,
 ): EntityOfferBreakdown | null {
   const assignment = project.serviceAssignments.find(
     (item) => item.id === assignmentId,

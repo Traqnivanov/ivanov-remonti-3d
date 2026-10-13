@@ -117,6 +117,191 @@ describe("project persistence boundary", () => {
     ]);
   });
 
+  it("refuses to serialize invalid canonical object placement", () => {
+    const project = createDefaultProject("invalid-object-save-boundary");
+    project.room.objects.push({
+      id: "room-1.object-radiator-invalid-save",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 0.1,
+        vM: 0.4,
+        normalOffsetM: 0,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1.2,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+
+    expectPersistenceError(
+      () => serializeProjectState(project),
+      "INVALID_STATE",
+    );
+  });
+
+  it("round-trips a supported host-local scene object and object service target", () => {
+    const project = createDefaultProject("scene-object-round-trip");
+    project.room.objects.push({
+      id: "room-1.object-radiator-proof",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 2.1,
+        vM: 0.55,
+        normalOffsetM: 0.05,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1.2,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: true,
+    });
+    project.serviceAssignments.push({
+      id: "assignment-object-count-proof",
+      serviceCode: "object-count-proof",
+      label: "Object count proof",
+      targetEntityIds: ["room-1.object-radiator-proof"],
+      included: true,
+      quantityRuleId: "entity-count-v1",
+      presentationMode: "object",
+    });
+
+    const restored = deserializeProjectState(serializeProjectState(project));
+
+    expect(restored.room.objects).toEqual(project.room.objects);
+    expect(
+      restored.serviceAssignments.find(
+        (assignment) => assignment.id === "assignment-object-count-proof",
+      )?.targetEntityIds,
+    ).toEqual(["room-1.object-radiator-proof"]);
+  });
+
+  it("refuses to serialize a service target that points to a missing object entity", () => {
+    const project = createDefaultProject("missing-object-target-save");
+    project.serviceAssignments.push({
+      id: "assignment-missing-object-target-save",
+      serviceCode: "object-link-proof",
+      label: "Missing object target save",
+      targetEntityIds: ["room-1.object-missing"],
+      included: true,
+      quantityRuleId: "entity-count-v1",
+      presentationMode: "object",
+    });
+
+    expectPersistenceError(
+      () => serializeProjectState(project),
+      "INVALID_STATE",
+    );
+  });
+
+  it("rejects a persisted service target that points to a missing object entity", () => {
+    const persisted = serializeProjectState(createDefaultProject("missing-object-target"));
+    persisted.serviceAssignments.push({
+      id: "assignment-missing-object-target",
+      serviceCode: "object-link-proof",
+      label: "Missing object target",
+      targetEntityIds: ["room-1.object-missing"],
+      included: true,
+      quantityRuleId: "entity-count-v1",
+      presentationMode: "object",
+    });
+
+    expectPersistenceError(
+      () => deserializeProjectState(persisted),
+      "UNSUPPORTED_RUNTIME_SHAPE",
+    );
+  });
+
+  it("keeps old persisted projects with objects: [] valid", () => {
+    const persisted = serializeProjectState(createDefaultProject("old-empty-objects"));
+
+    const restored = deserializeProjectState(persisted);
+
+    expect(restored.room.objects).toEqual([]);
+  });
+
+  it("rejects unsupported scene object ids and hosts", () => {
+    const invalidId = serializeProjectState(createDefaultProject("object-invalid-id"));
+    invalidId.rooms[0]!.objects.push({
+      id: "radiator-without-entity-prefix",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 2.1,
+        vM: 0.55,
+        normalOffsetM: 0,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1.2,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+
+    expectPersistenceError(
+      () => deserializeProjectState(invalidId),
+      "UNSUPPORTED_RUNTIME_SHAPE",
+    );
+
+    const invalidHost = serializeProjectState(createDefaultProject("object-invalid-host"));
+    invalidHost.rooms[0]!.objects.push({
+      id: "room-1.object-radiator-invalid-host",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.unknown-surface",
+        uM: 1,
+        vM: 1,
+        normalOffsetM: 0,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 0.8,
+        heightM: 0.5,
+        depthM: 0.1,
+      },
+      locked: false,
+    });
+
+    expectPersistenceError(
+      () => deserializeProjectState(invalidHost),
+      "UNSUPPORTED_RUNTIME_SHAPE",
+    );
+  });
+
+  it("rejects a scene object whose host-local placement exceeds the room", () => {
+    const malformed = serializeProjectState(createDefaultProject("object-out-of-bounds"));
+    malformed.rooms[0]!.objects.push({
+      id: "room-1.object-radiator-outside",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 0.1,
+        vM: 0.4,
+        normalOffsetM: 0,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1.2,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+
+    expectPersistenceError(
+      () => deserializeProjectState(malformed),
+      "INVALID_STATE",
+    );
+  });
+
   it("keeps old persisted projects with openings: [] valid without injecting openings", () => {
     const persisted = serializeProjectState(createDefaultProject("old-empty-openings"));
 
@@ -480,10 +665,26 @@ describe("project persistence boundary", () => {
 
     persisted.rooms[0]!.surfaces[0]!.label = "Changed only in persisted copy";
     persisted.rooms[0]!.openings[0]!.widthM = 2;
+    project.room.objects.push({
+      id: "room-1.object-detached-proof",
+      kind: "proof",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 2,
+        vM: 1,
+        normalOffsetM: 0,
+        rotationDeg: 0,
+      },
+      dimensionsM: { widthM: 0.5, heightM: 0.5, depthM: 0.1 },
+      locked: false,
+    });
+    const withObjectPersisted = serializeProjectState(project);
+    withObjectPersisted.rooms[0]!.objects[0]!.placement.uM = 3;
     persisted.serviceAssignments[0]!.targetEntityIds.length = 0;
 
     expect(project.room.surfaces[0]!.label).toBe("Предна стена");
     expect(project.room.openings[0]!.widthM).toBe(1);
+    expect(project.room.objects[0]!.placement.uM).toBe(2);
     expect(getFinePuttyAssignment(project).targetEntityIds).toHaveLength(4);
     expect(getLaminateFlooringAssignment(project).targetEntityIds).toEqual([
       "room-1.floor",
