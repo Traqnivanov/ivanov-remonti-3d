@@ -13,6 +13,31 @@ export type Surface = {
   label: string;
 };
 
+export type SceneObjectId = `room-1.object-${string}`;
+export type EntityId = SurfaceId | SceneObjectId;
+
+export type SurfaceLocalPlacement = {
+  hostSurfaceId: SurfaceId;
+  uM: number;
+  vM: number;
+  normalOffsetM: number;
+  rotationDeg: number;
+};
+
+export type SceneObjectDimensionsM = {
+  widthM: number;
+  heightM: number;
+  depthM: number;
+};
+
+export type SceneObject = {
+  id: SceneObjectId;
+  kind: string;
+  placement: SurfaceLocalPlacement;
+  dimensionsM: SceneObjectDimensionsM;
+  locked: boolean;
+};
+
 export type Opening = {
   id: string;
   kind: "door" | "window";
@@ -31,6 +56,7 @@ export type Room = {
   heightM: number;
   surfaces: Surface[];
   openings: Opening[];
+  objects: SceneObject[];
 };
 
 export type ClientInfo = {
@@ -51,7 +77,7 @@ export type ServiceAssignment = {
   id: string;
   serviceCode: string;
   label: string;
-  targetEntityIds: SurfaceId[];
+  targetEntityIds: EntityId[];
   included: boolean;
   quantityRuleId: string;
   priceBookItemId?: string;
@@ -116,8 +142,31 @@ export const surfaceIds: SurfaceId[] = [
   "room-1.ceiling",
 ];
 
-export function isWallId(id: SurfaceId): id is WallId {
+export function isWallId(id: string): id is WallId {
   return wallIds.includes(id as WallId);
+}
+
+export function isSurfaceId(id: string): id is SurfaceId {
+  return surfaceIds.includes(id as SurfaceId);
+}
+
+export function isSceneObjectId(id: string): id is SceneObjectId {
+  return /^room-1\.object-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id);
+}
+
+export function getSceneObjectById(
+  project: ProjectState,
+  id: SceneObjectId,
+): SceneObject | undefined {
+  return project.room.objects.find((object) => object.id === id);
+}
+
+export function isEntityId(project: ProjectState, id: string): id is EntityId {
+  return (
+    isSurfaceId(id) ||
+    (isSceneObjectId(id) &&
+      project.room.objects.some((object) => object.id === id))
+  );
 }
 
 export function getFinePuttyAssignment(
@@ -288,6 +337,7 @@ export function createDefaultProject(projectId = "prototype-room-1"): ProjectSta
         { id: "room-1.ceiling", kind: "ceiling", label: "Таван" },
       ],
       openings: [],
+      objects: [],
     },
     serviceAssignments: [
       {
