@@ -311,64 +311,71 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-P3.6a SceneObject foundation is **MERGED / CLOSED / VERIFIED**.
+**CURRENT WORK:** Issue #36 — `[CURRENT WORK] P3.6b — Radiator proof object proposal gate`.
 
-Final merge:
-- PR #35 — MERGED;
-- merge commit: `ab0c901a557c5201d85841462244de0ef4ce5888`;
-- tested candidate head: `9bbd2a8d0fdcba006ccd8ae2ffb65bb89eace231`;
-- merge tree is byte-identical to the fully accepted candidate tree;
-- final CI `38465353270`: SUCCESS;
-- 18/18 test files / 187/187 tests PASS;
-- typecheck/build/full browser acceptance PASS;
-- final visual QA PASS;
-- no DB/migration/production scope.
+P3.6a is already **MERGED / CLOSED / VERIFIED**.
 
-Merged P3.6a foundation:
-- stable SceneObject IDs;
-- canonical host-local placement;
-- dimensions + lock state;
-- persistence through existing project JSON / work_state;
-- Save/Open object and entity-reference integrity;
-- object-capable Smart Offer entity bridge;
-- generic entity-count quantity foundation;
-- Undo/Redo compatibility.
+P3.6b:
+- Owner approved opening the checkpoint/audit;
+- viewer/runtime audit complete;
+- bounded proposal + Criteria Check ready;
+- implementation is **not yet authorized**.
 
-Visible object UI is intentionally still absent.
+Recommended P3.6b scope:
+- Radiator only;
+- numeric Work authoring in existing left zone;
+- wall host + exact host-local position/dimensions;
+- lock/duplicate/delete;
+- no overlap with openings/radiators;
+- procedural 3D radiator;
+- object raycast/select/highlight;
+- Work selection → object editor;
+- Client read-only object selection;
+- host-wall visibility coupling;
+- object-aware room resize;
+- reuse P3.6a persistence/history.
 
-No P3.6b implementation is active.
+Excluded:
+- direct drag/snap;
+- transform gizmos;
+- real service/pricing expansion;
+- P3.7 assets/materials;
+- Mobile redesign;
+- DB changes.
 
 ---
 
-## 10. CURRENT NEXT — OPEN P3.6b AS A NEW BOUNDED CHECKPOINT
+## 10. CURRENT NEXT — OWNER DECISION
 
-The approved sequence points next to **P3.6b — Radiator proof object**, but it must not start implicitly.
+Present the bounded proposal from Issue #36.
 
-Before implementation:
-1. open one `[CURRENT WORK]` Issue for P3.6b;
-2. audit the merged P3.6a baseline + viewer/rendering boundaries;
-3. define the smallest Radiator proof;
-4. Criteria Check;
-5. Owner approval;
-6. then implement P3.6b only.
+Recommended approval:
+**numeric Radiator authoring + procedural render + object selection/read-only Client inspection + visibility/resize safety, with direct drag/snap deferred to P3.6c.**
 
-Do not jump to P3.6c drag/snap or later phases.
+If Owner approves:
+1. record approval in Issue #36 + Decision Log/current state;
+2. create a dedicated P3.6b branch;
+3. implement P3.6b only;
+4. run full technical + visual acceptance;
+5. stop before merge / P3.6c according to normal gates.
+
+If Owner changes scope:
+- update the proposal first;
+- do not implement until resolved.
 
 ---
 
 ## 11. AUTHORITY / GUARDRAILS
 
-No active Current Work remains after closing Issue #34.
-
-P3.6 overall direction remains approved, but each sub-step remains a bounded gate.
+Current single Current Work Issue: **#36**.
 
 Do not:
-- reopen merged P3.6a;
+- reopen P3.6a;
+- start P3.6c drag/snap;
+- broaden to object/service catalogs;
 - touch production/Supabase/DB;
-- broaden the service/object catalog;
 - start P3.7;
-- redesign Mobile Work;
-- treat object rendering as permission to add direct drag/snap before P3.6c.
+- redesign Mobile Work.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
