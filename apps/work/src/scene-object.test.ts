@@ -111,6 +111,17 @@ describe("P3.6a scene object domain", () => {
     );
   });
 
+  it("rejects a syntactically valid object id from another room namespace", () => {
+    const room = createDefaultProject("scene-object-room-id").room;
+    const object = proofRadiator({
+      id: "room-2.object-radiator-proof",
+    });
+
+    expect(validateSceneObject(room, object)).toContain(
+      "belongs to a different room",
+    );
+  });
+
   it("requires stable unique object ids across the room entity namespace", () => {
     const room = createDefaultProject("scene-object-ids").room;
     room.objects = [
