@@ -117,6 +117,32 @@ describe("project persistence boundary", () => {
     ]);
   });
 
+  it("refuses to serialize invalid canonical object placement", () => {
+    const project = createDefaultProject("invalid-object-save-boundary");
+    project.room.objects.push({
+      id: "room-1.object-radiator-invalid-save",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 0.1,
+        vM: 0.4,
+        normalOffsetM: 0,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1.2,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+
+    expectPersistenceError(
+      () => serializeProjectState(project),
+      "INVALID_STATE",
+    );
+  });
+
   it("round-trips a supported host-local scene object and object service target", () => {
     const project = createDefaultProject("scene-object-round-trip");
     project.room.objects.push({
