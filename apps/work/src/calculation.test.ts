@@ -172,6 +172,76 @@ describe("laminate flooring quantity", () => {
   });
 });
 
+describe("P3.6a entity count quantity foundation", () => {
+  it("counts stable canonical object entity targets without inventing a business service", () => {
+    const project = createDefaultProject("entity-count-object");
+    project.room.objects.push({
+      id: "room-1.object-radiator-proof",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-front",
+        uM: 2.1,
+        vM: 0.55,
+        normalOffsetM: 0.05,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1.2,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+
+    const result = calculateAssignmentQuantity(project, {
+      id: "assignment-object-count-proof",
+      serviceCode: "object-count-proof",
+      label: "Object count proof",
+      targetEntityIds: ["room-1.object-radiator-proof"],
+      included: true,
+      quantityRuleId: "entity-count-v1",
+      presentationMode: "object",
+    });
+
+    expect(result).toEqual({
+      ruleId: "entity-count-v1",
+      ruleVersion: "1.0.0",
+      unit: "count",
+      value: 1,
+      sourceEntityIds: ["room-1.object-radiator-proof"],
+      usedOverride: false,
+    });
+  });
+
+  it("rejects missing or duplicate entity targets", () => {
+    const project = createDefaultProject("entity-count-invalid");
+
+    expect(() =>
+      calculateAssignmentQuantity(project, {
+        id: "assignment-missing-object-proof",
+        serviceCode: "object-count-proof",
+        label: "Missing object proof",
+        targetEntityIds: ["room-1.object-missing"],
+        included: true,
+        quantityRuleId: "entity-count-v1",
+        presentationMode: "object",
+      }),
+    ).toThrow("entity-count-v1 requires existing project entity targets.");
+
+    expect(() =>
+      calculateAssignmentQuantity(project, {
+        id: "assignment-duplicate-surface-proof",
+        serviceCode: "entity-count-proof",
+        label: "Duplicate target proof",
+        targetEntityIds: ["room-1.floor", "room-1.floor"],
+        included: true,
+        quantityRuleId: "entity-count-v1",
+        presentationMode: "object",
+      }),
+    ).toThrow("entity-count-v1 does not allow duplicate entity targets.");
+  });
+});
+
 describe("selected surface offer breakdown", () => {
   it("calculates the exact net wall quantity without changing the assignment scope", () => {
     const project = createOpeningProofProject();
