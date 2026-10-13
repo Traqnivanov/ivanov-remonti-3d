@@ -311,64 +311,68 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-**CURRENT WORK:** Issue #34 — `[CURRENT WORK] P3.6 — Object/Edit Core proposal gate`.
+**CURRENT WORK:** Issue #34 — P3.6 Object/Edit Core.
 
-P3.5a+b + Desktop D1 are already **MERGED / CLOSED / VERIFIED**.
+Owner approved P3.6 with:
+- host-local canonical object placement;
+- Radiator as the first later proof object;
+- strict P3.6a→b→c→d→e execution;
+- no automatic transition between sub-steps.
 
-P3.6:
-- repository/contract audit complete;
-- proposal + Criteria Check ready;
-- implementation **not authorized**.
+Active step:
+**P3.6a only.**
 
-Key audit facts:
-- no runtime SceneObject model exists yet;
-- viewer selection/rendering handles surfaces/openings, not objects;
-- persistence reserves object storage but rejects non-empty objects;
-- object edits can reuse canonical Project State Undo/Redo + Save/Open;
-- no relational Supabase/DB migration is required or authorized.
+P3.6a must establish:
+- SceneObject in canonical Project State;
+- stable object IDs;
+- surface-host-local placement + dimensions + lock state;
+- persistence in existing `work_state jsonb`;
+- object-capable entity bridge;
+- generic count-rule infrastructure;
+- focused tests/regression proof.
 
-Recommended architecture:
-- object truth = stable ID + **surface-host-local placement** + dimensions + lock state;
-- renderer derives Three.js world transform;
-- do not make mesh/world coordinates canonical business state.
-
-Recommended sequence:
-**P3.6a domain/persistence/entity bridge → P3.6b Radiator proof → P3.6c drag/snap/lock → P3.6d Object↔Smart Offer foundation → P3.6e acceptance.**
-
-No broad service/object catalog or P3.7 assets inside this checkpoint.
+P3.6a must not add:
+- visible Radiator controls;
+- direct 3D object drag/snap;
+- a new real service family;
+- Supabase/DB changes;
+- P3.7 asset/material work;
+- Mobile redesign.
 
 ---
 
-## 10. CURRENT NEXT — OWNER DECISION
+## 10. CURRENT NEXT — IMPLEMENT + VERIFY P3.6a
 
-Present the bounded proposal from Issue #34.
+Use one dedicated branch.
 
-Recommended approval:
-**host-local canonical object placement + Radiator as first proof object + strict P3.6a→b→c→d→e execution.**
+Acceptance before any P3.6b work:
+- domain and persistence truth is explicit;
+- old empty-object projects still open;
+- non-empty supported object projects round-trip;
+- invalid IDs/hosts/placement are rejected;
+- stable IDs survive round-trip;
+- entity bridge can address surfaces and object IDs without changing current visible behavior;
+- generic object-count rule is covered without inventing a customer-facing service;
+- Undo/Redo/state cloning remains compatible;
+- current P3.5/D1 behavior remains green;
+- no DB migration exists in the diff.
 
-If Owner approves:
-1. record the decision in Issue #34 + Decision Log/current state;
-2. start **P3.6a only**;
-3. run its bounded tests/Criteria Check;
-4. stop before P3.6b unless the approved sequence/process permits the next micro-step through the normal gate.
-
-If Owner changes/rejects:
-- update the proposal only;
-- no implementation until resolved.
+Stop after evidence is recorded.
 
 ---
 
 ## 11. AUTHORITY / GUARDRAILS
 
-Do not:
-- restart merged P3.5/D1;
-- start P3.7;
-- redesign Mobile Work;
-- touch production/Supabase/DB;
-- invent a new real service family or price rule;
-- treat Three.js mesh state as canonical object truth.
-
 Current single Current Work Issue: **#34**.
+
+Owner has approved P3.6 architecture and sequence, but only **P3.6a is active now**.
+
+Do not:
+- start P3.6b Radiator product/UI work before the P3.6a acceptance gate;
+- treat renderer transforms as canonical object state;
+- broaden the service catalog;
+- touch production/Supabase/DB;
+- redesign Mobile Work.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
