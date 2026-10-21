@@ -313,48 +313,47 @@ P3.4 is **CLOSED**.
 
 **CURRENT WORK:** Issue #36 — P3.6b Radiator proof object.
 
-Owner approved the exact bounded P3.6b scope.
+Status:
+**VERIFIED / NOT MERGED / FINAL MERGE GATE.**
 
-Active implementation:
-- Radiator only;
-- numeric Work authoring;
-- procedural 3D render;
-- exact object select/highlight;
-- read-only Client selection;
-- host-wall visibility;
+PR #37:
+- DRAFT / NOT MERGED;
+- branch `feat/p3-6b-radiator-proof`;
+- accepted pre-sync head `b284a8c5f72d6f312a97eb09f48fe1c945c75ff5`;
+- CI `39629703589`: SUCCESS;
+- 20/20 test files / 204/204 tests PASS;
+- typecheck/build/full browser acceptance PASS;
+- final visual artifact `12359065544`: 42 screenshots, PASS.
+
+P3.6b verified:
+- Radiator numeric Work authoring;
+- stable IDs + stable human labels;
+- wall-hosted host-local placement/dimensions;
+- lock/unlock/duplicate/delete;
+- opening/radiator + radiator/radiator overlap safety;
 - object-aware room resize;
-- Save/Open + Undo/Redo through P3.6a.
+- Save/Open radiator invariants;
+- procedural 3D radiator;
+- exact object raycast/select/highlight;
+- Work object focus;
+- Client read-only object selection;
+- host-wall cutaway behavior;
+- P3.6a persistence/history path;
+- no fake service/pricing.
 
-Explicitly excluded:
-- drag/snap/gizmos;
-- service/pricing expansion;
-- P3.7 assets/materials;
-- Mobile redesign;
-- DB changes.
+No DB/migration/service-family/P3.7/Mobile redesign scope.
 
 ---
 
-## 10. CURRENT NEXT — IMPLEMENT + VERIFY P3.6b
+## 10. CURRENT NEXT — FINAL REFRESH + OWNER MERGE GATE
 
-Use one dedicated branch.
+1. merge only latest continuity docs from `main` into PR #37;
+2. prove product/source diff is unchanged;
+3. rerun full exact-head CI/browser acceptance;
+4. record exact final head;
+5. **STOP for explicit Owner merge command.**
 
-Acceptance before merge:
-- valid add/edit/duplicate/delete/lock;
-- stable IDs;
-- opening/radiator overlap protection;
-- all four wall transforms;
-- recognizable procedural radiator;
-- Work object selection focuses editor;
-- Client selection stays read-only;
-- host-wall cutaway visibility is coherent;
-- room resize safety;
-- Save/Open + Undo/Redo;
-- no fake service/price;
-- P3.5/D1/P3.6a regressions green;
-- desktop/mobile visual review;
-- no DB/migration/production scope.
-
-Stop at merge gate. Do not start P3.6c automatically.
+Do not start P3.6c.
 
 ---
 
@@ -362,7 +361,15 @@ Stop at merge gate. Do not start P3.6c automatically.
 
 Current single Current Work Issue: **#36**.
 
-No direct drag/snap, no P3.7, no service catalog expansion, no Supabase/DB work.
+P3.6b is verified but not merged.
+
+Do not:
+- merge without explicit Owner command;
+- start P3.6c drag/snap;
+- broaden to service/object catalogs;
+- touch production/Supabase/DB;
+- start P3.7;
+- redesign Mobile Work.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
