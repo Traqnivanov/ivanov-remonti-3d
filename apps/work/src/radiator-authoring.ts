@@ -14,9 +14,6 @@ export const RADIATOR_KIND = "radiator" as const;
 
 export type RadiatorObject = SceneObject & {
   kind: typeof RADIATOR_KIND;
-  placement: SceneObject["placement"] & {
-    hostSurfaceId: WallId;
-  };
 };
 
 export type RadiatorMutationResult =
@@ -47,7 +44,7 @@ const SEARCH_STEP_M = 0.1;
 const EPSILON = 1e-9;
 
 export function isRadiatorObject(object: SceneObject): object is RadiatorObject {
-  return object.kind === RADIATOR_KIND && isWallId(object.placement.hostSurfaceId);
+  return object.kind === RADIATOR_KIND;
 }
 
 export function getRadiatorLabel(
