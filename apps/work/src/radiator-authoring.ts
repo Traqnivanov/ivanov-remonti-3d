@@ -51,9 +51,13 @@ export function getRadiatorLabel(
   project: Pick<ProjectState, "room">,
   id: SceneObjectId,
 ): string {
-  const radiators = project.room.objects.filter(isRadiatorObject);
-  const index = radiators.findIndex((object) => object.id === id);
-  return index < 0 ? id : `Радиатор ${index + 1}`;
+  const radiator = project.room.objects.find(
+    (object) => object.id === id && isRadiatorObject(object),
+  );
+  if (!radiator) return id;
+
+  const match = radiator.id.match(/\.object-radiator-(\d+)$/);
+  return match ? `Радиатор ${match[1]}` : "Радиатор";
 }
 
 export function addRadiator(project: ProjectState): RadiatorMutationResult {
