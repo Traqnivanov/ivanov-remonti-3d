@@ -213,72 +213,53 @@ These do not block the current P3.5 decision gate, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — P3.6b Radiator proof object proposal gate
+## 7. CURRENT WORK — P3.6b Radiator proof object
 
 Current Work Issue:
-**#36 — `[CURRENT WORK] P3.6b — Radiator proof object proposal gate`**
+**#36 — `[CURRENT WORK] P3.6b — Radiator proof object`**
 
 Status:
-**AUDIT COMPLETE / BOUNDED PROPOSAL + CRITERIA CHECK READY / IMPLEMENTATION NOT YET AUTHORIZED.**
+**OWNER-APPROVED / IMPLEMENTATION ACTIVE / NOT MERGED.**
 
-Owner approved opening the P3.6b checkpoint after P3.6a was merged/closed.
-
-Merged baseline:
-- P3.6a SceneObject foundation — MERGED / CLOSED / VERIFIED;
-- merge commit: `ab0c901a557c5201d85841462244de0ef4ce5888`;
-- current `main` before P3.6b is `fa0ed362db25a4c9e8e8becc582211a8d3048c73`.
-
-Audit result:
-- current viewer renders/raycasts surfaces + openings only;
-- P3.6a already provides canonical SceneObject IDs, host-local placement, persistence and EntityId bridge;
-- viewer callback/highlight path remains surface-only and is the main P3.6b integration point;
-- Client capability contract already permits read-only object inspection;
-- Work capability contract already permits object authoring;
-- no new auth/capability system is required;
-- room resize currently validates openings only and must become object-aware once a real object exists;
-- no DB/Supabase migration is required or proposed.
-
-Bounded proposed P3.6b:
-- one real object category: **Radiator**;
-- Work Objects section in the existing left zone;
-- add/select/change wall/exact numeric position/dimensions/lock/duplicate/delete;
-- wall-hosted only;
+Approved exact P3.6b scope:
+- one real object category: Radiator;
+- numeric Work authoring in the existing left zone;
+- add/select/change host wall/edit exact host-local position and dimensions;
+- lock/unlock, duplicate, delete;
 - reject opening overlap and radiator/radiator overlap;
-- procedural recognizable radiator geometry only;
-- viewer object raycast/highlight/select using canonical object ID;
-- Work object selection focuses its editor;
-- Client/Preview selection is read-only and uses a human label;
+- procedural recognizable 3D radiator;
+- exact object raycast/select/highlight;
+- Work object selection focuses the matching object editor;
+- Client/Preview selection is read-only with human labeling;
 - radiator follows host-wall visibility/cutaway;
-- room resize cannot invalidate object placement;
-- Save/Open/Undo/Redo reuse P3.6a;
-- no fake service or price is created.
+- room resize cannot produce invalid radiator placement;
+- Save/Open + Undo/Redo reuse merged P3.6a.
 
-Explicitly outside P3.6b:
+Explicitly excluded:
 - direct 3D drag;
 - snapping while dragging;
 - transform gizmos;
-- new radiator/plumbing/electrical service family;
-- object pricing;
+- new radiator/plumbing/electrical service family or pricing;
 - P3.7 assets/materials;
 - Mobile Work redesign;
-- Supabase/DB changes.
+- Supabase/DB schema changes.
 
-Criteria Check on the bounded proposal: **PASS**.
+Merged dependency:
+- P3.6a SceneObject foundation — MERGED / CLOSED / VERIFIED.
 
 ---
 
 ## 8. NEXT EXACT STEP
 
-**OWNER PRODUCT/SCOPE DECISION — P3.6b proposal.**
+**IMPLEMENT + VERIFY P3.6b ONLY.**
 
-Recommended decision:
-**Approve P3.6b as bounded in Issue #36: numeric Work authoring + procedural Radiator render + exact object selection + read-only Client inspection + visibility/resize safety; no direct drag/snap and no new service family.**
+Required:
+1. create dedicated branch from current `main`;
+2. implement the bounded Radiator authoring/render/select/visibility/resize proof;
+3. add focused unit/integration/browser coverage;
+4. run full CI + visual QA;
+5. inspect diff for scope creep and DB/service-family changes;
+6. record exact evidence in Issue #36;
+7. stop at merge gate.
 
-Until explicit approval of this bounded scope:
-- do not create a P3.6b implementation branch;
-- do not change product/runtime code;
-- do not start P3.6c;
-- do not touch Supabase/DB;
-- do not add real service/pricing scope.
-
-Detailed audit and proposal are recorded in Issue #36.
+Do not start P3.6c automatically.
