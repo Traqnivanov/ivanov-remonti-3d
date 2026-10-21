@@ -311,57 +311,50 @@ P3.4 is **CLOSED**.
 
 ## 9. CURRENT STATE WHEN THIS HANDOFF WAS WRITTEN
 
-**CURRENT WORK:** Issue #36 — `[CURRENT WORK] P3.6b — Radiator proof object proposal gate`.
+**CURRENT WORK:** Issue #36 — P3.6b Radiator proof object.
 
-P3.6a is already **MERGED / CLOSED / VERIFIED**.
+Owner approved the exact bounded P3.6b scope.
 
-P3.6b:
-- Owner approved opening the checkpoint/audit;
-- viewer/runtime audit complete;
-- bounded proposal + Criteria Check ready;
-- implementation is **not yet authorized**.
-
-Recommended P3.6b scope:
+Active implementation:
 - Radiator only;
-- numeric Work authoring in existing left zone;
-- wall host + exact host-local position/dimensions;
-- lock/duplicate/delete;
-- no overlap with openings/radiators;
-- procedural 3D radiator;
-- object raycast/select/highlight;
-- Work selection → object editor;
-- Client read-only object selection;
-- host-wall visibility coupling;
+- numeric Work authoring;
+- procedural 3D render;
+- exact object select/highlight;
+- read-only Client selection;
+- host-wall visibility;
 - object-aware room resize;
-- reuse P3.6a persistence/history.
+- Save/Open + Undo/Redo through P3.6a.
 
-Excluded:
-- direct drag/snap;
-- transform gizmos;
-- real service/pricing expansion;
+Explicitly excluded:
+- drag/snap/gizmos;
+- service/pricing expansion;
 - P3.7 assets/materials;
 - Mobile redesign;
 - DB changes.
 
 ---
 
-## 10. CURRENT NEXT — OWNER DECISION
+## 10. CURRENT NEXT — IMPLEMENT + VERIFY P3.6b
 
-Present the bounded proposal from Issue #36.
+Use one dedicated branch.
 
-Recommended approval:
-**numeric Radiator authoring + procedural render + object selection/read-only Client inspection + visibility/resize safety, with direct drag/snap deferred to P3.6c.**
+Acceptance before merge:
+- valid add/edit/duplicate/delete/lock;
+- stable IDs;
+- opening/radiator overlap protection;
+- all four wall transforms;
+- recognizable procedural radiator;
+- Work object selection focuses editor;
+- Client selection stays read-only;
+- host-wall cutaway visibility is coherent;
+- room resize safety;
+- Save/Open + Undo/Redo;
+- no fake service/price;
+- P3.5/D1/P3.6a regressions green;
+- desktop/mobile visual review;
+- no DB/migration/production scope.
 
-If Owner approves:
-1. record approval in Issue #36 + Decision Log/current state;
-2. create a dedicated P3.6b branch;
-3. implement P3.6b only;
-4. run full technical + visual acceptance;
-5. stop before merge / P3.6c according to normal gates.
-
-If Owner changes scope:
-- update the proposal first;
-- do not implement until resolved.
+Stop at merge gate. Do not start P3.6c automatically.
 
 ---
 
@@ -369,13 +362,7 @@ If Owner changes scope:
 
 Current single Current Work Issue: **#36**.
 
-Do not:
-- reopen P3.6a;
-- start P3.6c drag/snap;
-- broaden to object/service catalogs;
-- touch production/Supabase/DB;
-- start P3.7;
-- redesign Mobile Work.
+No direct drag/snap, no P3.7, no service catalog expansion, no Supabase/DB work.
 
 ## 12. OWNER CRITERIA — ALWAYS APPLY
 
