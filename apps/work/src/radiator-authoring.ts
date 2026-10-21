@@ -193,6 +193,10 @@ export function duplicateRadiator(
     return { ok: false, message: "Радиаторът вече не съществува." };
   }
 
+  if (!isWallId(current.placement.hostSurfaceId)) {
+    return { ok: false, message: "Радиаторът трябва да бъде поставен върху стена." };
+  }
+
   const duplicate: RadiatorObject = {
     ...current,
     id: nextRadiatorId(project.room),
