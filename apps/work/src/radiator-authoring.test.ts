@@ -8,7 +8,6 @@ import {
   addRadiator,
   duplicateRadiator,
   getRadiatorLabel,
-  isRadiatorObject,
   moveRadiatorToWall,
   removeRadiator,
   setRadiatorLocked,
