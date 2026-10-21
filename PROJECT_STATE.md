@@ -213,53 +213,70 @@ These do not block the current P3.5 decision gate, but must not be forgotten:
 
 ---
 
-## 7. CURRENT WORK — P3.6b Radiator proof object
+## 7. CURRENT WORK — P3.6b final merge gate
 
 Current Work Issue:
 **#36 — `[CURRENT WORK] P3.6b — Radiator proof object`**
 
 Status:
-**OWNER-APPROVED / IMPLEMENTATION ACTIVE / NOT MERGED.**
+**VERIFIED / NOT MERGED / FINAL MERGE GATE.**
 
-Approved exact P3.6b scope:
-- one real object category: Radiator;
-- numeric Work authoring in the existing left zone;
-- add/select/change host wall/edit exact host-local position and dimensions;
-- lock/unlock, duplicate, delete;
-- reject opening overlap and radiator/radiator overlap;
-- procedural recognizable 3D radiator;
-- exact object raycast/select/highlight;
-- Work object selection focuses the matching object editor;
-- Client/Preview selection is read-only with human labeling;
-- radiator follows host-wall visibility/cutaway;
-- room resize cannot produce invalid radiator placement;
-- Save/Open + Undo/Redo reuse merged P3.6a.
+Owner-approved exact P3.6b scope is implemented and accepted.
 
-Explicitly excluded:
+Accepted product head before this documentation-only continuity sync:
+- PR #37 — DRAFT / NOT MERGED;
+- branch: `feat/p3-6b-radiator-proof`;
+- head: `b284a8c5f72d6f312a97eb09f48fe1c945c75ff5`;
+- base: `6dd7ffbee7e602bf464f70609c25bddeb7174c92`;
+- mergeable: true;
+- CI `39629703589`: SUCCESS;
+- 20/20 test files / 204/204 tests PASS;
+- typecheck + build + full browser acceptance PASS;
+- visual artifact `12359065544`: 42 screenshots, PASS.
+
+Verified P3.6b product truth:
+- Radiator is the single real proof object;
+- Work can add/select/change wall/edit exact host-local position and dimensions;
+- Work can lock/unlock, duplicate and delete;
+- stable human labels follow stable object IDs;
+- radiator/opening and radiator/radiator overlap are rejected;
+- room resize cannot leave radiator state invalid;
+- Save/Open enforces radiator invariants;
+- procedural 3D radiator is derived from canonical SceneObject state;
+- 3D click selects the exact canonical radiator object;
+- Work selection focuses the matching object editor;
+- Client/Preview object selection is read-only;
+- radiator visibility follows host-wall cutaway;
+- Save/Open + Undo/Redo remain on the merged P3.6a path;
+- no fake Smart Offer service/price is created.
+
+Explicitly not included:
 - direct 3D drag;
-- snapping while dragging;
-- transform gizmos;
-- new radiator/plumbing/electrical service family or pricing;
+- snapping/gizmos;
+- radiator/plumbing/electrical service-family pricing;
 - P3.7 assets/materials;
 - Mobile Work redesign;
 - Supabase/DB schema changes.
 
-Merged dependency:
-- P3.6a SceneObject foundation — MERGED / CLOSED / VERIFIED.
+Visual acceptance:
+- 4 new Radiator Work/Client desktop/mobile screenshots reviewed;
+- no clipping/overflow blocker;
+- Client has no Work object controls;
+- legacy Work screenshot changes are expected from the approved new Objects section;
+- direct Client baseline framing preserved;
+- no UI/layout/content regression blocker.
 
 ---
 
 ## 8. NEXT EXACT STEP
 
-**IMPLEMENT + VERIFY P3.6b ONLY.**
+**REFRESH PR #37 WITH THIS DOCUMENTATION-ONLY MAIN SYNC → RERUN FINAL CI → OWNER MERGE GATE.**
 
 Required:
-1. create dedicated branch from current `main`;
-2. implement the bounded Radiator authoring/render/select/visibility/resize proof;
-3. add focused unit/integration/browser coverage;
-4. run full CI + visual QA;
-5. inspect diff for scope creep and DB/service-family changes;
-6. record exact evidence in Issue #36;
-7. stop at merge gate.
+1. reconcile PR #37 with latest `main` continuity docs only;
+2. prove product/source behavior is unchanged by the refresh;
+3. rerun full CI/browser acceptance on the exact refreshed head;
+4. record exact final head/evidence in Issue #36;
+5. **STOP for explicit Owner merge command.**
 
 Do not start P3.6c automatically.
