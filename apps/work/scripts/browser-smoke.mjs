@@ -2848,6 +2848,7 @@ async function runDirectClientSmoke() {
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Client: direct preview escaped into Work mode");
 
     await smokeViewerInput(session);
+    await saveScreenshot(session, "/tmp/vertical-slice-client.png");
     throwBrowserErrors(session);
   } finally {
     session.close();
