@@ -41,6 +41,17 @@ describe("P3.6b radiator authoring", () => {
     expect(getRadiatorLabel(nextProject, radiator.id)).toBe("Радиатор 1");
   });
 
+  it("keeps the human radiator label tied to the stable id number", () => {
+    const project = createDefaultProject("radiator-stable-label");
+    project.room.objects = [
+      radiator("room-1.object-radiator-2", "room-1.wall-back", 2.1, 0.42),
+    ];
+
+    expect(
+      getRadiatorLabel(project, "room-1.object-radiator-2"),
+    ).toBe("Радиатор 2");
+  });
+
   it("uses sequential room-stable ids after deletes", () => {
     const project = createDefaultProject("radiator-id");
     project.room.objects = [
