@@ -2697,6 +2697,60 @@ async function runP36bRadiatorSmoke() {
   }
 }
 
+async function runP36bRadiatorMobileSmoke() {
+  const session = await createSession({ mobile: true });
+  try {
+    await authorizeQaWork(session);
+    await evaluate(session, 'document.querySelector("#addRadiatorButton").click()');
+    await waitForNextPaint(session);
+
+    await evaluate(
+      session,
+      'document.querySelector(".objects-section").scrollIntoView({ block: "start" })',
+    );
+    await delay(120);
+
+    await assertEval(
+      session,
+      `(() => {
+        const section = document.querySelector(".objects-section");
+        const card = document.querySelector(".radiator-card");
+        const controls = [...document.querySelectorAll(".radiator-card button, .radiator-card input, .radiator-card select")];
+        if (!section || !card || controls.length === 0) return false;
+        const width = window.innerWidth;
+        return document.documentElement.scrollWidth <= width + 1 &&
+          controls.every((control) => {
+            const r = control.getBoundingClientRect();
+            return r.left >= -1 && r.right <= width + 1;
+          });
+      })()`,
+      "P3.6b mobile: radiator Work controls clip or cause horizontal overflow",
+    );
+
+    await saveScreenshot(session, "/tmp/p36b-radiator-mobile-work.png");
+
+    await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
+    await waitForNextPaint(session);
+    await evaluate(
+      session,
+      'document.querySelector(".viewer-wrap").scrollIntoView({ block: "start" })',
+    );
+    await delay(120);
+
+    await assertEval(
+      session,
+      'document.querySelector("#shell").classList.contains("preview-mode") && getComputedStyle(document.querySelector(".objects-section")).display === "none" && document.querySelector("#selectionChip")?.textContent.includes("Радиатор 1")',
+      "P3.6b mobile: Client Preview lost radiator selection or leaked Work controls",
+    );
+    await assertMobileLayout(session, "P3.6b mobile Client radiator");
+
+    await saveScreenshot(session, "/tmp/p36b-radiator-mobile-client.png");
+    throwBrowserErrors(session);
+  } finally {
+    session.close();
+  }
+}
+
 async function runDirectClientSmoke() {
   const session = await createSession();
   try {
@@ -2756,10 +2810,11 @@ await runLoginSmoke();
 await runWorkSmoke();
 await runD15DesktopAcceptanceSmoke();
 await runP36bRadiatorSmoke();
+await runP36bRadiatorMobileSmoke();
 await runDirectClientSmoke();
 await runMobileWorkSmoke();
 await runM0ResponsiveReadabilitySmoke(390, "/tmp/m0-mobile-readable-390.png");
 await runM0ResponsiveReadabilitySmoke(412, "/tmp/m0-mobile-readable-412.png");
 await runM0ResponsiveReadabilitySmoke(720, "/tmp/m0-mobile-readable-wide.png");
 await runMobileClientSmoke();
-console.log("Browser smoke passed: private login + desktop Work + D1.5 full desktop acceptance + P3.6b Radiator Work/Client proof + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");
+console.log("Browser smoke passed: private login + desktop Work + D1.5 full desktop acceptance + P3.6b Radiator Work/Client/mobile proof + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");
