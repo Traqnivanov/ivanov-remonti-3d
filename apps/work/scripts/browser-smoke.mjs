@@ -31,6 +31,7 @@ async function createSession({ mobile = false } = {}) {
       const waiter = pending.get(message.id);
       if (!waiter) return;
       pending.delete(message.id);
+      clearTimeout(waiter.timeout);
       if (message.error) waiter.reject(new Error(message.error.message));
       else waiter.resolve(message.result);
       return;
@@ -56,7 +57,11 @@ async function createSession({ mobile = false } = {}) {
   function call(method, params = {}) {
     const id = ++nextId;
     return new Promise((resolve, reject) => {
-      pending.set(id, { resolve, reject });
+      const timeout = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error("CDP command timed out: " + method));
+      }, 12000);
+      pending.set(id, { resolve, reject, timeout });
       socket.send(JSON.stringify({ id, method, params }));
     });
   }
