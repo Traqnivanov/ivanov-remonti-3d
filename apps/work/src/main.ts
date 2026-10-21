@@ -915,15 +915,29 @@ function renderD14ModelContext(
   const surface = sourceProject.room.surfaces.find(
     (item) => item.id === selectedEntity,
   );
+  const sceneObject = isSceneObjectId(selectedEntity)
+    ? getSceneObjectById(sourceProject, selectedEntity)
+    : undefined;
+  const objectLabel =
+    sceneObject && isRadiatorObject(sceneObject)
+      ? getRadiatorLabel(sourceProject, sceneObject.id)
+      : sceneObject?.id;
   const linkedAssignments = getLinkedServiceAssignments(
     sourceProject,
     selectedEntity,
   );
 
   context.hidden = false;
-  entityLabel.textContent = surface?.label ?? selectedEntity;
+  entityLabel.textContent = surface?.label ?? objectLabel ?? selectedEntity;
 
   if (linkedAssignments.length === 0) {
+    if (sceneObject) {
+      hint.textContent =
+        "Този обект е част от модела, без измислена позиция в офертата.";
+      syncD14FullScopePresentation(sourceProject);
+      return;
+    }
+
     hint.textContent =
       "Няма активна услуга за тази повърхност. Избери услуга, ако ще се работи тук.";
 
@@ -955,7 +969,9 @@ function renderD14ModelContext(
         ? "Таван"
         : assignment.quantityRuleId === "floor-area-v1"
           ? "Под"
-          : "Стени";
+          : assignment.quantityRuleId === "entity-count-v1"
+            ? "Обект"
+            : "Стени";
 
     button.innerHTML =
       `<strong>${escapeHtml(assignment.label)}</strong>` +
@@ -2583,7 +2599,7 @@ function syncViewerFocus(): void {
   }
 
   viewer.setHighlightedEntities(
-    getHighlightedEntityIds(project, offerInteraction).filter(isSurfaceId),
+    getHighlightedEntityIds(project, offerInteraction),
   );
   viewer.setHighlightedOpening(selectedOpeningId);
   viewer.setLaminateFloorVisible(
@@ -2607,11 +2623,19 @@ function syncViewerFocus(): void {
     }
   }
   if (offerInteraction.selectedEntity) {
-    const label = project.room.surfaces.find(
-      (surface) => surface.id === offerInteraction.selectedEntity,
+    const selectedEntity = offerInteraction.selectedEntity;
+    const surfaceLabel = project.room.surfaces.find(
+      (surface) => surface.id === selectedEntity,
     )?.label;
+    const sceneObject = isSceneObjectId(selectedEntity)
+      ? getSceneObjectById(project, selectedEntity)
+      : undefined;
+    const objectLabel =
+      sceneObject && isRadiatorObject(sceneObject)
+        ? getRadiatorLabel(project, sceneObject.id)
+        : sceneObject?.id;
     chip.innerHTML = `<span class="focus-chip">Избрано: ${escapeHtml(
-      label ?? offerInteraction.selectedEntity,
+      surfaceLabel ?? objectLabel ?? selectedEntity,
     )}</span>`;
     return;
   }
