@@ -12,13 +12,13 @@ describe("P3.6b radiator host-local world transform", () => {
     expect(getRadiatorWorldTransform(room, front, 0.04)).toEqual({
       x: 0,
       y: 0.42,
-      z: 2.2,
+      z: 2.26,
       rotationY: 0,
     });
     expect(getRadiatorWorldTransform(room, back, 0.04)).toEqual({
       x: 0,
       y: 0.42,
-      z: -2.2,
+      z: -2.26,
       rotationY: 0,
     });
   });
