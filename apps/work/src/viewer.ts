@@ -11,7 +11,11 @@ import {
 import { isRadiatorObject } from "./radiator-authoring";
 import { getRadiatorWorldTransform } from "./radiator-transform";
 import { getWallOpeningRects, getWallSpanM } from "./opening-geometry";
-import { getAutoHiddenSurfaceIds, isSurfaceVisible } from "./viewer-visibility";
+import {
+  getAutoHiddenSurfaceIds,
+  isHostedObjectVisible,
+  isSurfaceVisible,
+} from "./viewer-visibility";
 import { calculateShowcaseFrame } from "./viewer-framing";
 
 type ViewerOptions = {
@@ -786,7 +790,7 @@ export class RoomViewer {
       for (const object of this.project.room.objects) {
         const group = this.objectGroups.get(object.id);
         if (!group) continue;
-        group.visible = isSurfaceVisible(
+        group.visible = isHostedObjectVisible(
           object.placement.hostSurfaceId,
           this.manualHidden,
           this.autoHidden,
