@@ -15,7 +15,6 @@ import {
   getFinePuttyAssignment,
   getSceneObjectById,
   isSceneObjectId,
-  isSurfaceId,
   isWallId,
   wallIds,
   FINE_PUTTY_CEILING_ASSIGNMENT_ID,
