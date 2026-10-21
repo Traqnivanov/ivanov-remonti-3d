@@ -1,4 +1,4 @@
-import type { Room } from "./domain";
+import { isWallId, type Room } from "./domain";
 import type { RadiatorObject } from "./radiator-authoring";
 import { getSurfaceLocalBounds } from "./scene-object";
 
@@ -15,6 +15,9 @@ export function getRadiatorWorldTransform(
   wallClearanceM = 0,
 ): RadiatorWorldTransform {
   const wallId = radiator.placement.hostSurfaceId;
+  if (!isWallId(wallId)) {
+    throw new Error("Radiator world transform requires a wall host.");
+  }
   const bounds = getSurfaceLocalBounds(room, wallId);
   const localX = -bounds.uSpanM / 2 + radiator.placement.uM;
   const inset =
