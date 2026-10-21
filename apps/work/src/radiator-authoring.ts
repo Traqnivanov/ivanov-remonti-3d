@@ -62,7 +62,7 @@ export function addRadiator(project: ProjectState): RadiatorMutationResult {
     id,
     kind: RADIATOR_KIND,
     placement: {
-      hostSurfaceId: "room-1.wall-front",
+      hostSurfaceId: "room-1.wall-back",
       uM: project.room.widthM / 2,
       vM: DEFAULT_BOTTOM_GAP_M + DEFAULT_HEIGHT_M / 2,
       normalOffsetM: DEFAULT_NORMAL_OFFSET_M,
@@ -76,7 +76,13 @@ export function addRadiator(project: ProjectState): RadiatorMutationResult {
     locked: false,
   };
 
-  const placement = findValidPlacement(project, template, wallIds);
+  const preferredWalls: WallId[] = [
+    "room-1.wall-back",
+    "room-1.wall-left",
+    "room-1.wall-front",
+    "room-1.wall-right",
+  ];
+  const placement = findValidPlacement(project, template, preferredWalls);
   if (!placement) {
     return {
       ok: false,
