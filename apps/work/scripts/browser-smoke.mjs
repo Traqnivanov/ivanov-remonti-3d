@@ -906,6 +906,14 @@ function throwBrowserErrors(session) {
 async function runLoginSmoke() {
   const desktop = await createSession();
   try {
+    await desktop.call("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: 1440,
+      screenHeight: 900,
+    });
     await waitForLogin(desktop, baseUrl);
     await assertLoginLayout(desktop, "Desktop login");
     await assertEval(
@@ -2810,6 +2818,14 @@ async function runP36bRadiatorMobileSmoke() {
 async function runDirectClientSmoke() {
   const session = await createSession();
   try {
+    await session.call("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 1000,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: 1440,
+      screenHeight: 1000,
+    });
     await waitForApp(session, baseUrl + "/?preview=1");
 
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Client: preview mode is not active");
