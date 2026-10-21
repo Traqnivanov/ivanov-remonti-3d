@@ -2,8 +2,10 @@ import type {
   Opening,
   ProjectState,
   Room,
+  SceneObject,
   WallId,
 } from "./domain";
+import { validateRadiatorOpeningOverlaps } from "./radiator-authoring";
 
 export type OpeningKind = Opening["kind"];
 
@@ -37,6 +39,7 @@ export function getRoomWallSpanM(
 export function validateOpeningSet(
   room: Pick<Room, "widthM" | "lengthM" | "heightM">,
   openings: Opening[],
+  objects: SceneObject[] = [],
 ): string | null {
   const ids = new Set<string>();
   const epsilon = 1e-9;
@@ -91,7 +94,7 @@ export function validateOpeningSet(
     }
   }
 
-  return null;
+  return validateRadiatorOpeningOverlaps(openings, objects);
 }
 
 export function addOpening(
@@ -145,7 +148,7 @@ export function addOpening(
         ...(sillM === undefined ? {} : { sillM }),
       };
       const openings = [...project.room.openings, opening];
-      if (!validateOpeningSet(project.room, openings)) {
+      if (!validateOpeningSet(project.room, openings, project.room.objects)) {
         return { ok: true, openings };
       }
     }
@@ -183,7 +186,11 @@ export function updateOpening(
   const openings = project.room.openings.map((opening, openingIndex) =>
     openingIndex === index ? next : opening,
   );
-  const error = validateOpeningSet(project.room, openings);
+  const error = validateOpeningSet(
+    project.room,
+    openings,
+    project.room.objects,
+  );
 
   return error ? { ok: false, message: error } : { ok: true, openings };
 }
