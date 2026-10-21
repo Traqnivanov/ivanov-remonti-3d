@@ -2547,6 +2547,7 @@ async function runP36bRadiatorSmoke() {
   const session = await createSession();
   try {
     await authorizeQaWork(session);
+    await startD15AcceptanceProject(session);
 
     const initialOfferRows = await evaluate(
       session,
@@ -2577,6 +2578,22 @@ async function runP36bRadiatorSmoke() {
       session,
       'document.querySelector("[data-radiator-field=widthM]")?.value === "1.2"',
       "P3.6b: numeric radiator width edit did not commit",
+    );
+
+    await evaluate(session, 'document.querySelector("#undoProjectButton").click()');
+    await waitForNextPaint(session);
+    await assertEval(
+      session,
+      'document.querySelector("[data-radiator-field=widthM]")?.value === "1"',
+      "P3.6b: Undo did not restore radiator width",
+    );
+
+    await evaluate(session, 'document.querySelector("#redoProjectButton").click()');
+    await waitForNextPaint(session);
+    await assertEval(
+      session,
+      'document.querySelector("[data-radiator-field=widthM]")?.value === "1.2"',
+      "P3.6b: Redo did not restore radiator width edit",
     );
 
     await evaluate(
@@ -2621,6 +2638,32 @@ async function runP36bRadiatorSmoke() {
       session,
       'document.querySelectorAll("#offerRows .offer-row").length === ' + initialOfferRows,
       "P3.6b: radiator proof invented a Smart Offer service row",
+    );
+
+    await evaluate(session, 'document.querySelector("#saveProjectButton").click()');
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      const saved = await evaluate(
+        session,
+        'window.__d15SaveCount === 1 && document.querySelector("#projectBarStatus")?.textContent.includes("Запазено · v2")',
+      );
+      if (saved) break;
+      await delay(100);
+    }
+    await assertEval(
+      session,
+      'window.__d15SaveCount === 1 && window.__d15LastSavedProject?.room?.objects?.length === 2 && window.__d15LastSavedProject.room.objects[0].id === "room-1.object-radiator-1" && window.__d15LastSavedProject.room.objects[1].id === "room-1.object-radiator-2"',
+      "P3.6b: Save did not persist both stable radiator objects",
+    );
+
+    await evaluate(
+      session,
+      '(async () => { const main = await import("/src/main.ts"); const sessionModule = await import("/src/project-session.ts"); const opened = await window.__d15Repository.open("qa-d15-primary"); const nextSession = sessionModule.createProjectSession(opened); main.startSmartOfferApp({ appEntry: "work", project: opened.project, session: nextSession, repository: window.__d15Repository }); })()',
+    );
+    await delay(180);
+    await assertEval(
+      session,
+      'document.querySelectorAll(".radiator-card").length === 2 && [...document.querySelectorAll(".radiator-card")].map((card) => card.dataset.objectId).join(",") === "room-1.object-radiator-1,room-1.object-radiator-2" && document.querySelector("[data-radiator-field=widthM]")?.value === "1.2"',
+      "P3.6b: Open did not restore radiator objects and edited dimensions",
     );
 
     await evaluate(session, 'document.querySelector("#showResultBtn").click()');
