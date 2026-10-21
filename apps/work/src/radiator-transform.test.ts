@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultProject, type SceneObject } from "./domain";
+import { createDefaultProject } from "./domain";
 import type { RadiatorObject } from "./radiator-authoring";
 import { getRadiatorWorldTransform } from "./radiator-transform";
 
