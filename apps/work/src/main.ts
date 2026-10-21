@@ -16,6 +16,7 @@ import {
   getSceneObjectById,
   isSceneObjectId,
   isSurfaceId,
+  isWallId,
   wallIds,
   FINE_PUTTY_CEILING_ASSIGNMENT_ID,
 } from "./domain";
@@ -742,10 +743,11 @@ function routeModelServiceContext(assignmentId: string): void {
   syncDesktopRightPane();
 }
 
-function handleModelEntitySelect(id: SurfaceId): void {
+function handleModelEntitySelect(id: EntityId): void {
   selectedOpeningId = null;
   fullScopeExpandedInContext = false;
   const linkedAssignments = getLinkedServiceAssignments(project, id);
+  const objectSelected = isSceneObjectId(id);
 
   if (linkedAssignments.length === 1) {
     offerInteraction = selectModelEntityService(
@@ -758,12 +760,26 @@ function handleModelEntitySelect(id: SurfaceId): void {
     offerInteraction = selectModelEntity(project, id);
 
     if (
+      !objectSelected &&
       desktopWorkbenchMedia.matches &&
       currentCapabilities().canAuthorProject
     ) {
       desktopRightPane =
         linkedAssignments.length === 0 ? "services" : "scope";
       syncDesktopRightPane();
+    }
+  }
+
+  if (objectSelected && currentCapabilities().canAuthorProject) {
+    expandedRadiatorId = id;
+    renderRadiatorEditor();
+    if (desktopWorkbenchMedia.matches) {
+      requestAnimationFrame(() => {
+        const card = document.querySelector<HTMLElement>(
+          `.radiator-card[data-object-id="${CSS.escape(id)}"]`,
+        );
+        card?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      });
     }
   }
 
@@ -1230,6 +1246,7 @@ function navigateProjectHistory(direction: "undo" | "redo"): void {
     isCurrentProjectSaved(projectHistory),
   );
   setOpeningStatus("", "idle");
+  setObjectStatus("", "idle");
   renderCanonicalProjectState();
 }
 
@@ -1238,6 +1255,7 @@ function renderCanonicalProjectState(): void {
   lengthInput.value = String(project.room.lengthM);
   heightInput.value = String(project.room.heightM);
   renderOpeningEditor();
+  renderRadiatorEditor();
   renderD14ModelContext();
   renderServiceScopeControls();
   renderWallTargets();
@@ -1619,7 +1637,7 @@ function renderRadiatorEditor(): void {
   }
 
   for (const radiator of radiators) {
-    if (!isSceneObjectId(radiator.id) || !isSurfaceId(radiator.placement.hostSurfaceId)) {
+    if (!isSceneObjectId(radiator.id) || !isWallId(radiator.placement.hostSurfaceId)) {
       continue;
     }
 
