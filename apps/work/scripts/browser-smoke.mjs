@@ -31,6 +31,7 @@ async function createSession({ mobile = false } = {}) {
       const waiter = pending.get(message.id);
       if (!waiter) return;
       pending.delete(message.id);
+      clearTimeout(waiter.timeout);
       if (message.error) waiter.reject(new Error(message.error.message));
       else waiter.resolve(message.result);
       return;
@@ -56,7 +57,11 @@ async function createSession({ mobile = false } = {}) {
   function call(method, params = {}) {
     const id = ++nextId;
     return new Promise((resolve, reject) => {
-      pending.set(id, { resolve, reject });
+      const timeout = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error("CDP command timed out: " + method));
+      }, 12000);
+      pending.set(id, { resolve, reject, timeout });
       socket.send(JSON.stringify({ id, method, params }));
     });
   }
@@ -901,6 +906,14 @@ function throwBrowserErrors(session) {
 async function runLoginSmoke() {
   const desktop = await createSession();
   try {
+    await desktop.call("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: 1440,
+      screenHeight: 900,
+    });
     await waitForLogin(desktop, baseUrl);
     await assertLoginLayout(desktop, "Desktop login");
     await assertEval(
@@ -2543,9 +2556,276 @@ async function runMobileClientSmoke() {
   }
 }
 
+async function runP36bRadiatorSmoke() {
+  const session = await createSession();
+  try {
+    await session.call("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: 1440,
+      screenHeight: 900,
+    });
+    await authorizeQaWork(session);
+    await startD15AcceptanceProject(session);
+
+    const initialOfferRows = await evaluate(
+      session,
+      'document.querySelectorAll("#offerRows .offer-row").length',
+    );
+
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector(".objects-section")).display !== "none" && document.querySelectorAll(".radiator-card").length === 0',
+      "P3.6b: Work object section is missing or not initially empty",
+    );
+
+    await evaluate(session, 'document.querySelector("#addRadiatorButton").click()');
+    await waitForNextPaint(session);
+
+    await assertEval(
+      session,
+      'document.querySelectorAll(".radiator-card").length === 1 && document.querySelector("#selectionChip")?.textContent.includes("Радиатор 1") && document.querySelector("[data-radiator-field=hostSurfaceId]")?.value === "room-1.wall-back"',
+      "P3.6b: adding a radiator did not create/select a valid back-wall proof object",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector(\'[data-radiator-field="widthM"]\'); input.value = "1.2"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await waitForNextPaint(session);
+    await assertEval(
+      session,
+      'document.querySelector("[data-radiator-field=widthM]")?.value === "1.2"',
+      "P3.6b: numeric radiator width edit did not commit",
+    );
+
+    await evaluate(session, 'document.querySelector("#undoProjectButton").click()');
+    await waitForNextPaint(session);
+    await assertEval(
+      session,
+      'document.querySelector("[data-radiator-field=widthM]")?.value === "1"',
+      "P3.6b: Undo did not restore radiator width",
+    );
+
+    await evaluate(session, 'document.querySelector("#redoProjectButton").click()');
+    await waitForNextPaint(session);
+    await assertEval(
+      session,
+      'document.querySelector("[data-radiator-field=widthM]")?.value === "1.2"',
+      "P3.6b: Redo did not restore radiator width edit",
+    );
+
+    await evaluate(
+      session,
+      'document.querySelector(\'[data-radiator-action="lock"]\').click()',
+    );
+    await waitForNextPaint(session);
+    await assertEval(
+      session,
+      'document.querySelector(\'[data-radiator-action="lock"]\')?.textContent.includes("Отключи") && [...document.querySelectorAll(".radiator-fields input, .radiator-fields select")].every((control) => control.disabled)',
+      "P3.6b: radiator lock did not disable geometry controls",
+    );
+
+    await evaluate(
+      session,
+      '(() => { const input = document.querySelector(\'[data-radiator-field="widthM"]\'); input.value = "2"; input.dispatchEvent(new Event("change", { bubbles: true })); })()',
+    );
+    await waitForNextPaint(session);
+    await assertEval(
+      session,
+      'document.querySelector("[data-radiator-field=widthM]")?.value === "1.2"',
+      "P3.6b: locked radiator geometry changed",
+    );
+
+    await evaluate(
+      session,
+      'document.querySelector(\'[data-radiator-action="lock"]\').click()',
+    );
+    await waitForNextPaint(session);
+    await evaluate(
+      session,
+      'document.querySelector(\'[data-radiator-action="duplicate"]\').click()',
+    );
+    await waitForNextPaint(session);
+
+    await assertEval(
+      session,
+      'document.querySelectorAll(".radiator-card").length === 2 && document.querySelector("#selectionChip")?.textContent.includes("Радиатор 2") && new Set([...document.querySelectorAll(".radiator-card")].map((card) => card.dataset.objectId)).size === 2',
+      "P3.6b: radiator duplicate did not create a distinct stable object",
+    );
+    await assertEval(
+      session,
+      'document.querySelectorAll("#offerRows .offer-row").length === ' + initialOfferRows,
+      "P3.6b: radiator proof invented a Smart Offer service row",
+    );
+
+    await evaluate(session, 'document.querySelector("#saveProjectButton").click()');
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      const saved = await evaluate(
+        session,
+        'window.__d15SaveCount === 1 && document.querySelector("#projectBarStatus")?.textContent.includes("Запазено · v2")',
+      );
+      if (saved) break;
+      await delay(100);
+    }
+    await assertEval(
+      session,
+      'window.__d15SaveCount === 1 && window.__d15LastSavedProject?.room?.objects?.length === 2 && window.__d15LastSavedProject.room.objects[0].id === "room-1.object-radiator-1" && window.__d15LastSavedProject.room.objects[1].id === "room-1.object-radiator-2"',
+      "P3.6b: Save did not persist both stable radiator objects",
+    );
+
+    await evaluate(
+      session,
+      '(async () => { const main = await import("/src/main.ts"); const sessionModule = await import("/src/project-session.ts"); const opened = await window.__d15Repository.open("qa-d15-primary"); const nextSession = sessionModule.createProjectSession(opened); main.startSmartOfferApp({ appEntry: "work", project: opened.project, session: nextSession, repository: window.__d15Repository }); })()',
+    );
+    await delay(180);
+    await assertEval(
+      session,
+      'document.querySelectorAll(".radiator-card").length === 2 && [...document.querySelectorAll(".radiator-card")].map((card) => card.dataset.objectId).join(",") === "room-1.object-radiator-1,room-1.object-radiator-2" && document.querySelector("[data-radiator-field=widthM]")?.value === "1.2"',
+      "P3.6b: Open did not restore radiator objects and edited dimensions",
+    );
+
+    await evaluate(session, 'document.querySelector("#showResultBtn").click()');
+    await waitForNextPaint(session);
+
+    const pickPoints = [
+      [0.5, 0.62],
+      [0.46, 0.62],
+      [0.54, 0.62],
+      [0.42, 0.64],
+      [0.58, 0.64],
+      [0.5, 0.68],
+    ];
+    for (let y = 0.45; y <= 0.78; y += 0.04) {
+      for (let x = 0.25; x <= 0.75; x += 0.05) {
+        pickPoints.push([Number(x.toFixed(2)), Number(y.toFixed(2))]);
+      }
+    }
+
+    await clickViewerUntil(
+      session,
+      'document.querySelector("#selectionChip")?.textContent.includes("Радиатор")',
+      pickPoints,
+      "P3.6b: Work viewer could not select the rendered radiator object",
+    );
+    await assertEval(
+      session,
+      'Boolean(document.querySelector(".radiator-card.context-selected[open]"))',
+      "P3.6b: Work object click did not focus the matching object editor",
+    );
+
+    await saveScreenshot(session, "/tmp/p36b-radiator-work.png");
+
+    await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
+    await waitForNextPaint(session);
+    await assertEval(
+      session,
+      'document.querySelector("#shell").classList.contains("preview-mode") && getComputedStyle(document.querySelector(".objects-section")).display === "none"',
+      "P3.6b: Work radiator controls leaked into Client Preview",
+    );
+
+    const previewObjectCount = await evaluate(
+      session,
+      'document.querySelectorAll(".radiator-card").length',
+    );
+    await evaluate(session, 'document.querySelector("#addRadiatorButton").click()');
+    await waitForNextPaint(session);
+    const previewObjectCountAfter = await evaluate(
+      session,
+      'document.querySelectorAll(".radiator-card").length',
+    );
+    if (previewObjectCountAfter !== previewObjectCount) {
+      throw new Error("P3.6b: hidden Client control mutated radiator state");
+    }
+
+    await evaluate(session, 'document.querySelector("#showResultBtn").click()');
+    await waitForNextPaint(session);
+    await clickViewerUntil(
+      session,
+      'document.querySelector("#selectionChip")?.textContent.includes("Радиатор")',
+      pickPoints,
+      "P3.6b: Client Preview could not select radiator read-only",
+    );
+    await assertEval(
+      session,
+      'getComputedStyle(document.querySelector(".objects-section")).display === "none" && document.querySelector("#selectionChip")?.textContent.includes("Радиатор")',
+      "P3.6b: Client radiator selection leaked authoring UI",
+    );
+
+    await saveScreenshot(session, "/tmp/p36b-radiator-client.png");
+    throwBrowserErrors(session);
+  } finally {
+    session.close();
+  }
+}
+
+async function runP36bRadiatorMobileSmoke() {
+  const session = await createSession({ mobile: true });
+  try {
+    await authorizeQaWork(session);
+    await evaluate(session, 'document.querySelector("#addRadiatorButton").click()');
+    await waitForNextPaint(session);
+
+    await evaluate(
+      session,
+      'document.querySelector(".objects-section").scrollIntoView({ block: "start" })',
+    );
+    await delay(120);
+
+    await assertEval(
+      session,
+      `(() => {
+        const section = document.querySelector(".objects-section");
+        const card = document.querySelector(".radiator-card");
+        const controls = [...document.querySelectorAll(".radiator-card button, .radiator-card input, .radiator-card select")];
+        if (!section || !card || controls.length === 0) return false;
+        const width = window.innerWidth;
+        return document.documentElement.scrollWidth <= width + 1 &&
+          controls.every((control) => {
+            const r = control.getBoundingClientRect();
+            return r.left >= -1 && r.right <= width + 1;
+          });
+      })()`,
+      "P3.6b mobile: radiator Work controls clip or cause horizontal overflow",
+    );
+
+    await saveScreenshot(session, "/tmp/p36b-radiator-mobile-work.png");
+
+    await evaluate(session, 'document.querySelector("#previewModeBtn").click()');
+    await waitForNextPaint(session);
+    await evaluate(
+      session,
+      'document.querySelector(".viewer-wrap").scrollIntoView({ block: "start" })',
+    );
+    await delay(120);
+
+    await assertEval(
+      session,
+      'document.querySelector("#shell").classList.contains("preview-mode") && getComputedStyle(document.querySelector(".objects-section")).display === "none" && document.querySelector("#selectionChip")?.textContent.includes("Радиатор 1")',
+      "P3.6b mobile: Client Preview lost radiator selection or leaked Work controls",
+    );
+    await assertMobileLayout(session, "P3.6b mobile Client radiator");
+
+    await saveScreenshot(session, "/tmp/p36b-radiator-mobile-client.png");
+    throwBrowserErrors(session);
+  } finally {
+    session.close();
+  }
+}
+
 async function runDirectClientSmoke() {
   const session = await createSession();
   try {
+    await session.call("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 1000,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: 1440,
+      screenHeight: 1000,
+    });
     await waitForApp(session, baseUrl + "/?preview=1");
 
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Client: preview mode is not active");
@@ -2591,6 +2871,7 @@ async function runDirectClientSmoke() {
     await evaluate(session, 'document.querySelector("#workModeBtn").click()');
     await assertEval(session, 'document.querySelector("#shell").classList.contains("preview-mode")', "Client: direct preview escaped into Work mode");
 
+    await saveScreenshot(session, "/tmp/vertical-slice-client.png");
     await smokeViewerInput(session);
     throwBrowserErrors(session);
   } finally {
@@ -2598,13 +2879,37 @@ async function runDirectClientSmoke() {
   }
 }
 
+console.log("[smoke] login:start");
 await runLoginSmoke();
+console.log("[smoke] login:pass");
+console.log("[smoke] work:start");
 await runWorkSmoke();
+console.log("[smoke] work:pass");
+console.log("[smoke] d15:start");
 await runD15DesktopAcceptanceSmoke();
+console.log("[smoke] d15:pass");
+console.log("[smoke] p36b-desktop:start");
+await runP36bRadiatorSmoke();
+console.log("[smoke] p36b-desktop:pass");
+console.log("[smoke] p36b-mobile:start");
+await runP36bRadiatorMobileSmoke();
+console.log("[smoke] p36b-mobile:pass");
+console.log("[smoke] direct-client:start");
 await runDirectClientSmoke();
+console.log("[smoke] direct-client:pass");
+console.log("[smoke] mobile-work:start");
 await runMobileWorkSmoke();
+console.log("[smoke] mobile-work:pass");
+console.log("[smoke] m0-390:start");
 await runM0ResponsiveReadabilitySmoke(390, "/tmp/m0-mobile-readable-390.png");
+console.log("[smoke] m0-390:pass");
+console.log("[smoke] m0-412:start");
 await runM0ResponsiveReadabilitySmoke(412, "/tmp/m0-mobile-readable-412.png");
+console.log("[smoke] m0-412:pass");
+console.log("[smoke] m0-wide:start");
 await runM0ResponsiveReadabilitySmoke(720, "/tmp/m0-mobile-readable-wide.png");
+console.log("[smoke] m0-wide:pass");
+console.log("[smoke] mobile-client:start");
 await runMobileClientSmoke();
-console.log("Browser smoke passed: private login + desktop Work + D1.5 full desktop acceptance + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");
+console.log("[smoke] mobile-client:pass");
+console.log("Browser smoke passed: private login + desktop Work + D1.5 full desktop acceptance + P3.6b Radiator Work/Client/mobile proof + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");

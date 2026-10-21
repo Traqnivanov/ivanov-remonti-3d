@@ -3,6 +3,7 @@ import { createDefaultProject } from "./domain";
 import { calculateFinePuttyQuantity } from "./calculation";
 import {
   getAutoHiddenSurfaceIds,
+  isHostedObjectVisible,
   isSurfaceVisible,
 } from "./viewer-visibility";
 
@@ -47,6 +48,33 @@ describe("viewer visibility rules", () => {
     ).toBe(false);
     expect(
       isSurfaceVisible("room-1.wall-right", manualHidden, autoHidden),
+    ).toBe(true);
+  });
+
+  it("makes a hosted object follow its wall in manual and auto cutaway", () => {
+    const manualHidden = new Set(["room-1.wall-left"] as const);
+    const autoHidden = new Set(["room-1.wall-front"] as const);
+
+    expect(
+      isHostedObjectVisible(
+        "room-1.wall-left",
+        manualHidden,
+        autoHidden,
+      ),
+    ).toBe(false);
+    expect(
+      isHostedObjectVisible(
+        "room-1.wall-front",
+        manualHidden,
+        autoHidden,
+      ),
+    ).toBe(false);
+    expect(
+      isHostedObjectVisible(
+        "room-1.wall-back",
+        manualHidden,
+        autoHidden,
+      ),
     ).toBe(true);
   });
 

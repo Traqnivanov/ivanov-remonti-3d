@@ -1,12 +1,21 @@
 import "./styles.css";
-import type { Opening, ProjectState, SurfaceId, WallId } from "./domain";
+import type {
+  EntityId,
+  Opening,
+  ProjectState,
+  SceneObjectId,
+  SurfaceId,
+  WallId,
+} from "./domain";
 import {
   createDefaultProject,
   createFinePuttyCeilingAssignment,
   createOpeningProofProject,
   findFinePuttyCeilingAssignment,
   getFinePuttyAssignment,
-  isSurfaceId,
+  getSceneObjectById,
+  isSceneObjectId,
+  isWallId,
   wallIds,
   FINE_PUTTY_CEILING_ASSIGNMENT_ID,
 } from "./domain";
@@ -66,6 +75,18 @@ import {
   validateRoomResize,
   type OpeningMutationResult,
 } from "./opening-authoring";
+import {
+  addRadiator,
+  duplicateRadiator,
+  getRadiatorLabel,
+  isRadiatorObject,
+  moveRadiatorToWall,
+  removeRadiator,
+  setRadiatorLocked,
+  updateRadiatorGeometry,
+  validateRadiatorRoomResize,
+  type RadiatorMutationResult,
+} from "./radiator-authoring";
 import {
   addOperationAssignment,
   addOperationCeilingAssignment,
@@ -283,6 +304,7 @@ let offerInteraction = initialIncludedService
 let expandedOperationId: string | null = null;
 let expandedOpeningId: string | null = null;
 let selectedOpeningId: string | null = null;
+let expandedRadiatorId: SceneObjectId | null = null;
 let fullScopeExpandedInContext = false;
 let desktopRightPane: "services" | "scope" | "price" = "services";
 const desktopWorkbenchMedia = window.matchMedia("(min-width: 981px)");
@@ -353,6 +375,16 @@ app.innerHTML = `
           <p id="openingsStatus" class="opening-status" role="status" aria-live="polite"></p>
         </section>
 
+        <section class="section work-only objects-section left-work-section">
+          <div class="left-section-head">
+            <div class="section-title">Обекти</div>
+            <span id="objectsCount" class="left-section-meta"></span>
+          </div>
+          <div id="objectsEditor"></div>
+          <button id="addRadiatorButton" class="operation-add" type="button">Добави радиатор</button>
+          <p id="objectsStatus" class="opening-status" role="status" aria-live="polite"></p>
+        </section>
+
         <details id="m2SchemeDetails" class="section m2-scheme-details left-work-section">
           <summary class="m2-scheme-summary">
             <span>М² схема</span>
@@ -381,7 +413,7 @@ app.innerHTML = `
         </div>
 
         <div class="viewer-note">
-          <span class="viewer-help">Влачи: завъртане · колелце: мащаб · клик: избери повърхност</span>
+          <span class="viewer-help">Влачи: завъртане · колелце: мащаб · клик: избери повърхност или обект</span>
           <div id="selectionChip"></div>
         </div>
       </section>
@@ -556,6 +588,7 @@ mustGet<HTMLDetailsElement>("m2SchemeDetails").open =
 
 syncDesktopRightPane();
 renderOpeningEditor();
+renderRadiatorEditor();
 renderD14ModelContext();
 renderServiceScopeControls();
 renderWallTargets();
@@ -574,6 +607,9 @@ function wireControls(): void {
   });
   mustGet("addWindowButton").addEventListener("click", () => {
     addOpeningFromWork("window");
+  });
+  mustGet("addRadiatorButton").addEventListener("click", () => {
+    addRadiatorFromWork();
   });
 
   mustGet("workModeBtn").addEventListener("click", () => setPreviewMode(false));
@@ -706,10 +742,11 @@ function routeModelServiceContext(assignmentId: string): void {
   syncDesktopRightPane();
 }
 
-function handleModelEntitySelect(id: SurfaceId): void {
+function handleModelEntitySelect(id: EntityId): void {
   selectedOpeningId = null;
   fullScopeExpandedInContext = false;
   const linkedAssignments = getLinkedServiceAssignments(project, id);
+  const objectSelected = isSceneObjectId(id);
 
   if (linkedAssignments.length === 1) {
     offerInteraction = selectModelEntityService(
@@ -722,12 +759,26 @@ function handleModelEntitySelect(id: SurfaceId): void {
     offerInteraction = selectModelEntity(project, id);
 
     if (
+      !objectSelected &&
       desktopWorkbenchMedia.matches &&
       currentCapabilities().canAuthorProject
     ) {
       desktopRightPane =
         linkedAssignments.length === 0 ? "services" : "scope";
       syncDesktopRightPane();
+    }
+  }
+
+  if (objectSelected && currentCapabilities().canAuthorProject) {
+    expandedRadiatorId = id;
+    renderRadiatorEditor();
+    if (desktopWorkbenchMedia.matches) {
+      requestAnimationFrame(() => {
+        const card = document.querySelector<HTMLElement>(
+          `.radiator-card[data-object-id="${CSS.escape(id)}"]`,
+        );
+        card?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      });
     }
   }
 
@@ -749,6 +800,7 @@ function handleOpeningSelect(id: string): void {
   offerInteraction = showWholeResult();
 
   renderOpeningEditor();
+  renderRadiatorEditor();
   renderD14ModelContext();
   syncViewerFocus();
   renderOffer();
@@ -862,15 +914,29 @@ function renderD14ModelContext(
   const surface = sourceProject.room.surfaces.find(
     (item) => item.id === selectedEntity,
   );
+  const sceneObject = isSceneObjectId(selectedEntity)
+    ? getSceneObjectById(sourceProject, selectedEntity)
+    : undefined;
+  const objectLabel =
+    sceneObject && isRadiatorObject(sceneObject)
+      ? getRadiatorLabel(sourceProject, sceneObject.id)
+      : sceneObject?.id;
   const linkedAssignments = getLinkedServiceAssignments(
     sourceProject,
     selectedEntity,
   );
 
   context.hidden = false;
-  entityLabel.textContent = surface?.label ?? selectedEntity;
+  entityLabel.textContent = surface?.label ?? objectLabel ?? selectedEntity;
 
   if (linkedAssignments.length === 0) {
+    if (sceneObject) {
+      hint.textContent =
+        "Този обект е част от модела, без измислена позиция в офертата.";
+      syncD14FullScopePresentation(sourceProject);
+      return;
+    }
+
     hint.textContent =
       "Няма активна услуга за тази повърхност. Избери услуга, ако ще се работи тук.";
 
@@ -902,7 +968,9 @@ function renderD14ModelContext(
         ? "Таван"
         : assignment.quantityRuleId === "floor-area-v1"
           ? "Под"
-          : "Стени";
+          : assignment.quantityRuleId === "entity-count-v1"
+            ? "Обект"
+            : "Стени";
 
     button.innerHTML =
       `<strong>${escapeHtml(assignment.label)}</strong>` +
@@ -1193,6 +1261,7 @@ function navigateProjectHistory(direction: "undo" | "redo"): void {
     isCurrentProjectSaved(projectHistory),
   );
   setOpeningStatus("", "idle");
+  setObjectStatus("", "idle");
   renderCanonicalProjectState();
 }
 
@@ -1201,6 +1270,7 @@ function renderCanonicalProjectState(): void {
   lengthInput.value = String(project.room.lengthM);
   heightInput.value = String(project.room.heightM);
   renderOpeningEditor();
+  renderRadiatorEditor();
   renderD14ModelContext();
   renderServiceScopeControls();
   renderWallTargets();
@@ -1313,13 +1383,25 @@ function updateDimensions(): void {
     length !== project.room.lengthM ||
     height !== project.room.heightM;
 
-  const openingError = validateRoomResize(project, {
+  const nextDimensions = {
     widthM: width,
     lengthM: length,
     heightM: height,
-  });
+  };
+  const openingError = validateRoomResize(project, nextDimensions);
   if (openingError) {
     setOpeningStatus(openingError, "error");
+    setObjectStatus("", "idle");
+    widthInput.value = String(project.room.widthM);
+    lengthInput.value = String(project.room.lengthM);
+    heightInput.value = String(project.room.heightM);
+    return;
+  }
+
+  const objectError = validateRadiatorRoomResize(project, nextDimensions);
+  if (objectError) {
+    setObjectStatus(objectError, "error");
+    setOpeningStatus("", "idle");
     widthInput.value = String(project.room.widthM);
     lengthInput.value = String(project.room.lengthM);
     heightInput.value = String(project.room.heightM);
@@ -1338,6 +1420,7 @@ function updateDimensions(): void {
   nextProject.room.lengthM = length;
   nextProject.room.heightM = height;
   setOpeningStatus("", "idle");
+  setObjectStatus("", "idle");
   commitCanonicalProject(nextProject);
 }
 
@@ -1550,6 +1633,262 @@ function applyOpeningMutation(result: OpeningMutationResult): void {
   commitCanonicalProject(nextProject);
 }
 
+function renderRadiatorEditor(): void {
+  const host = mustGet("objectsEditor");
+  host.replaceChildren();
+
+  const radiators = project.room.objects.filter(isRadiatorObject);
+  mustGet("objectsCount").textContent =
+    radiators.length === 0
+      ? "няма"
+      : `${radiators.length} ${radiators.length === 1 ? "обект" : "обекта"}`;
+
+  if (radiators.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "opening-empty";
+    empty.textContent = "Няма добавени обекти.";
+    host.append(empty);
+    return;
+  }
+
+  for (const radiator of radiators) {
+    if (!isSceneObjectId(radiator.id) || !isWallId(radiator.placement.hostSurfaceId)) {
+      continue;
+    }
+
+    const card = document.createElement("details");
+    card.className = "opening-card radiator-card";
+    card.dataset.objectId = radiator.id;
+    card.classList.toggle(
+      "context-selected",
+      offerInteraction.selectedEntity === radiator.id,
+    );
+    card.open =
+      !desktopWorkbenchMedia.matches ||
+      expandedRadiatorId === radiator.id ||
+      offerInteraction.selectedEntity === radiator.id;
+
+    card.addEventListener("toggle", () => {
+      if (!desktopWorkbenchMedia.matches) return;
+      if (card.open) {
+        expandedRadiatorId = radiator.id;
+        host
+          .querySelectorAll<HTMLDetailsElement>(".radiator-card[open]")
+          .forEach((other) => {
+            if (other !== card) other.open = false;
+          });
+      } else if (expandedRadiatorId === radiator.id) {
+        expandedRadiatorId = null;
+      }
+    });
+
+    const summary = document.createElement("summary");
+    summary.className = "opening-card-summary radiator-card-summary";
+    summary.addEventListener("click", () => {
+      selectedOpeningId = null;
+      expandedRadiatorId = radiator.id;
+      offerInteraction = selectModelEntity(project, radiator.id);
+      syncViewerFocus();
+      renderOffer();
+    });
+
+    const title = document.createElement("strong");
+    title.textContent = getRadiatorLabel(project, radiator.id);
+
+    const meta = document.createElement("span");
+    meta.className = "opening-card-meta";
+    const wallLabel = isWallId(radiator.placement.hostSurfaceId)
+      ? openingWallLabels[radiator.placement.hostSurfaceId]
+      : "Невалиден хост";
+    meta.textContent =
+      `${wallLabel} · ${formatNumber(radiator.dimensionsM.widthM)} × ${formatNumber(radiator.dimensionsM.heightM)} m${radiator.locked ? " · заключен" : ""}`;
+
+    summary.append(title, meta);
+    card.append(summary);
+
+    const body = document.createElement("div");
+    body.className = "opening-card-body radiator-card-body";
+
+    const tools = document.createElement("div");
+    tools.className = "radiator-card-tools";
+
+    const lockButton = document.createElement("button");
+    lockButton.type = "button";
+    lockButton.className = "opening-remove";
+    lockButton.dataset.radiatorAction = "lock";
+    lockButton.dataset.objectId = radiator.id;
+    lockButton.textContent = radiator.locked ? "Отключи" : "Заключи";
+    lockButton.addEventListener("click", () => {
+      if (!currentCapabilities().canAuthorProject) return;
+      expandedRadiatorId = radiator.id;
+      applyRadiatorMutation(
+        setRadiatorLocked(project, radiator.id, !radiator.locked),
+      );
+    });
+
+    const duplicateButton = document.createElement("button");
+    duplicateButton.type = "button";
+    duplicateButton.className = "opening-remove";
+    duplicateButton.dataset.radiatorAction = "duplicate";
+    duplicateButton.dataset.objectId = radiator.id;
+    duplicateButton.textContent = "Дублирай";
+    duplicateButton.addEventListener("click", () => {
+      if (!currentCapabilities().canAuthorProject) return;
+      applyRadiatorMutation(duplicateRadiator(project, radiator.id));
+    });
+
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "opening-remove";
+    removeButton.dataset.radiatorAction = "remove";
+    removeButton.dataset.objectId = radiator.id;
+    removeButton.textContent = "Премахни";
+    removeButton.addEventListener("click", () => {
+      if (!currentCapabilities().canAuthorProject) return;
+      applyRadiatorMutation(removeRadiator(project, radiator.id));
+    });
+
+    tools.append(lockButton, duplicateButton, removeButton);
+    body.append(tools);
+
+    const grid = document.createElement("div");
+    grid.className = "opening-fields radiator-fields";
+
+    const wallSelect = document.createElement("select");
+    wallSelect.dataset.objectId = radiator.id;
+    wallSelect.dataset.radiatorField = "hostSurfaceId";
+    wallSelect.disabled = radiator.locked;
+    for (const wallId of wallIds) {
+      const option = document.createElement("option");
+      option.value = wallId;
+      option.textContent = openingWallLabels[wallId];
+      option.selected = wallId === radiator.placement.hostSurfaceId;
+      wallSelect.append(option);
+    }
+    wallSelect.addEventListener("change", () => {
+      if (!currentCapabilities().canAuthorProject || radiator.locked) {
+        renderRadiatorEditor();
+        return;
+      }
+      expandedRadiatorId = radiator.id;
+      applyRadiatorMutation(
+        moveRadiatorToWall(project, radiator.id, wallSelect.value as WallId),
+      );
+    });
+    grid.append(openingField("Стена", wallSelect));
+
+    grid.append(
+      radiatorNumberField(
+        radiator.id,
+        "uM",
+        "По стената, m",
+        radiator.placement.uM,
+        radiator.locked,
+      ),
+      radiatorNumberField(
+        radiator.id,
+        "vM",
+        "Център от пода, m",
+        radiator.placement.vM,
+        radiator.locked,
+      ),
+      radiatorNumberField(
+        radiator.id,
+        "widthM",
+        "Ширина, m",
+        radiator.dimensionsM.widthM,
+        radiator.locked,
+      ),
+      radiatorNumberField(
+        radiator.id,
+        "heightM",
+        "Височина, m",
+        radiator.dimensionsM.heightM,
+        radiator.locked,
+      ),
+      radiatorNumberField(
+        radiator.id,
+        "depthM",
+        "Дълбочина, m",
+        radiator.dimensionsM.depthM,
+        radiator.locked,
+      ),
+    );
+
+    body.append(grid);
+    card.append(body);
+    host.append(card);
+  }
+}
+
+function radiatorNumberField(
+  id: SceneObjectId,
+  field: "uM" | "vM" | "widthM" | "heightM" | "depthM",
+  labelText: string,
+  value: number,
+  locked: boolean,
+): HTMLLabelElement {
+  const input = document.createElement("input");
+  input.type = "number";
+  input.min = field === "uM" || field === "vM" ? "0" : "0.05";
+  input.step = "0.05";
+  input.value = String(value);
+  input.disabled = locked;
+  input.dataset.objectId = id;
+  input.dataset.radiatorField = field;
+
+  input.addEventListener("change", () => {
+    if (!currentCapabilities().canAuthorProject || locked) {
+      renderRadiatorEditor();
+      return;
+    }
+
+    expandedRadiatorId = id;
+    applyRadiatorMutation(
+      updateRadiatorGeometry(project, id, {
+        [field]: Number.parseFloat(input.value),
+      }),
+    );
+  });
+
+  return openingField(labelText, input);
+}
+
+function addRadiatorFromWork(): void {
+  if (!currentCapabilities().canAuthorProject) return;
+  applyRadiatorMutation(addRadiator(project));
+}
+
+function applyRadiatorMutation(result: RadiatorMutationResult): void {
+  if (!result.ok) {
+    setObjectStatus(result.message, "error");
+    renderRadiatorEditor();
+    return;
+  }
+
+  const nextProject = getCurrentProjectState(projectHistory);
+  nextProject.room.objects = result.objects;
+  selectedOpeningId = null;
+
+  if (result.focusId) {
+    expandedRadiatorId = result.focusId;
+    offerInteraction = selectModelEntity(nextProject, result.focusId);
+  } else {
+    expandedRadiatorId = null;
+    if (
+      offerInteraction.selectedEntity &&
+      isSceneObjectId(offerInteraction.selectedEntity) &&
+      !getSceneObjectById(nextProject, offerInteraction.selectedEntity)
+    ) {
+      offerInteraction = showWholeResult();
+    }
+  }
+
+  setObjectStatus("", "idle");
+  setOpeningStatus("", "idle");
+  commitCanonicalProject(nextProject);
+}
+
 function renderLeftGeometrySummary(): void {
   const geometry = summarizeRoomGeometry(project);
   mustGet("m2SchemaCompactSummary").textContent =
@@ -1561,6 +1900,15 @@ function setOpeningStatus(
   state: "idle" | "error",
 ): void {
   const status = mustGet("openingsStatus");
+  status.textContent = message;
+  status.dataset.state = state;
+}
+
+function setObjectStatus(
+  message: string,
+  state: "idle" | "error",
+): void {
+  const status = mustGet("objectsStatus");
   status.textContent = message;
   status.dataset.state = state;
 }
@@ -2250,7 +2598,7 @@ function syncViewerFocus(): void {
   }
 
   viewer.setHighlightedEntities(
-    getHighlightedEntityIds(project, offerInteraction).filter(isSurfaceId),
+    getHighlightedEntityIds(project, offerInteraction),
   );
   viewer.setHighlightedOpening(selectedOpeningId);
   viewer.setLaminateFloorVisible(
@@ -2274,11 +2622,19 @@ function syncViewerFocus(): void {
     }
   }
   if (offerInteraction.selectedEntity) {
-    const label = project.room.surfaces.find(
-      (surface) => surface.id === offerInteraction.selectedEntity,
+    const selectedEntity = offerInteraction.selectedEntity;
+    const surfaceLabel = project.room.surfaces.find(
+      (surface) => surface.id === selectedEntity,
     )?.label;
+    const sceneObject = isSceneObjectId(selectedEntity)
+      ? getSceneObjectById(project, selectedEntity)
+      : undefined;
+    const objectLabel =
+      sceneObject && isRadiatorObject(sceneObject)
+        ? getRadiatorLabel(project, sceneObject.id)
+        : sceneObject?.id;
     chip.innerHTML = `<span class="focus-chip">Избрано: ${escapeHtml(
-      label ?? offerInteraction.selectedEntity,
+      surfaceLabel ?? objectLabel ?? selectedEntity,
     )}</span>`;
     return;
   }

@@ -50,6 +50,37 @@ describe("opening authoring", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("rejects moving an opening into an existing radiator", () => {
+    const project = createOpeningProofProject("opening-radiator-overlap");
+    project.room.objects.push({
+      id: "room-1.object-radiator-1",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.wall-back",
+        uM: 2.1,
+        vM: 0.42,
+        normalOffsetM: 0.04,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+
+    const result = updateOpening(project, "room-1.window-1", {
+      hostSurfaceId: "room-1.wall-back",
+      offsetM: 1.7,
+      sillM: 0.1,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.message).toContain("Радиатор");
+  });
+
   it("rejects a room resize that would invalidate an existing opening", () => {
     const project = createOpeningProofProject();
 

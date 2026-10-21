@@ -21,6 +21,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     defaults:
       run:
         working-directory: apps/work
@@ -99,9 +100,6 @@ jobs:
           wait "$CHROME_PID" 2>/dev/null || true
           CHROME_PID=""
 
-          google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,900 --screenshot=/tmp/persistence-login-desktop.png http://127.0.0.1:4173
-          google-chrome --headless --disable-gpu --no-sandbox --window-size=1440,1000 --screenshot=/tmp/vertical-slice-client.png "http://127.0.0.1:4173/?preview=1"
-
       - name: Upload visual QA screenshot
         uses: actions/upload-artifact@v4
         with:
@@ -124,6 +122,10 @@ jobs:
             /tmp/p34b-empty-service-scope-mobile.png
             /tmp/p35a-wall-finishing-mobile.png
             /tmp/p35b-ceiling-scope-mobile.png
+            /tmp/p36b-radiator-work.png
+            /tmp/p36b-radiator-client.png
+            /tmp/p36b-radiator-mobile-work.png
+            /tmp/p36b-radiator-mobile-client.png
             /tmp/d11-desktop-workbench.png
             /tmp/d12-left-work-panel.png
             /tmp/d13-right-services.png

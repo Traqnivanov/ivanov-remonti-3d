@@ -143,6 +143,58 @@ describe("project persistence boundary", () => {
     );
   });
 
+  it("rejects radiator-specific invalid hosts at Save and Open boundaries", () => {
+    const project = createDefaultProject("radiator-floor-save");
+    project.room.objects.push({
+      id: "room-1.object-radiator-floor",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.floor",
+        uM: 2.1,
+        vM: 2.4,
+        normalOffsetM: 0,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+
+    expectPersistenceError(
+      () => serializeProjectState(project),
+      "INVALID_STATE",
+    );
+
+    const persisted = serializeProjectState(
+      createDefaultProject("radiator-floor-open"),
+    );
+    persisted.rooms[0]!.objects.push({
+      id: "room-1.object-radiator-floor",
+      kind: "radiator",
+      placement: {
+        hostSurfaceId: "room-1.floor",
+        uM: 2.1,
+        vM: 2.4,
+        normalOffsetM: 0,
+        rotationDeg: 0,
+      },
+      dimensionsM: {
+        widthM: 1,
+        heightM: 0.6,
+        depthM: 0.12,
+      },
+      locked: false,
+    });
+
+    expectPersistenceError(
+      () => deserializeProjectState(persisted),
+      "INVALID_STATE",
+    );
+  });
+
   it("round-trips a supported host-local scene object and object service target", () => {
     const project = createDefaultProject("scene-object-round-trip");
     project.room.objects.push({

@@ -1,13 +1,26 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { ProjectState, SurfaceId, WallId } from "./domain";
+import {
+  isWallId,
+  type EntityId,
+  type ProjectState,
+  type SceneObjectId,
+  type SurfaceId,
+  type WallId,
+} from "./domain";
+import { isRadiatorObject } from "./radiator-authoring";
+import { getRadiatorWorldTransform } from "./radiator-transform";
 import { getWallOpeningRects, getWallSpanM } from "./opening-geometry";
-import { getAutoHiddenSurfaceIds, isSurfaceVisible } from "./viewer-visibility";
+import {
+  getAutoHiddenSurfaceIds,
+  isHostedObjectVisible,
+  isSurfaceVisible,
+} from "./viewer-visibility";
 import { calculateShowcaseFrame } from "./viewer-framing";
 
 type ViewerOptions = {
   container: HTMLElement;
-  onEntitySelect?: (id: SurfaceId) => void;
+  onEntitySelect?: (id: EntityId) => void;
   onOpeningSelect?: (id: string) => void;
 };
 
@@ -26,16 +39,19 @@ export class RoomViewer {
   private readonly entityOutlines = new Map<SurfaceId, THREE.LineSegments>();
   private readonly openingHitMeshes = new Map<string, THREE.Mesh>();
   private readonly openingHitOutlines = new Map<string, THREE.LineSegments>();
+  private readonly objectGroups = new Map<SceneObjectId, THREE.Group>();
+  private readonly objectPickMeshes = new Map<SceneObjectId, THREE.Mesh[]>();
+  private readonly objectOutlines = new Map<SceneObjectId, THREE.LineSegments>();
   private readonly manualHidden = new Set<SurfaceId>();
   private readonly autoHidden = new Set<SurfaceId>();
-  private highlighted = new Set<SurfaceId>();
+  private highlighted = new Set<EntityId>();
   private highlightedOpeningId: string | null = null;
   private floorFinishMesh: THREE.Mesh | null = null;
   private laminateFloorVisible = false;
   private project: ProjectState | null = null;
   private autoCutaway = true;
   private showcaseFrameActive = true;
-  private readonly onEntitySelect?: (id: SurfaceId) => void;
+  private readonly onEntitySelect?: (id: EntityId) => void;
   private readonly onOpeningSelect?: (id: string) => void;
   private animationFrame = 0;
 
@@ -87,9 +103,10 @@ export class RoomViewer {
     this.updateVisibility();
   }
 
-  setHighlightedEntities(ids: SurfaceId[]): void {
+  setHighlightedEntities(ids: EntityId[]): void {
     this.highlighted = new Set(ids);
     this.applyMaterials();
+    this.applyObjectHighlights();
   }
 
   setHighlightedOpening(id: string | null): void {
@@ -135,6 +152,7 @@ export class RoomViewer {
     this.controls.dispose();
     this.disposeFloorFinish();
     this.disposeOpeningHitAreas();
+    this.disposeSceneObjects();
     this.renderer.dispose();
     this.container.replaceChildren();
   }
@@ -142,6 +160,7 @@ export class RoomViewer {
   private rebuildRoom(): void {
     this.disposeFloorFinish();
     this.disposeOpeningHitAreas();
+    this.disposeSceneObjects();
 
     for (const mesh of this.entityMeshes.values()) {
       mesh.geometry.dispose();
@@ -206,8 +225,10 @@ export class RoomViewer {
     );
 
     this.makeOpeningHitAreas();
+    this.makeSceneObjects();
     this.applyMaterials();
     this.applyOpeningHighlights();
+    this.applyObjectHighlights();
   }
 
   private makeWallMesh(
@@ -427,6 +448,158 @@ export class RoomViewer {
     this.openingHitOutlines.clear();
   }
 
+  private makeSceneObjects(): void {
+    if (!this.project) return;
+
+    for (const object of this.project.room.objects) {
+      if (!isRadiatorObject(object) || !isWallId(object.placement.hostSurfaceId)) {
+        continue;
+      }
+
+      const group = new THREE.Group();
+      const transform = getRadiatorWorldTransform(
+        this.project.room,
+        object,
+        WALL_THICKNESS / 2,
+      );
+      group.position.set(transform.x, transform.y, transform.z);
+      group.rotation.y = transform.rotationY;
+      group.userData.entityId = object.id;
+
+      const bodyGeometry = new THREE.BoxGeometry(
+        object.dimensionsM.widthM,
+        object.dimensionsM.heightM,
+        object.dimensionsM.depthM,
+      );
+      const body = this.makeRadiatorPart(
+        object.id,
+        bodyGeometry,
+        0xd7dde5,
+      );
+      group.add(body);
+
+      const ribCount = Math.max(
+        4,
+        Math.min(14, Math.round(object.dimensionsM.widthM / 0.12)),
+      );
+      const ribWidth = Math.min(
+        0.035,
+        object.dimensionsM.widthM / Math.max(12, ribCount * 3),
+      );
+      const ribHeight = object.dimensionsM.heightM * 0.82;
+      const ribDepth = object.dimensionsM.depthM * 1.08;
+      const ribs: THREE.Mesh[] = [];
+
+      for (let index = 0; index < ribCount; index += 1) {
+        const ratio = ribCount === 1 ? 0.5 : index / (ribCount - 1);
+        const x =
+          -object.dimensionsM.widthM * 0.43 +
+          ratio * object.dimensionsM.widthM * 0.86;
+        const rib = this.makeRadiatorPart(
+          object.id,
+          new THREE.BoxGeometry(ribWidth, ribHeight, ribDepth),
+          0xb8c2cf,
+        );
+        rib.position.x = x;
+        group.add(rib);
+        ribs.push(rib);
+      }
+
+      const cap = this.makeRadiatorPart(
+        object.id,
+        new THREE.BoxGeometry(
+          object.dimensionsM.widthM * 0.96,
+          Math.min(0.04, object.dimensionsM.heightM * 0.08),
+          object.dimensionsM.depthM * 1.04,
+        ),
+        0xcbd3dd,
+      );
+      cap.position.y =
+        object.dimensionsM.heightM / 2 -
+        Math.min(0.035, object.dimensionsM.heightM * 0.08);
+      group.add(cap);
+
+      const outline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(bodyGeometry),
+        new THREE.LineBasicMaterial({
+          color: 0x8797aa,
+          transparent: true,
+          opacity: 0.42,
+          depthTest: false,
+        }),
+      );
+      outline.renderOrder = 5;
+      group.add(outline);
+
+      this.scene.add(group);
+      this.objectGroups.set(object.id, group);
+      this.objectPickMeshes.set(object.id, [body, ...ribs, cap]);
+      this.objectOutlines.set(object.id, outline);
+    }
+  }
+
+  private makeRadiatorPart(
+    id: SceneObjectId,
+    geometry: THREE.BufferGeometry,
+    color: number,
+  ): THREE.Mesh {
+    const material = new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.62,
+      metalness: 0.05,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.userData.entityId = id;
+    mesh.userData.baseColor = color;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    return mesh;
+  }
+
+  private disposeSceneObjects(): void {
+    for (const group of this.objectGroups.values()) {
+      group.traverse((item) => {
+        if (item instanceof THREE.Mesh || item instanceof THREE.LineSegments) {
+          item.geometry.dispose();
+          const material = item.material;
+          if (Array.isArray(material)) {
+            material.forEach((entry) => entry.dispose());
+          } else {
+            material.dispose();
+          }
+        }
+      });
+      this.scene.remove(group);
+    }
+
+    this.objectGroups.clear();
+    this.objectPickMeshes.clear();
+    this.objectOutlines.clear();
+  }
+
+  private applyObjectHighlights(): void {
+    for (const [id, meshes] of this.objectPickMeshes) {
+      const selected = this.highlighted.has(id);
+
+      for (const mesh of meshes) {
+        const material = mesh.material as THREE.MeshStandardMaterial;
+        const baseColor = mesh.userData.baseColor as number | undefined;
+        if (baseColor !== undefined) material.color.setHex(baseColor);
+        material.emissive.setHex(selected ? 0x7a4f00 : 0x000000);
+        material.emissiveIntensity = selected ? 0.38 : 0;
+        material.needsUpdate = true;
+      }
+
+      const outline = this.objectOutlines.get(id);
+      if (outline) {
+        const material = outline.material as THREE.LineBasicMaterial;
+        material.color.setHex(selected ? 0xe8b84b : 0x8797aa);
+        material.opacity = selected ? 1 : 0.42;
+        material.needsUpdate = true;
+      }
+    }
+  }
+
   private applyOpeningHighlights(): void {
     for (const [id, outline] of this.openingHitOutlines) {
       const material = outline.material as THREE.LineBasicMaterial;
@@ -613,6 +786,18 @@ export class RoomViewer {
         : true;
     }
 
+    if (this.project) {
+      for (const object of this.project.room.objects) {
+        const group = this.objectGroups.get(object.id);
+        if (!group) continue;
+        group.visible = isHostedObjectVisible(
+          object.placement.hostSurfaceId,
+          this.manualHidden,
+          this.autoHidden,
+        );
+      }
+    }
+
     this.updateFloorFinishVisibility();
   }
 
@@ -636,9 +821,14 @@ export class RoomViewer {
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.pointer, this.camera);
+    const visibleObjectMeshes = [...this.objectPickMeshes.values()]
+      .flat()
+      .filter((mesh) => mesh.visible && mesh.parent?.visible !== false);
+
     const hits = this.raycaster.intersectObjects(
       [
         ...this.openingHitMeshes.values(),
+        ...visibleObjectMeshes,
         ...this.entityMeshes.values(),
       ].filter((mesh) => mesh.visible),
       false,
@@ -651,7 +841,7 @@ export class RoomViewer {
       return;
     }
 
-    const id = firstHit?.userData.entityId as SurfaceId | undefined;
+    const id = firstHit?.userData.entityId as EntityId | undefined;
     if (id) this.onEntitySelect?.(id);
   };
 
