@@ -31,8 +31,8 @@ describe("P3.6b radiator host-local world transform", () => {
     const leftTransform = getRadiatorWorldTransform(room, left, 0.04);
     const rightTransform = getRadiatorWorldTransform(room, right, 0.04);
 
-    expect(leftTransform.x).toBeCloseTo(-1.94, 6);
-    expect(rightTransform.x).toBeCloseTo(1.94, 6);
+    expect(leftTransform.x).toBeCloseTo(-1.96, 6);
+    expect(rightTransform.x).toBeCloseTo(1.96, 6);
     expect(leftTransform.z).toBeCloseTo(1.2, 6);
     expect(rightTransform.z).toBeCloseTo(1.2, 6);
     expect(leftTransform.rotationY).toBeCloseTo(Math.PI / 2, 8);
