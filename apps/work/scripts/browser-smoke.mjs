@@ -2854,15 +2854,37 @@ async function runDirectClientSmoke() {
   }
 }
 
+console.log("[smoke] login:start");
 await runLoginSmoke();
+console.log("[smoke] login:pass");
+console.log("[smoke] work:start");
 await runWorkSmoke();
+console.log("[smoke] work:pass");
+console.log("[smoke] d15:start");
 await runD15DesktopAcceptanceSmoke();
+console.log("[smoke] d15:pass");
+console.log("[smoke] p36b-desktop:start");
 await runP36bRadiatorSmoke();
+console.log("[smoke] p36b-desktop:pass");
+console.log("[smoke] p36b-mobile:start");
 await runP36bRadiatorMobileSmoke();
+console.log("[smoke] p36b-mobile:pass");
+console.log("[smoke] direct-client:start");
 await runDirectClientSmoke();
+console.log("[smoke] direct-client:pass");
+console.log("[smoke] mobile-work:start");
 await runMobileWorkSmoke();
+console.log("[smoke] mobile-work:pass");
+console.log("[smoke] m0-390:start");
 await runM0ResponsiveReadabilitySmoke(390, "/tmp/m0-mobile-readable-390.png");
+console.log("[smoke] m0-390:pass");
+console.log("[smoke] m0-412:start");
 await runM0ResponsiveReadabilitySmoke(412, "/tmp/m0-mobile-readable-412.png");
+console.log("[smoke] m0-412:pass");
+console.log("[smoke] m0-wide:start");
 await runM0ResponsiveReadabilitySmoke(720, "/tmp/m0-mobile-readable-wide.png");
+console.log("[smoke] m0-wide:pass");
+console.log("[smoke] mobile-client:start");
 await runMobileClientSmoke();
+console.log("[smoke] mobile-client:pass");
 console.log("Browser smoke passed: private login + desktop Work + D1.5 full desktop acceptance + P3.6b Radiator Work/Client/mobile proof + desktop Client + mobile Work + M0 readability 360/390/412/wide-phone + mobile Owner Preview + mobile Client");
