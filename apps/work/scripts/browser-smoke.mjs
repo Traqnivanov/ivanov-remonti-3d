@@ -2551,6 +2551,14 @@ async function runMobileClientSmoke() {
 async function runP36bRadiatorSmoke() {
   const session = await createSession();
   try {
+    await session.call("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: 1440,
+      screenHeight: 900,
+    });
     await authorizeQaWork(session);
     await startD15AcceptanceProject(session);
 
