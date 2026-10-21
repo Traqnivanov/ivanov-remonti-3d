@@ -40,3 +40,11 @@ export function isSurfaceVisible(
 ): boolean {
   return !manualHidden.has(id) && !autoHidden.has(id);
 }
+
+export function isHostedObjectVisible(
+  hostSurfaceId: SurfaceId,
+  manualHidden: ReadonlySet<SurfaceId>,
+  autoHidden: ReadonlySet<SurfaceId>,
+): boolean {
+  return isSurfaceVisible(hostSurfaceId, manualHidden, autoHidden);
+}
