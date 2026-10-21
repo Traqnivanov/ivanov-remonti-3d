@@ -588,6 +588,7 @@ mustGet<HTMLDetailsElement>("m2SchemeDetails").open =
 
 syncDesktopRightPane();
 renderOpeningEditor();
+renderRadiatorEditor();
 renderD14ModelContext();
 renderServiceScopeControls();
 renderWallTargets();
@@ -606,6 +607,9 @@ function wireControls(): void {
   });
   mustGet("addWindowButton").addEventListener("click", () => {
     addOpeningFromWork("window");
+  });
+  mustGet("addRadiatorButton").addEventListener("click", () => {
+    addRadiatorFromWork();
   });
 
   mustGet("workModeBtn").addEventListener("click", () => setPreviewMode(false));
@@ -781,6 +785,7 @@ function handleOpeningSelect(id: string): void {
   offerInteraction = showWholeResult();
 
   renderOpeningEditor();
+  renderRadiatorEditor();
   renderD14ModelContext();
   syncViewerFocus();
   renderOffer();
@@ -1345,13 +1350,25 @@ function updateDimensions(): void {
     length !== project.room.lengthM ||
     height !== project.room.heightM;
 
-  const openingError = validateRoomResize(project, {
+  const nextDimensions = {
     widthM: width,
     lengthM: length,
     heightM: height,
-  });
+  };
+  const openingError = validateRoomResize(project, nextDimensions);
   if (openingError) {
     setOpeningStatus(openingError, "error");
+    setObjectStatus("", "idle");
+    widthInput.value = String(project.room.widthM);
+    lengthInput.value = String(project.room.lengthM);
+    heightInput.value = String(project.room.heightM);
+    return;
+  }
+
+  const objectError = validateRadiatorRoomResize(project, nextDimensions);
+  if (objectError) {
+    setObjectStatus(objectError, "error");
+    setOpeningStatus("", "idle");
     widthInput.value = String(project.room.widthM);
     lengthInput.value = String(project.room.lengthM);
     heightInput.value = String(project.room.heightM);
@@ -1370,6 +1387,7 @@ function updateDimensions(): void {
   nextProject.room.lengthM = length;
   nextProject.room.heightM = height;
   setOpeningStatus("", "idle");
+  setObjectStatus("", "idle");
   commitCanonicalProject(nextProject);
 }
 
