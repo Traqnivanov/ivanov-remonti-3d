@@ -13,6 +13,7 @@ import {
   type SurfaceId,
   type WallId,
 } from "./domain";
+import { validateRadiatorSet } from "./radiator-authoring";
 import { validateSceneObjects } from "./scene-object";
 
 export const CURRENT_PROJECT_SCHEMA_VERSION = 1 as const;
@@ -108,6 +109,8 @@ export class ProjectPersistenceError extends Error {
 export function serializeProjectState(project: ProjectState): PersistedProjectV1 {
   const objectError = validateSceneObjects(project.room);
   if (objectError) invalid(objectError);
+  const radiatorError = validateRadiatorSet(project.room);
+  if (radiatorError) invalid(radiatorError);
 
   for (const assignment of project.serviceAssignments) {
     const missingTarget = assignment.targetEntityIds.find(
@@ -216,6 +219,8 @@ export function deserializeProjectState(raw: unknown): ProjectState {
 
   const objectError = validateSceneObjects(runtimeRoom);
   if (objectError) invalid(objectError);
+  const radiatorError = validateRadiatorSet(runtimeRoom);
+  if (radiatorError) invalid(radiatorError);
 
   const knownEntityIds = new Set<string>([
     ...surfaces.map((surface) => surface.id),
