@@ -816,3 +816,19 @@ P3.6a establishes canonical SceneObject identity, host-local placement, persiste
 
 **P3.6b does not start automatically.** The next bounded checkpoint is the Radiator proof object and requires a new Current Work Issue, audit/Criteria Check and Owner approval before implementation.
 
+## 21.10.2026 — Owner approves P3.6b Radiator proof object
+
+Owner approved the exact bounded P3.6b scope:
+- Radiator only;
+- numeric Work authoring;
+- procedural 3D render;
+- exact object select/highlight;
+- Client read-only inspection;
+- host-wall visibility/cutaway coupling;
+- object-aware room resize;
+- existing P3.6a persistence/history path.
+
+Direct drag/snap, service/pricing expansion, P3.7 assets/materials, Mobile redesign and Supabase/DB changes remain excluded.
+
+Approval authorizes P3.6b implementation and verification only. It does not authorize merge or P3.6c.
+
