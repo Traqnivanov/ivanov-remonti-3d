@@ -1,11 +1,20 @@
 import "./styles.css";
-import type { Opening, ProjectState, SurfaceId, WallId } from "./domain";
+import type {
+  EntityId,
+  Opening,
+  ProjectState,
+  SceneObjectId,
+  SurfaceId,
+  WallId,
+} from "./domain";
 import {
   createDefaultProject,
   createFinePuttyCeilingAssignment,
   createOpeningProofProject,
   findFinePuttyCeilingAssignment,
   getFinePuttyAssignment,
+  getSceneObjectById,
+  isSceneObjectId,
   isSurfaceId,
   wallIds,
   FINE_PUTTY_CEILING_ASSIGNMENT_ID,
@@ -66,6 +75,18 @@ import {
   validateRoomResize,
   type OpeningMutationResult,
 } from "./opening-authoring";
+import {
+  addRadiator,
+  duplicateRadiator,
+  getRadiatorLabel,
+  isRadiatorObject,
+  moveRadiatorToWall,
+  removeRadiator,
+  setRadiatorLocked,
+  updateRadiatorGeometry,
+  validateRadiatorRoomResize,
+  type RadiatorMutationResult,
+} from "./radiator-authoring";
 import {
   addOperationAssignment,
   addOperationCeilingAssignment,
@@ -283,6 +304,7 @@ let offerInteraction = initialIncludedService
 let expandedOperationId: string | null = null;
 let expandedOpeningId: string | null = null;
 let selectedOpeningId: string | null = null;
+let expandedRadiatorId: SceneObjectId | null = null;
 let fullScopeExpandedInContext = false;
 let desktopRightPane: "services" | "scope" | "price" = "services";
 const desktopWorkbenchMedia = window.matchMedia("(min-width: 981px)");
@@ -353,6 +375,16 @@ app.innerHTML = `
           <p id="openingsStatus" class="opening-status" role="status" aria-live="polite"></p>
         </section>
 
+        <section class="section work-only objects-section left-work-section">
+          <div class="left-section-head">
+            <div class="section-title">Обекти</div>
+            <span id="objectsCount" class="left-section-meta"></span>
+          </div>
+          <div id="objectsEditor"></div>
+          <button id="addRadiatorButton" class="operation-add" type="button">Добави радиатор</button>
+          <p id="objectsStatus" class="opening-status" role="status" aria-live="polite"></p>
+        </section>
+
         <details id="m2SchemeDetails" class="section m2-scheme-details left-work-section">
           <summary class="m2-scheme-summary">
             <span>М² схема</span>
@@ -381,7 +413,7 @@ app.innerHTML = `
         </div>
 
         <div class="viewer-note">
-          <span class="viewer-help">Влачи: завъртане · колелце: мащаб · клик: избери повърхност</span>
+          <span class="viewer-help">Влачи: завъртане · колелце: мащаб · клик: избери повърхност или обект</span>
           <div id="selectionChip"></div>
         </div>
       </section>
